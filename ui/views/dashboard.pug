@@ -1,0 +1,56 @@
+{{ unless session.user }}
+	{{ redirect /admin/login }}
+{{ / }}
+
+{{ if session.user.role neq admin }}
+	{{ redirect /api/logout?goto=/admin/login }}
+{{ / }}
+
+doctype html
+html
+	head
+		{{ asset /admin/assets/styles/dashboard.css }}
+		{{ asset /admin/assets/styles/forms.css }}
+
+		title {{self.name}} &mdash; Sapling Dashboard
+
+	body
+
+		.top
+			a(href="/admin"): span.space-name {{self.name}}
+
+			.details
+				| Logged in as #[strong {{session.user.name}}]
+				a(href="/api/logout?goto=/") Logout
+
+		ul.nav
+			li: a(href="#page" class="page") Pages
+			li: a(href="#model" class="model") Models
+			li: a(href="#route" class="route") Routes
+			li: a(href="#permissions" class="permissions") Permissions
+			li: a(href="#config" class="config") Settings
+
+		#error
+		#page
+			.intro
+				h2 Welcome to your dashboard!
+
+		{{ asset /admin/assets/vendor/jquery.js }}
+		{{ asset /admin/assets/vendor/Spineless.js }}
+
+		{{ asset /admin/assets/src/index.min.js }}
+		{{ asset /admin/assets/src/Error.min.js }}
+		{{ asset /admin/assets/src/Page.min.js }}
+		{{ asset /admin/assets/src/Model.min.js }}
+		{{ asset /admin/assets/src/Route.min.js }}
+		{{ asset /admin/assets/src/Config.min.js }}
+		{{ asset /admin/assets/src/Permission.min.js }}
+
+		script(src="/admin/assets/vendor/cm/codemirror.js")
+		script(src="/admin/assets/vendor/cm/overlay.js")
+		script(src="/admin/assets/vendor/cm/modes/htmlmixed.js")
+		script(src="/admin/assets/vendor/cm/modes/css.js")
+		script(src="/admin/assets/vendor/cm/modes/javascript.js")
+		script(src="/admin/assets/vendor/cm/modes/xml.js")
+		link(href="/admin/assets/vendor/cm/codemirror.css")
+		link(href="/admin/assets/vendor/cm/cobalt.css")

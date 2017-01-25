@@ -1,0 +1,21 @@
+{{ if session.user }}
+	{{ redirect /admin/ }}
+{{ / }}
+
+doctype html
+html
+	head
+		{{ asset /admin/assets/styles/dashboard.css }}
+
+		title {{self.name}} &mdash; Sapling Dashboard
+
+	body
+		#login
+			h2 Forgot password for {{self.name}}
+
+			form(action="/api/forgot?goto=/admin/login" method="post")
+				label
+					span Email:
+					input(type="email" name="email")
+
+				button(type="submit" class="button green") Recover Password

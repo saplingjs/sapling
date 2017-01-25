@@ -1,0 +1,8 @@
+Forgotten Password
+------------------
+
+You have received this email because you forgot your password. If it was not you, simply ignore this email.
+
+Click the following link to reset the password. The link will expire within 2 hours.
+
+<%= url %>/api/recover?auth=<%= key %>
