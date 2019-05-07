@@ -3,26 +3,38 @@
 WD="$(pwd)"
 
 case "$1" in
-"init")
-	echo "init"
+"create")
+	echo "Creating a new Sapling project."
+	read -p "App name (e.g. My Cool App): " name
+	read -p "Repository name (e.g. mycoolapp): " repo
+
+	mkdir "$repo"
+	cd "$repo"
 	mkdir views
 	mkdir models
 	mkdir public
 	mkdir public/js
 	mkdir public/css
 	mkdir public/images
-	echo "{\"name\":\"My New Sapling App\"}" > config.json
+
+	echo "{
+	\"name\": \"$name\",
+	\"dependencies\": {
+		\"saplingjs\": \"*\"
+	}
+}" > package.json
+	echo "{
+	\"name\": \"$name\"
+}" > config.json
+
 	echo "{}" > controller.json	
 	echo "{}" > permissions.json
+
+	npm install
 	;;
 
 "serve" | "s")
-	node ./sapling
-	;;
-
-"modules")
-	cd sapling/
-	npm install 
+	node ./index.js
 	;;
 
 "link")

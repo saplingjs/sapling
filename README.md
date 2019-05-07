@@ -13,8 +13,7 @@ For unix-like systems (e.g. OSX, BSD, Linux) you may use the command-line tool. 
 
 **2. Install the dependencies and modules**
 
-- Node v0.10
-- MongoDB or Riak
+- Node.js v8, npm
 
 Run the following in a terminal:
 	

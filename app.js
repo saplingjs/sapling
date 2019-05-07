@@ -3,7 +3,6 @@ var util = require("util");
 var merge = require("merge");
 var ff = require("ff");
 var rfs = require("fs");
-var RiakFS = require("./lib/RiakFS");
 var _ = require("underscore");
 var cron = require("cron").CronJob;
 
@@ -17,14 +16,12 @@ var mathjs = require("mathjs");
 var toobusy = require('toobusy-js');
 var nodemailer = require('nodemailer');
 var recaptcha = require('simple-recaptcha');
-var RedisStore = require('connect-redis')(session);
 
 var Storage = require("./storage");
 var Greenhouse = require("./greenhouse");
 var Error = require("./lib/Error");
 var pwd = require("./lib/Hash");
 
-var pug = require("pug");
 var stripe;
 
 function randString () {
@@ -33,8 +30,8 @@ function randString () {
 
 var ERROR_CODE = 500;
 
-var forgotTemplateHTML = _.template(rfs.readFileSync("./sapling/static/mail/lostpass.html").toString());
-var forgotTemplateText = _.template(rfs.readFileSync("./sapling/static/mail/lostpass.txt").toString());
+var forgotTemplateHTML = _.template(rfs.readFileSync(__dirname + "/static/mail/lostpass.html").toString());
+var forgotTemplateText = _.template(rfs.readFileSync(__dirname + "/static/mail/lostpass.txt").toString());
 
 function App (dir, opts, next) {
 	console.log("APP", dir, opts)
@@ -46,14 +43,8 @@ function App (dir, opts, next) {
 	this._remoteAddrs = {};
 	this._sockets = [];
 
-	// use the riak filesystem or
-	// the standard filesystem
-	if (opts.riakBackend) {
-		this.fs = new RiakFS({name: dir})
-	} else {
-		this.fs = rfs;
-		this.dir = dir;
-	}
+	this.fs = rfs;
+	this.dir = dir;
 
 	var f = ff(this, function () {
 		this.loadConfig(f.slot());
@@ -78,28 +69,6 @@ function App (dir, opts, next) {
 			this.loadPlugins(f.slot());
 	}, function () {
 		if (opts.loadViews !== false) {
-			if (this.config.showAdmin) {
-				// load the dashboard files into view cache
-				var f2 = ff(this, function () {
-					rfs.readFile(path.join(__dirname, "ui/views/dashboard.pug"), f2.slot());
-					rfs.readFile(path.join(__dirname, "ui/views/login.pug"), f2.slot());
-					rfs.readFile(path.join(__dirname, "ui/views/forgot.pug"), f2.slot());
-					rfs.readFile(path.join(__dirname, "ui/views/recover.pug"), f2.slot());
-				}, function (dashboard, login, forgot, recover) {
-					this._viewCache["sapling/ui/views/dashboard"] = dashboard.toString();
-					this._viewCache["sapling/ui/views/login"] = login.toString();
-					this._viewCache["sapling/ui/views/forgot"] = forgot.toString();
-					this._viewCache["sapling/ui/views/recover"] = recover.toString();
-
-					this.initRoute("/admin", "sapling/ui/views/dashboard");
-					this.initRoute("/admin/login", "sapling/ui/views/login");	
-					this.initRoute("/admin/forgot", "sapling/ui/views/forgot");	
-					this.initRoute("/admin/recover", "sapling/ui/views/recover");	
-				}).cb(f.slot());
-			}
-		}
-	}, function () {
-		if (opts.loadViews !== false) {
 			for (var route in this.controller) {
 				this.initRoute(route, path.join(this.dir, this.config.views, this.controller[route]));
 			}
@@ -114,10 +83,6 @@ function App (dir, opts, next) {
 		if (opts.loadMailer !== false)
 			this.loadMailer(f.slot());
 	}, function () {
-		if (this.config.showAdmin) {
-			require("./ui/admin").init(this);
-		}
-
 		this._restarting = false;
 	}).error(function (err) {
 		console.error("Error starting Sapling");
@@ -141,7 +106,6 @@ App.prototype = {
 			"static": "public",
 			"cacheViews": true,
 			"showError": true,
-			"showAdmin": (this.opts.showAdmin != undefined ? this.opts.showAdmin : true),
 			"strict": true,
 			"db": {
 				"type": "Mongo"
@@ -232,11 +196,8 @@ App.prototype = {
 
 		// to persist sessions through reload
 		if (!server.sessionHandler) {
-			if(this.config.redis) {
-				var sessionStore = new RedisStore(this.config.redis);
-			} else {
-				var sessionStore = null;
-			}
+			/* TODO: Implement non-Redis store  */
+			var sessionStore = null;
 
 			server.sessionHandler = session({
 				store: sessionStore,
@@ -245,7 +206,6 @@ App.prototype = {
 				saveUninitialized: true,
 				cookie: {maxAge: null}
 			});
-			// TODO: handle Redis not being available
 		}
 
 	    server.use(server.sessionHandler);
@@ -266,25 +226,6 @@ App.prototype = {
 		server.use(bodyParser.urlencoded({ extended: true }));
 		server.use(bodyParser.json());
 		server.use(logger("combined"));
-
-		if (this.config.showAdmin) {
-			var staticDir = path.join(__dirname, "ui/assets");
-			server.use("/admin/assets/", express.static(staticDir, { maxAge: 1 }));
-
-			server.use("/admin", function (req, res, next) {
-				if (req.url === "/login" || 
-					req.url === "/" || 
-					req.url === "/forgot" ||
-					req.url === "/recover") { return next(); }
-
-				if (!req.session || !req.session.user || req.session.user.role != "admin") {
-					var errorHandler = this.errorHandler(req, res);
-					return errorHandler([{message: "You must be admin"}]);
-				}
-
-				next();
-			}.bind(this));
-		}
 
 		if (this.config.stripe) {
 			stripe = require('stripe')(this.config.stripe.api_key)
@@ -641,13 +582,6 @@ App.prototype = {
 			var dir = this.dir;
 
 			g.oncompiled = function (html) {
-				// if pug, let's render that first
-				if(config.extension === "pug") {
-					html = (pug.render(html, merge({
-						filename: path.join(dir, view+"."+config.extension)
-					}, data)));
-				}
-
 				res.send(html);
 				slot();
 			};
