@@ -24,13 +24,13 @@
     }
   ],
   "dependencies": {
+    "async": "^2.6.2",
     "body-parser": "1.19.0",
     "cookie-parser": "1.4.4",
     "cron": "^1.7.1",
     "express": "4.16.4",
     "express-session": "1.16.1",
     "ff": "0.2.2",
-    "merge": "^1.2.1",
     "moment": "2.24.0",
     "mongodb": "2.2.21",
     "morgan": "^1.9.1",

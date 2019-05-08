@@ -1,33 +1,32 @@
-var path = require("path");
-var util = require("util");
-var merge = require("merge");
-var ff = require("ff");
-var rfs = require("fs");
-var _ = require("underscore");
-var cron = require("cron").CronJob;
+const path = require("path");
+const util = require("util");
+const ff = require("ff");
+const rfs = require("fs");
+const _ = require("underscore");
+const cron = require("cron").CronJob;
 
-var express = require("express");
-var session = require("express-session");
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
-var logger = require('morgan');
+const express = require("express");
+const session = require("express-session");
+const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
+const logger = require('morgan');
 
-var nodemailer = require('nodemailer');
+const nodemailer = require('nodemailer');
 
-var Storage = require("./storage");
-var Greenhouse = require("./greenhouse");
-var Error = require("./lib/Error");
-var pwd = require("./lib/Hash");
+const Storage = require("./storage");
+const Greenhouse = require("./greenhouse");
+const Error = require("./lib/Error");
+const pwd = require("./lib/Hash");
 
-var stripe;
+let stripe;
 
 function randString () {
 	return ("00000000" + Math.random().toString(36).substr(2)).substr(-11);
 }
 
-var ERROR_CODE = 500;
+let ERROR_CODE = 500;
 
-var forgotTemplateHTML = _.template(rfs.readFileSync(path.join(__dirname, "/static/mail/lostpass.html")).toString());
+let forgotTemplateHTML = _.template(rfs.readFileSync(path.join(__dirname, "/static/mail/lostpass.html")).toString());
 
 function App (dir, opts, next) {
 	console.log("APP", dir, opts)
@@ -42,7 +41,11 @@ function App (dir, opts, next) {
 	this.fs = rfs;
 	this.dir = dir;
 
-	var f = ff(this, function () {
+	/* Make core functions return Promises */
+	this.readFile = util.promisify(this.fs.readFile);
+
+	/* Load everything */
+	let f = ff(this, function () {
 		this.loadConfig(f.slot());
 	}, function () {
 		if (opts.loadServer !== false) {
@@ -86,10 +89,11 @@ function App (dir, opts, next) {
 
 App.prototype = {
 	/*
-	* Load the configuration data. Must exist in a file
-	* called "config" and be valid JSON.
+	* Load the configuration data. Should exist in a file
+	* called "config" and must be valid JSON.
 	*/
-	loadConfig: function (next) {
+	loadConfig: async function (next) {
+		/* Default configuration values */
 		this.config = {
 			"models": "models",
 			"views": "views",
@@ -118,9 +122,15 @@ App.prototype = {
 			"url": ""
 		};
 
-		var f = ff(this, function () {
-			this.fs.readFile(path.join(this.dir, "config.json"), f.slot());
-		}, function (file) {
+		/* Location of the configuration */
+		const configPath = path.join(this.dir, "config.json");
+
+		/* Load the configuration */
+		if(this.fs.existsSync(configPath)) {
+			/* If we have a config file, let's load it */
+			let file = await this.readFile(configPath);
+
+			/* Parse and merge the config, or throw an error if it's malformed */
 			try {
 				var c = JSON.parse(file.toString());
 				_.extend(this.config, c);
@@ -128,13 +138,16 @@ App.prototype = {
 				console.error("Error loading config");
 				console.error(e, e.stack);
 			}
+		} else {
+			/* If not, let's add a fallback */
+			_.extend(this.config, {"name": "untitled"});
+		}
 
-			if (!this.config.name) {
-				console.error("You must include a `name` parameter in your config.json file");
-			}
+		/* Set the app name */
+		this.name = this.config.name;
 
-			this.name = this.config.name;
-		}).cb(next);
+		/* Next stage of the setup */
+		next();
 	},
 
 	/**
@@ -142,11 +155,9 @@ App.prototype = {
 	* the config data.
 	*/
 	loadServer: function (opts, next) {
-		console.log("loadServer");
-
-		var server;
-		var secret = this.config.secret || (this.config.secret = randString());
-		var self = this;
+		let server;
+		let secret = this.config.secret || (this.config.secret = randString());
+		let self = this;
 
 		if (opts.reload && this.server) {
 			this.routeStack = {'get': [], 'post': [], 'delete': []};
@@ -256,18 +267,28 @@ App.prototype = {
 	/**
 	* Load the controller JSON file.
 	*/
-	loadController: function (next) {
-		var controllerPath = path.join(this.dir, this.config.controller);
+	loadController: async function (next) {
+		/* Location of the controller file */
+		const controllerPath = path.join(this.dir, this.config.controller);
 
-		var f = ff(this, function () {
-			this.fs.readFile(controllerPath, f.slot());
-		}, function (file) {
+		/* Load the controller */
+		if(this.fs.existsSync(controllerPath)) {
+			/* If we have a controller file, let's load it */
+			let file = await this.readFile(controllerPath);
+
+			/* Parse and merge the controller, or throw an error if it's malformed */
 			try {
 				this.controller = JSON.parse(file.toString());
 			} catch (e) {
-				console.error("Controller at path: `" + controllerPath + "` not found.");
+				console.error("Controller at path: `" + controllerPath + "` could not be loaded.");
 			}
-		}).cb(next);
+		} else {
+			/* If not, let's use a fallback */
+			this.controller = {};
+		}
+
+		/* Next stage of the setup */
+		next();
 	},
 
 	/**
