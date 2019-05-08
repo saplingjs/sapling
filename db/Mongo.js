@@ -1,6 +1,6 @@
-var mongo = require("mongodb");
-var ff = require("ff");
-var Interface = require("./Interface");
+const mongo = require("mongodb");
+const ff = require("ff");
+const Interface = require("./Interface");
 
 var HOST = "localhost";
 var PORT = 27017;

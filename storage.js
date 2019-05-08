@@ -1,12 +1,13 @@
-var ff = require("ff");
-var fs = require("fs");
-var path = require("path");
-var url = require("url");
-var _ = require("underscore");
-var moment = require("moment");
+const ff = require("ff");
+const fs = require("fs");
+const path = require("path");
+const url = require("url");
+const _ = require("underscore");
+const moment = require("moment");
 
-var Class = require("./lib/Class");
-var Validation = require("./lib/Validation");
+const Class = require("./lib/Class");
+const Validation = require("./lib/Validation");
+const Cluster = require("./lib/Cluster");
 
 //default user structure
 var user_structure = {
@@ -55,11 +56,11 @@ function parseRequest (req) {
 		cmd = field;
 	}
 
-	console.log("Request", table, field, value, cmd)
+	Cluster.console.log("Request", table, field, value, cmd)
 
 	// leave a warning if no permission on a writable request
 	if ((method == "POST" || method == "DELETE") && !req.permission) {
-		console.warn("You should add a permission for `"+req.url+"`.")
+		Cluster.console.warn("You should add a permission for `"+req.url+"`.")
 	}
 
 	// modify the req object
@@ -107,10 +108,10 @@ var Storage = Class.extend({
 				this.db.createTable(table, this.schema[table], group());
 			}
 		}, function () {
-			console.log("CREATED DBS")
+			Cluster.console.log("CREATED DBS")
 			this.emit("created");
 		}).error(function (err) {
-			console.warn(err)
+			Cluster.console.warn(err)
 		});
 	},
 
@@ -213,7 +214,7 @@ var Storage = Class.extend({
 			if (!rule) {
 				// in strict mode, don't allow unknown fields
 				if (this.config.strict) { 
-					console.log("UNKNOWN FIELD", key)
+					Cluster.console.log("UNKNOWN FIELD", key)
 					delete data[key]; 
 				}
 				continue;
@@ -239,9 +240,9 @@ var Storage = Class.extend({
 			// if the user permission does not have access,
 			// delete the value or set to default
 			if (this.inheritRole(permission, access) === false) {
-				console.log("NO ACCESS TO KEY '" + key + "'");
-				console.log("Current permission level:", permission);
-				console.log("Required permission level:", access);
+				Cluster.console.log("NO ACCESS TO KEY '" + key + "'");
+				Cluster.console.log("Current permission level:", permission);
+				Cluster.console.log("Required permission level:", access);
 				delete data[key];
 			}
 		}
@@ -278,7 +279,7 @@ var Storage = Class.extend({
 			}
 		}
 		
-		console.log("ERRORS", errors)
+		Cluster.console.log("ERRORS", errors)
 		return errors.length && errors;
 	},
 
@@ -349,7 +350,7 @@ var Storage = Class.extend({
 
 		if (req.cmd == "inc") {
 			conditions[req.field] = req.value;
-			console.log("increment", req.table, conditions, data)
+			Cluster.console.log("increment", req.table, conditions, data)
 			this.db.increment(req.table, conditions, data, next);
 		} else if (req.type == "filter") {
 			// add a constraint to the where clause
@@ -395,7 +396,7 @@ var Storage = Class.extend({
 
 		// must be logged in!
 		if (req.permission && req.permission != "anyone" && req.permission != "stranger" && (!req.session || !req.session.user)) {
-			console.log(req.permission, req.session)
+			Cluster.console.log(req.permission, req.session)
 			return next({
 				"status": "401",
 				"code": "4002",
@@ -473,13 +474,13 @@ var Storage = Class.extend({
 			}
 		});
 
-		console.log(req.table, conditions, options)
+		Cluster.console.log(req.table, conditions, options)
 		this.db.read(req.table, conditions, options, references, function (err, arr) {
 			if (err) {
 				return next(err);
 			}
 
-			console.log("HERES WHAT I GOT", arr);
+			Cluster.console.log("HERES WHAT I GOT", arr);
 			
 			// omit fields not allowed
 			for (var i = 0; i < arr.length; ++i) {

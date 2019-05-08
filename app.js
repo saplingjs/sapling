@@ -17,6 +17,7 @@ const Storage = require("./storage");
 const Greenhouse = require("./greenhouse");
 const Error = require("./lib/Error");
 const pwd = require("./lib/Hash");
+const Cluster = require("./lib/Cluster");
 
 let stripe;
 
@@ -29,7 +30,6 @@ let ERROR_CODE = 500;
 let forgotTemplateHTML = _.template(rfs.readFileSync(path.join(__dirname, "/static/mail/lostpass.html")).toString());
 
 function App (dir, opts, next) {
-	console.log("APP", dir, opts)
 	this.dir = dir;
 	opts = opts || {};
 	this.opts = opts;
@@ -81,9 +81,9 @@ function App (dir, opts, next) {
 	}, function () {
 		this._restarting = false;
 	}).error(function (err) {
-		console.error("Error starting Sapling");
-		console.error(err);
-		console.error(err.stack);
+		Cluster.console.error("Error starting Sapling");
+		Cluster.console.error(err);
+		Cluster.console.error(err.stack);
 	}).cb(next);
 }
 
@@ -135,8 +135,8 @@ App.prototype = {
 				var c = JSON.parse(file.toString());
 				_.extend(this.config, c);
 			} catch (e) {
-				console.error("Error loading config");
-				console.error(e, e.stack);
+				Cluster.console.error("Error loading config");
+				Cluster.console.error(e, e.stack);
 			}
 		} else {
 			/* If not, let's add a fallback */
@@ -224,7 +224,7 @@ App.prototype = {
 
 		server.use(bodyParser.urlencoded({ extended: true }));
 		server.use(bodyParser.json());
-		server.use(logger("combined"));
+		server.use(logger(Cluster.logger));
 
 		if (this.config.stripe) {
 			stripe = require('stripe')(this.config.stripe.api_key)
@@ -256,7 +256,7 @@ App.prototype = {
 		});
 		
 		if (opts.listen !== false) {
-			console.log("Starting server on", this.config.port);
+			Cluster.listening(this.config.port);
 			server.http = server.listen(this.config.port);
 		}
 
@@ -280,7 +280,7 @@ App.prototype = {
 			try {
 				this.controller = JSON.parse(file.toString());
 			} catch (e) {
-				console.error("Controller at path: `" + controllerPath + "` could not be loaded.");
+				Cluster.console.error("Controller at path: `" + controllerPath + "` could not be loaded.");
 			}
 		} else {
 			/* If not, let's use a fallback */
@@ -304,7 +304,7 @@ App.prototype = {
 			this.fs.exists(modelPath, f.slotPlain());
 		}, function (exists) {
 			if (!exists) {
-				console.warn("Models at path `" + modelPath + "` does not exist")
+				Cluster.console.warn("Models at path `" + modelPath + "` does not exist")
 				f.succeed();
 			}
 
@@ -336,7 +336,7 @@ App.prototype = {
 				try {
 					structure[table] = JSON.parse(contents[i].toString());
 				} catch (e) {
-					console.error("Error parsing model `%s`", table);
+					Cluster.console.error("Error parsing model `%s`", table);
 				}
 			}
 		
@@ -367,9 +367,9 @@ App.prototype = {
 			try {
 				this.permissions = JSON.parse(perms);
 			} catch (e) {
-				console.error("permissions at path: [" + permissionsPath + "] not found.");
-				console.error(e);
-				console.error(e.stack);
+				Cluster.console.error("permissions at path: [" + permissionsPath + "] not found.");
+				Cluster.console.error(e);
+				Cluster.console.error(e.stack);
 			}
 
 			// loop over the urls in permissions
@@ -391,7 +391,7 @@ App.prototype = {
 				}
 
 				this.server[method](route, function (req, res, next) {
-					console.log("PERMISSION", method, route, user);
+					Cluster.console.log(this.workerID() + "PERMISSION", method, route, user);
 					
 					// make sure users don't accidently lock themselves out
 					// of the admin login
@@ -456,8 +456,8 @@ App.prototype = {
 			this._viewCache[view] = template.toString();
 			f.pass(this._viewCache[view])
 		}).error(function (e) {
-			console.error("Error loading the view template.", "[" + viewPath + "]")
-			console.error(e);
+			Cluster.console.error("Error loading the view template.", "[" + viewPath + "]")
+			Cluster.console.error(e);
 		}).cb(next);
 	},
 
@@ -630,7 +630,7 @@ App.prototype = {
 				var session = role ? { user: { role: role } } : this.data.session;
 
 				var allowed = app.testPermission(permission, session.user);
-				console.log("\n\nIS ALLOWED", session, allowed, permission)
+				Cluster.console.log(this.workerID() + "\n\nIS ALLOWED", session, allowed, permission)
 
 				// not allowed so give an empty array
 				if (!allowed) {
@@ -978,7 +978,7 @@ App.prototype = {
 
 			f.pass(data);
 		}).cb(function (err, data) {
-			console.log("REGISTER", err, data);
+			Cluster.console.log(this.workerID() + "REGISTER", err, data);
 
 			// TODO headers??
 			
@@ -1218,13 +1218,11 @@ App.prototype = {
 			var error = new Error(err);
 
 			//log to the server
-			console.error("-----------");
-			console.error("Error occured during %s %s", req.method && req.method.toUpperCase(), req.url)
+			Cluster.console.error("Error occured during %s %s", req.method && req.method.toUpperCase(), req.url)
 			if (self.config.showError) {
-				console.error(err);
-				if (err.stack) console.error(err.stack);
+				Cluster.console.error(err);
+				if (err.stack) Cluster.console.error(err.stack);
 			}
-			console.error("-----------");
 
 			// if json or javascript in accept header, give back JSON
 			var acceptJSON = /json|javascript/.test(req.headers.accept || "");
@@ -1259,13 +1257,13 @@ App.prototype = {
 	},
 
 	reload: function () {
-		console.log("\n\n**** RESTARTING ****\n\n");
+		Cluster.console.log(this.workerID() + "\n\n**** RESTARTING ****\n\n");
 
 		this._restarting = true;		
 		this.opts.listen = false;
 		this.opts.reload = true;
 		App.call(this, this.config.name, this.opts, function () {
-			console.log("DONE");
+			Cluster.console.log(this.workerID() + "DONE");
 		}.bind(this));
 	}
 };

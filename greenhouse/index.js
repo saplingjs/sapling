@@ -1,7 +1,7 @@
-var rfs = require("fs");
-var path = require("path");
-var ff = require("ff");
-
+const rfs = require("fs");
+const path = require("path");
+const ff = require("ff");
+const Cluster = require("../lib/Cluster");
 
 var entityMap = {
     "&": "&amp;",
@@ -35,7 +35,7 @@ function asyncEach (arr, ctx, iterator, callback) {
     var iterate = function () {
         iterator.call(ctx, arr[completed], function (err) {
             if (err) {
-                console.error("ERROR", err, err.stack)
+                Cluster.console.error("ERROR", err, err.stack)
                 callback.call(ctx, err);
                 callback = function () {};
             }
@@ -76,9 +76,9 @@ function asyncForEach (arr, ctx, iterator, callback) {
         var val = arr[key];
 
         iterator.call(ctx, val, key, function (err) {
-            console.log("ITERATE", val, key)
+            Cluster.console.log("ITERATE", val, key)
             if (err) {
-                console.error("ERROR", err, err.stack)
+                Cluster.console.error("ERROR", err, err.stack)
                 callback.call(ctx, err);
                 callback = function () {};
             }
@@ -255,8 +255,8 @@ Greenhouse.prototype.render = function (template, data, includeHash) {
     this.isError = !!this.compileErrors.length;
 
     if (this.isError) {
-        console.error("We found an error!")
-        console.error(this.compileErrors);
+        Cluster.console.error("We found an error!")
+        Cluster.console.error(this.compileErrors);
         this.onerror && this.onerror.call(this, this.compileErrors);
         return;
     }
@@ -266,7 +266,7 @@ Greenhouse.prototype.render = function (template, data, includeHash) {
     this.includeHash = includeHash || {};
 
     this.process(template, tokens, function () {
-        console.log("---- TEMPLATE COMPILED -----");
+        Cluster.console.log("---- TEMPLATE COMPILED -----");
         this.pieces.push(template.substring(this.start, template.length));
         this.oncompiled && this.oncompiled.call(this, this.pieces.join(""));
     });
@@ -288,7 +288,7 @@ function getLineFromIndex (template, index) {
         }
     }
 
-    console.log(num + ":\t" + line);
+    Cluster.console.log(num + ":\t" + line);
     return num + ":\t" + line;
 }
 
@@ -528,7 +528,7 @@ Greenhouse.prototype.process = function (template, adt, gnext) {
 
                 // already visited, must be a loop
                 if (this.includeHash[block.path]) {
-                    console.log("Loop detected:", block.path);
+                    Cluster.console.log("Loop detected:", block.path);
                     return next();
                 }
 
@@ -543,7 +543,7 @@ Greenhouse.prototype.process = function (template, adt, gnext) {
                     this.fs.exists(viewPath, f.slotPlain());
                 }, function (exists) {
                     if (!exists) {
-                        console.error("In include: FILE NOT EXISTS", viewPath);
+                        Cluster.console.error("In include: FILE NOT EXISTS", viewPath);
                         return f.pass("");
                     }
 
@@ -715,7 +715,7 @@ Greenhouse.prototype.process = function (template, adt, gnext) {
                         next.call(this);
                     }.bind(this));
                 } else {
-                    console.log("NO HOOK", block.expr)
+                    Cluster.console.log("NO HOOK", block.expr)
                     this.pieces.push(template.substring(this.start, block.end));
                     this.start = block.end;
                     return next();
