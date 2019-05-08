@@ -12,10 +12,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var logger = require('morgan');
 
-var mathjs = require("mathjs");
-var toobusy = require('toobusy-js');
 var nodemailer = require('nodemailer');
-var recaptcha = require('simple-recaptcha');
 
 var Storage = require("./storage");
 var Greenhouse = require("./greenhouse");
@@ -30,8 +27,7 @@ function randString () {
 
 var ERROR_CODE = 500;
 
-var forgotTemplateHTML = _.template(rfs.readFileSync(__dirname + "/static/mail/lostpass.html").toString());
-var forgotTemplateText = _.template(rfs.readFileSync(__dirname + "/static/mail/lostpass.txt").toString());
+var forgotTemplateHTML = _.template(rfs.readFileSync(path.join(__dirname, "/static/mail/lostpass.html")).toString());
 
 function App (dir, opts, next) {
 	console.log("APP", dir, opts)
@@ -64,9 +60,6 @@ function App (dir, opts, next) {
 	}, function () {
 		if (opts.loadViews !== false)
 			this.loadHook(f.slot());
-	}, function () {
-		if (opts.loadPlugins !== false)
-			this.loadPlugins(f.slot());
 	}, function () {
 		if (opts.loadViews !== false) {
 			for (var route in this.controller) {
@@ -122,12 +115,11 @@ App.prototype = {
 			"csrf": false,
 			"cors": true,
 			"rateLimit": 10,
-			"reCAPTCHA": "",
 			"url": ""
 		};
 
 		var f = ff(this, function () {
-			this.fs.readFile(path.join(this.dir, "config.json"), f.slot())
+			this.fs.readFile(path.join(this.dir, "config.json"), f.slot());
 		}, function (file) {
 			try {
 				var c = JSON.parse(file.toString());
@@ -150,6 +142,8 @@ App.prototype = {
 	* the config data.
 	*/
 	loadServer: function (opts, next) {
+		console.log("loadServer");
+
 		var server;
 		var secret = this.config.secret || (this.config.secret = randString());
 		var self = this;
@@ -165,12 +159,6 @@ App.prototype = {
 
 		// gracefully handle many requests
 		if (this.config.strict) {
-			toobusy.maxLag(500);
-			server.use(function(req, res, next) {
-				if (toobusy()) res.status(503).json([{message: "I'm busy right now, sorry."}]);
-				else next();
-			});
-
 			// rate limit
 			server.use(function (req, res, next) {
 				if (req.method.toLowerCase() !== "post") { return next(); }
@@ -255,48 +243,6 @@ App.prototype = {
 
 			n();
 		});
-
-		if (this.config.reCAPTCHA) {
-			server.use(function (req, res, next) {
-				if (req.method.toUpperCase() != "POST" || !req.body) return next();
-
-				var challenge = req.body.recaptcha_challenge_field;
-				var response = req.body.recaptcha_response_field;
-
-				// detected captcha fields
-				if ('recaptcha_challenge_field' in req.body && 
-					'recaptcha_response_field' in req.body) {
-					recaptcha(
-						this.config.reCAPTCHA, 
-						req.ip, 
-						challenge, 
-						response, 
-						function (err) {
-							if (err) this.errorHandler(req, res)([err]);
-							else {
-								req.captchaPass = true;
-								next();
-							}
-						}.bind(this)
-					);
-				} else next();
-			}.bind(this));
-		}
-
-		// set the content type for firefox os
-		server.get("/manifest.webapp", function (req, res, next) {
-			res.header("Content-Type", "application/x-web-app-manifest+json");
-			next();
-		});
-
-		server.get("/internal-sapling-reload", function (req, res) {
-			this.reload();
-			res.send(200);
-		}.bind(this));
-
-		server.get("/internal-sapling-ping", function (req, res) {
-			res.send("pong");
-		});
 		
 		if (opts.listen !== false) {
 			console.log("Starting server on", this.config.port);
@@ -338,7 +284,7 @@ App.prototype = {
 		}, function (exists) {
 			if (!exists) {
 				console.warn("Models at path `" + modelPath + "` does not exist")
-				return;
+				f.succeed();
 			}
 
 			this.fs.readdir(modelPath, f.slot());
@@ -467,55 +413,6 @@ App.prototype = {
 				});
 				
 			}.bind(this));
-		}).cb(next);
-	},
-
-
-	loadPlugins: function (next) {
-		var app = this;
-
-		this.plugins = {};
-
-		var pluginsPath = path.join(this.dir, "plugins.json");
-		var definitionPath = path.join(this.dir, "plugins");
-
-		var f = ff(this, function () {
-			rfs.exists(definitionPath, f.slotPlain());
-		}, function (exists) {
-			if (!exists) {
-				return this.succeed();
-			}
-			rfs.readdir(definitionPath, f.slot());
-		}, function (files) {
-			for (var i = 0; i < files.length; ++i) {
-				//require the JS file
-				var plugins = require(path.join("../", definitionPath, files[i]));
-				_.extend(this.plugins, plugins);
-			}
-
-			this.fs.readFile(pluginsPath, f.slot());
-		}, function (plugs) {
-			try {
-				this.plugs = JSON.parse(plugs);
-			} catch (e) {
-				next();
-			}
-
-			// CRONS
-			if(this.plugs.cron) {
-				Object.keys(this.plugs.cron).forEach(function(pattern) {
-					var job = new cron({
-						cronTime: pattern,
-						onTick: function(){
-							app.plugins[app.plugs.cron[pattern]].call(app, app.storage);
-						},
-						start: true,
-						runOnInit: true
-					});
-				}.bind(this));
-			}
-
-			// TODO: EXTEND PLUGIN INTERFACE
 		}).cb(next);
 	},
 
@@ -774,25 +671,6 @@ App.prototype = {
 				}.bind(this));
 			},
 
-			expr: function (block, next) {
-				var bits = block.rawExpr.indexOf(" ");
-				var variable = block.expr.substring(0, bits);
-
-				var expr = this.parseExpression(block.rawExpr.substr(bits + 1), function (n) {
-					return parseInt(n, 10) || 0;
-				});
-
-				var result = "0";
-				try {
-					result = mathjs.eval(expr).toString();
-				} catch (e) {
-					result = "[MathError]";
-				}
-
-				this.saveDots(variable, result);
-				next();
-			},
-
 			debug: function (block, next) {
 				var value = this.extractDots(block.rawExpr);
 				this.pieces.push("<pre>" + JSON.stringify(value, null, '\t') + "</pre>");
@@ -816,30 +694,6 @@ App.prototype = {
 				return false;
 			}
 		};
-
-		// TODO: RENAME PLUGINS AND HOOKS TO SOMETHING ELSE
-		//scan plugins directory
-		var pluginPath = path.join(__dirname, "plugins");
-		var f = ff(this, function () {
-			rfs.exists(pluginPath, f.slotPlain());
-		}, function (exists) {
-			if (!exists) {
-				return this.succeed();
-			}
-
-			rfs.readdir(pluginPath, f.slot());
-		}, function (files) {
-			for (var i = 0; i < files.length; ++i) {
-				var file = files[i];
-				var table = file.split(".")[0];
-
-				//require the JS file
-				var hooks = require(path.join(pluginPath, file));
-				console.log("LOAD HOOK", path.join(pluginPath, file), Object.keys(hooks))
-				//extend the main hook object
-				_.extend(this.hooks, hooks);
-			}
-		}).cb(next);
 	},
 
 	/**
@@ -1229,7 +1083,6 @@ App.prototype = {
 			this.mailer.sendMail({
 				to: user.email,
 				subject: "Recover Sapling Password for " + this.name,
-				text: forgotTemplateText(templateData),
 				html: forgotTemplateHTML(templateData)
 			}, f.slot());
 		}).cb(this.response(req, res));

@@ -67,23 +67,4 @@ case "$1" in
 	" | node;
 	;;
 
-"admin")
-	read -p "Username: " username
-	read -s -p "Password: " password
-
-	echo "
-		var app = require(\"./sapling/app\");
-		a = new app(__dirname, {listen: false});
-
-		a.register({
-			session: app.adminSession,
-			body: {
-				name: \"$username\",
-				pass: \"$password\",
-				role: \"admin\"
-			}
-		}, {json: function(){ console.error(arguments); process.exit(0); }});
-	" | node >/dev/null;
-	;;
-
 esac

@@ -30,16 +30,13 @@
     "express": "4.16.4",
     "express-session": "1.16.1",
     "ff": "0.2.2",
-    "mathjs": "3.8.1",
     "merge": "^1.2.1",
     "moment": "2.24.0",
     "mongodb": "2.2.21",
     "morgan": "^1.9.1",
     "nodemailer": "4.0.1",
     "request": "2.88.0",
-    "simple-recaptcha": "0.0.3",
     "stripe": "^6.31.2",
-    "toobusy-js": "0.5.1",
     "underscore": "1.9.1"
   }
 }
