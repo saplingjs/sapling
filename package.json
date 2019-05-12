@@ -2,7 +2,7 @@
   "name": "Sapling",
   "version": "0.1.0",
   "license": "MIT",
-  "description": "Dynamic framework for lightspeed development of apps and APIs.",
+  "description": "Node.js framework for faster-than-light web development.",
   "keywords": [
     "framework",
     "server",

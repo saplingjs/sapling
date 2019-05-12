@@ -101,7 +101,7 @@ App.prototype = {
 			"models": "models",
 			"views": "views",
 			"controller": "controller.json",
-			"extension": "sap",
+			"extension": "html",
 			"secret": randString(),
 			"static": "public",
 			"cacheViews": true,
