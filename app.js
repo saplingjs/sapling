@@ -1,40 +1,35 @@
-var path = require("path");
-var util = require("util");
-var merge = require("merge");
-var ff = require("ff");
-var rfs = require("fs");
-var _ = require("underscore");
-var cron = require("cron").CronJob;
+const path = require("path");
+const util = require("util");
+const ff = require("ff");
+const rfs = require("fs");
+const _ = require("underscore");
+const cron = require("cron").CronJob;
 
-var express = require("express");
-var session = require("express-session");
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
-var logger = require('morgan');
+const express = require("express");
+const session = require("express-session");
+const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
+const logger = require('morgan');
 
-var mathjs = require("mathjs");
-var toobusy = require('toobusy-js');
-var nodemailer = require('nodemailer');
-var recaptcha = require('simple-recaptcha');
+const nodemailer = require('nodemailer');
 
-var Storage = require("./storage");
-var Greenhouse = require("./greenhouse");
-var Error = require("./lib/Error");
-var pwd = require("./lib/Hash");
+const Storage = require("./storage");
+const Greenhouse = require("./greenhouse");
+const Error = require("./lib/Error");
+const pwd = require("./lib/Hash");
+const Cluster = require("./lib/Cluster");
 
-var stripe;
+let stripe;
 
 function randString () {
 	return ("00000000" + Math.random().toString(36).substr(2)).substr(-11);
 }
 
-var ERROR_CODE = 500;
+let ERROR_CODE = 500;
 
-var forgotTemplateHTML = _.template(rfs.readFileSync(__dirname + "/static/mail/lostpass.html").toString());
-var forgotTemplateText = _.template(rfs.readFileSync(__dirname + "/static/mail/lostpass.txt").toString());
+let forgotTemplateHTML = _.template(rfs.readFileSync(path.join(__dirname, "/static/mail/lostpass.html")).toString());
 
 function App (dir, opts, next) {
-	console.log("APP", dir, opts)
 	this.dir = dir;
 	opts = opts || {};
 	this.opts = opts;
@@ -46,7 +41,11 @@ function App (dir, opts, next) {
 	this.fs = rfs;
 	this.dir = dir;
 
-	var f = ff(this, function () {
+	/* Make core functions return Promises */
+	this.readFile = util.promisify(this.fs.readFile);
+
+	/* Load everything */
+	let f = ff(this, function () {
 		this.loadConfig(f.slot());
 	}, function () {
 		if (opts.loadServer !== false) {
@@ -65,9 +64,6 @@ function App (dir, opts, next) {
 		if (opts.loadViews !== false)
 			this.loadHook(f.slot());
 	}, function () {
-		if (opts.loadPlugins !== false)
-			this.loadPlugins(f.slot());
-	}, function () {
 		if (opts.loadViews !== false) {
 			for (var route in this.controller) {
 				this.initRoute(route, path.join(this.dir, this.config.views, this.controller[route]));
@@ -85,18 +81,19 @@ function App (dir, opts, next) {
 	}, function () {
 		this._restarting = false;
 	}).error(function (err) {
-		console.error("Error starting Sapling");
-		console.error(err);
-		console.error(err.stack);
+		Cluster.console.error("Error starting Sapling");
+		Cluster.console.error(err);
+		Cluster.console.error(err.stack);
 	}).cb(next);
 }
 
 App.prototype = {
 	/*
-	* Load the configuration data. Must exist in a file
-	* called "config" and be valid JSON.
+	* Load the configuration data. Should exist in a file
+	* called "config" and must be valid JSON.
 	*/
-	loadConfig: function (next) {
+	loadConfig: async function (next) {
+		/* Default configuration values */
 		this.config = {
 			"models": "models",
 			"views": "views",
@@ -122,27 +119,35 @@ App.prototype = {
 			"csrf": false,
 			"cors": true,
 			"rateLimit": 10,
-			"reCAPTCHA": "",
 			"url": ""
 		};
 
-		var f = ff(this, function () {
-			this.fs.readFile(path.join(this.dir, "config.json"), f.slot())
-		}, function (file) {
+		/* Location of the configuration */
+		const configPath = path.join(this.dir, "config.json");
+
+		/* Load the configuration */
+		if(this.fs.existsSync(configPath)) {
+			/* If we have a config file, let's load it */
+			let file = await this.readFile(configPath);
+
+			/* Parse and merge the config, or throw an error if it's malformed */
 			try {
 				var c = JSON.parse(file.toString());
 				_.extend(this.config, c);
 			} catch (e) {
-				console.error("Error loading config");
-				console.error(e, e.stack);
+				Cluster.console.error("Error loading config");
+				Cluster.console.error(e, e.stack);
 			}
+		} else {
+			/* If not, let's add a fallback */
+			_.extend(this.config, {"name": "untitled"});
+		}
 
-			if (!this.config.name) {
-				console.error("You must include a `name` parameter in your config.json file");
-			}
+		/* Set the app name */
+		this.name = this.config.name;
 
-			this.name = this.config.name;
-		}).cb(next);
+		/* Next stage of the setup */
+		next();
 	},
 
 	/**
@@ -150,9 +155,9 @@ App.prototype = {
 	* the config data.
 	*/
 	loadServer: function (opts, next) {
-		var server;
-		var secret = this.config.secret || (this.config.secret = randString());
-		var self = this;
+		let server;
+		let secret = this.config.secret || (this.config.secret = randString());
+		let self = this;
 
 		if (opts.reload && this.server) {
 			this.routeStack = {'get': [], 'post': [], 'delete': []};
@@ -165,12 +170,6 @@ App.prototype = {
 
 		// gracefully handle many requests
 		if (this.config.strict) {
-			toobusy.maxLag(500);
-			server.use(function(req, res, next) {
-				if (toobusy()) res.status(503).json([{message: "I'm busy right now, sorry."}]);
-				else next();
-			});
-
 			// rate limit
 			server.use(function (req, res, next) {
 				if (req.method.toLowerCase() !== "post") { return next(); }
@@ -225,7 +224,7 @@ App.prototype = {
 
 		server.use(bodyParser.urlencoded({ extended: true }));
 		server.use(bodyParser.json());
-		server.use(logger("combined"));
+		server.use(logger(Cluster.logger));
 
 		if (this.config.stripe) {
 			stripe = require('stripe')(this.config.stripe.api_key)
@@ -255,51 +254,9 @@ App.prototype = {
 
 			n();
 		});
-
-		if (this.config.reCAPTCHA) {
-			server.use(function (req, res, next) {
-				if (req.method.toUpperCase() != "POST" || !req.body) return next();
-
-				var challenge = req.body.recaptcha_challenge_field;
-				var response = req.body.recaptcha_response_field;
-
-				// detected captcha fields
-				if ('recaptcha_challenge_field' in req.body && 
-					'recaptcha_response_field' in req.body) {
-					recaptcha(
-						this.config.reCAPTCHA, 
-						req.ip, 
-						challenge, 
-						response, 
-						function (err) {
-							if (err) this.errorHandler(req, res)([err]);
-							else {
-								req.captchaPass = true;
-								next();
-							}
-						}.bind(this)
-					);
-				} else next();
-			}.bind(this));
-		}
-
-		// set the content type for firefox os
-		server.get("/manifest.webapp", function (req, res, next) {
-			res.header("Content-Type", "application/x-web-app-manifest+json");
-			next();
-		});
-
-		server.get("/internal-sapling-reload", function (req, res) {
-			this.reload();
-			res.send(200);
-		}.bind(this));
-
-		server.get("/internal-sapling-ping", function (req, res) {
-			res.send("pong");
-		});
 		
 		if (opts.listen !== false) {
-			console.log("Starting server on", this.config.port);
+			Cluster.listening(this.config.port);
 			server.http = server.listen(this.config.port);
 		}
 
@@ -310,18 +267,28 @@ App.prototype = {
 	/**
 	* Load the controller JSON file.
 	*/
-	loadController: function (next) {
-		var controllerPath = path.join(this.dir, this.config.controller);
+	loadController: async function (next) {
+		/* Location of the controller file */
+		const controllerPath = path.join(this.dir, this.config.controller);
 
-		var f = ff(this, function () {
-			this.fs.readFile(controllerPath, f.slot());
-		}, function (file) {
+		/* Load the controller */
+		if(this.fs.existsSync(controllerPath)) {
+			/* If we have a controller file, let's load it */
+			let file = await this.readFile(controllerPath);
+
+			/* Parse and merge the controller, or throw an error if it's malformed */
 			try {
 				this.controller = JSON.parse(file.toString());
 			} catch (e) {
-				console.error("Controller at path: `" + controllerPath + "` not found.");
+				Cluster.console.error("Controller at path: `" + controllerPath + "` could not be loaded.");
 			}
-		}).cb(next);
+		} else {
+			/* If not, let's use a fallback */
+			this.controller = {};
+		}
+
+		/* Next stage of the setup */
+		next();
 	},
 
 	/**
@@ -337,8 +304,8 @@ App.prototype = {
 			this.fs.exists(modelPath, f.slotPlain());
 		}, function (exists) {
 			if (!exists) {
-				console.warn("Models at path `" + modelPath + "` does not exist")
-				return;
+				Cluster.console.warn("Models at path `" + modelPath + "` does not exist")
+				f.succeed();
 			}
 
 			this.fs.readdir(modelPath, f.slot());
@@ -369,7 +336,7 @@ App.prototype = {
 				try {
 					structure[table] = JSON.parse(contents[i].toString());
 				} catch (e) {
-					console.error("Error parsing model `%s`", table);
+					Cluster.console.error("Error parsing model `%s`", table);
 				}
 			}
 		
@@ -400,9 +367,9 @@ App.prototype = {
 			try {
 				this.permissions = JSON.parse(perms);
 			} catch (e) {
-				console.error("permissions at path: [" + permissionsPath + "] not found.");
-				console.error(e);
-				console.error(e.stack);
+				Cluster.console.error("permissions at path: [" + permissionsPath + "] not found.");
+				Cluster.console.error(e);
+				Cluster.console.error(e.stack);
 			}
 
 			// loop over the urls in permissions
@@ -424,7 +391,7 @@ App.prototype = {
 				}
 
 				this.server[method](route, function (req, res, next) {
-					console.log("PERMISSION", method, route, user);
+					Cluster.console.log(this.workerID() + "PERMISSION", method, route, user);
 					
 					// make sure users don't accidently lock themselves out
 					// of the admin login
@@ -470,55 +437,6 @@ App.prototype = {
 		}).cb(next);
 	},
 
-
-	loadPlugins: function (next) {
-		var app = this;
-
-		this.plugins = {};
-
-		var pluginsPath = path.join(this.dir, "plugins.json");
-		var definitionPath = path.join(this.dir, "plugins");
-
-		var f = ff(this, function () {
-			rfs.exists(definitionPath, f.slotPlain());
-		}, function (exists) {
-			if (!exists) {
-				return this.succeed();
-			}
-			rfs.readdir(definitionPath, f.slot());
-		}, function (files) {
-			for (var i = 0; i < files.length; ++i) {
-				//require the JS file
-				var plugins = require(path.join("../", definitionPath, files[i]));
-				_.extend(this.plugins, plugins);
-			}
-
-			this.fs.readFile(pluginsPath, f.slot());
-		}, function (plugs) {
-			try {
-				this.plugs = JSON.parse(plugs);
-			} catch (e) {
-				next();
-			}
-
-			// CRONS
-			if(this.plugs.cron) {
-				Object.keys(this.plugs.cron).forEach(function(pattern) {
-					var job = new cron({
-						cronTime: pattern,
-						onTick: function(){
-							app.plugins[app.plugs.cron[pattern]].call(app, app.storage);
-						},
-						start: true,
-						runOnInit: true
-					});
-				}.bind(this));
-			}
-
-			// TODO: EXTEND PLUGIN INTERFACE
-		}).cb(next);
-	},
-
 	loadView: function (view, next) {
 		var viewPath = view + "." + this.config.extension;
 
@@ -538,8 +456,8 @@ App.prototype = {
 			this._viewCache[view] = template.toString();
 			f.pass(this._viewCache[view])
 		}).error(function (e) {
-			console.error("Error loading the view template.", "[" + viewPath + "]")
-			console.error(e);
+			Cluster.console.error("Error loading the view template.", "[" + viewPath + "]")
+			Cluster.console.error(e);
 		}).cb(next);
 	},
 
@@ -712,7 +630,7 @@ App.prototype = {
 				var session = role ? { user: { role: role } } : this.data.session;
 
 				var allowed = app.testPermission(permission, session.user);
-				console.log("\n\nIS ALLOWED", session, allowed, permission)
+				Cluster.console.log(this.workerID() + "\n\nIS ALLOWED", session, allowed, permission)
 
 				// not allowed so give an empty array
 				if (!allowed) {
@@ -774,25 +692,6 @@ App.prototype = {
 				}.bind(this));
 			},
 
-			expr: function (block, next) {
-				var bits = block.rawExpr.indexOf(" ");
-				var variable = block.expr.substring(0, bits);
-
-				var expr = this.parseExpression(block.rawExpr.substr(bits + 1), function (n) {
-					return parseInt(n, 10) || 0;
-				});
-
-				var result = "0";
-				try {
-					result = mathjs.eval(expr).toString();
-				} catch (e) {
-					result = "[MathError]";
-				}
-
-				this.saveDots(variable, result);
-				next();
-			},
-
 			debug: function (block, next) {
 				var value = this.extractDots(block.rawExpr);
 				this.pieces.push("<pre>" + JSON.stringify(value, null, '\t') + "</pre>");
@@ -816,30 +715,6 @@ App.prototype = {
 				return false;
 			}
 		};
-
-		// TODO: RENAME PLUGINS AND HOOKS TO SOMETHING ELSE
-		//scan plugins directory
-		var pluginPath = path.join(__dirname, "plugins");
-		var f = ff(this, function () {
-			rfs.exists(pluginPath, f.slotPlain());
-		}, function (exists) {
-			if (!exists) {
-				return this.succeed();
-			}
-
-			rfs.readdir(pluginPath, f.slot());
-		}, function (files) {
-			for (var i = 0; i < files.length; ++i) {
-				var file = files[i];
-				var table = file.split(".")[0];
-
-				//require the JS file
-				var hooks = require(path.join(pluginPath, file));
-				console.log("LOAD HOOK", path.join(pluginPath, file), Object.keys(hooks))
-				//extend the main hook object
-				_.extend(this.hooks, hooks);
-			}
-		}).cb(next);
 	},
 
 	/**
@@ -1103,7 +978,7 @@ App.prototype = {
 
 			f.pass(data);
 		}).cb(function (err, data) {
-			console.log("REGISTER", err, data);
+			Cluster.console.log(this.workerID() + "REGISTER", err, data);
 
 			// TODO headers??
 			
@@ -1229,7 +1104,6 @@ App.prototype = {
 			this.mailer.sendMail({
 				to: user.email,
 				subject: "Recover Sapling Password for " + this.name,
-				text: forgotTemplateText(templateData),
 				html: forgotTemplateHTML(templateData)
 			}, f.slot());
 		}).cb(this.response(req, res));
@@ -1344,13 +1218,11 @@ App.prototype = {
 			var error = new Error(err);
 
 			//log to the server
-			console.error("-----------");
-			console.error("Error occured during %s %s", req.method && req.method.toUpperCase(), req.url)
+			Cluster.console.error("Error occured during %s %s", req.method && req.method.toUpperCase(), req.url)
 			if (self.config.showError) {
-				console.error(err);
-				if (err.stack) console.error(err.stack);
+				Cluster.console.error(err);
+				if (err.stack) Cluster.console.error(err.stack);
 			}
-			console.error("-----------");
 
 			// if json or javascript in accept header, give back JSON
 			var acceptJSON = /json|javascript/.test(req.headers.accept || "");
@@ -1385,13 +1257,13 @@ App.prototype = {
 	},
 
 	reload: function () {
-		console.log("\n\n**** RESTARTING ****\n\n");
+		Cluster.console.log(this.workerID() + "\n\n**** RESTARTING ****\n\n");
 
 		this._restarting = true;		
 		this.opts.listen = false;
 		this.opts.reload = true;
 		App.call(this, this.config.name, this.opts, function () {
-			console.log("DONE");
+			Cluster.console.log(this.workerID() + "DONE");
 		}.bind(this));
 	}
 };
