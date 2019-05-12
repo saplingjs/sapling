@@ -22,77 +22,77 @@ const Cluster = require("./lib/Cluster");
 let stripe;
 
 function randString () {
-	return ("00000000" + Math.random().toString(36).substr(2)).substr(-11);
+	return (`00000000${Math.random().toString(36).substr(2)}`).substr(-11);
 }
 
 let ERROR_CODE = 500;
 
 let forgotTemplateHTML = _.template(rfs.readFileSync(path.join(__dirname, "/static/mail/lostpass.html")).toString());
 
-function App (dir, opts, next) {
-	this.dir = dir;
-	opts = opts || {};
-	this.opts = opts;
-	
-	this._viewCache = {};
-	this._remoteAddrs = {};
-	this._sockets = [];
+class App {
+    constructor(dir, opts, next) {
+        this.dir = dir;
+        opts = opts || {};
+        this.opts = opts;
+        
+        this._viewCache = {};
+        this._remoteAddrs = {};
+        this._sockets = [];
 
-	this.fs = rfs;
-	this.dir = dir;
+        this.fs = rfs;
+        this.dir = dir;
 
-	/* Make core functions return Promises */
-	this.readFile = util.promisify(this.fs.readFile);
+        /* Make core functions return Promises */
+        this.readFile = util.promisify(this.fs.readFile);
 
-	/* Load everything */
-	let f = ff(this, function () {
-		this.loadConfig(f.slot());
-	}, function () {
-		if (opts.loadServer !== false) {
-			this.loadServer(opts, f.slot());
-		}
-	}, function () {
-		if (opts.loadModel !== false)
-			this.loadModel(f.slot());
-	}, function () {
-		if (opts.loadPermissions !== false)
-			this.loadPermissions(f.slot());
-	}, function () {
-		if (opts.loadController !== false)
-			this.loadController(f.slot());
-	}, function () {
-		if (opts.loadViews !== false)
-			this.loadHook(f.slot());
-	}, function () {
-		if (opts.loadViews !== false) {
-			for (var route in this.controller) {
-				this.initRoute(route, path.join(this.dir, this.config.views, this.controller[route]));
-			}
-		}
+        /* Load everything */
+        let f = ff(this, function () {
+            this.loadConfig(f.slot());
+        }, function () {
+            if (opts.loadServer !== false) {
+                this.loadServer(opts, f.slot());
+            }
+        }, function () {
+            if (opts.loadModel !== false)
+                this.loadModel(f.slot());
+        }, function () {
+            if (opts.loadPermissions !== false)
+                this.loadPermissions(f.slot());
+        }, function () {
+            if (opts.loadController !== false)
+                this.loadController(f.slot());
+        }, function () {
+            if (opts.loadViews !== false)
+                this.loadHook(f.slot());
+        }, function () {
+            if (opts.loadViews !== false) {
+                for (const route in this.controller) {
+                    this.initRoute(route, path.join(this.dir, this.config.views, this.controller[route]));
+                }
+            }
 
-		if (opts.loadREST !== false)
-			this.loadREST(f.slot());
-	}, function () {
-		if (opts.loadAPI !== false)
-			this.loadAPI(f.slot());
-	}, function () {
-		if (opts.loadMailer !== false)
-			this.loadMailer(f.slot());
-	}, function () {
-		this._restarting = false;
-	}).error(function (err) {
-		Cluster.console.error("Error starting Sapling");
-		Cluster.console.error(err);
-		Cluster.console.error(err.stack);
-	}).cb(next);
-}
+            if (opts.loadREST !== false)
+                this.loadREST(f.slot());
+        }, function () {
+            if (opts.loadAPI !== false)
+                this.loadAPI(f.slot());
+        }, function () {
+            if (opts.loadMailer !== false)
+                this.loadMailer(f.slot());
+        }, function () {
+            this._restarting = false;
+        }).error(err => {
+            Cluster.console.error("Error starting Sapling");
+            Cluster.console.error(err);
+            Cluster.console.error(err.stack);
+        }).cb(next);
+    }
 
-App.prototype = {
-	/*
+    /*
 	* Load the configuration data. Should exist in a file
 	* called "config" and must be valid JSON.
 	*/
-	loadConfig: async function (next) {
+    async loadConfig(next) {
 		/* Default configuration values */
 		this.config = {
 			"models": "models",
@@ -100,7 +100,7 @@ App.prototype = {
 			"controller": "controller.json",
 			"extension": "html",
 			"secret": randString(),
-			"static": "public",
+			"staticDir": "public",
 			"cacheViews": true,
 			"showError": true,
 			"strict": true,
@@ -132,7 +132,7 @@ App.prototype = {
 
 			/* Parse and merge the config, or throw an error if it's malformed */
 			try {
-				var c = JSON.parse(file.toString());
+				const c = JSON.parse(file.toString());
 				_.extend(this.config, c);
 			} catch (e) {
 				Cluster.console.error("Error loading config");
@@ -148,18 +148,18 @@ App.prototype = {
 
 		/* Next stage of the setup */
 		next();
-	},
+	}
 
-	/**
+    /**
 	* Configure the Express server from
 	* the config data.
 	*/
-	loadServer: function (opts, next) {
+    loadServer({reload, listen}, next) {
 		let server;
 		let secret = this.config.secret || (this.config.secret = randString());
 		let self = this;
 
-		if (opts.reload && this.server) {
+		if (reload && this.server) {
 			this.routeStack = {'get': [], 'post': [], 'delete': []};
 			//this.server.routes = server._router.map;
 			//this.server.stack.length = 2;
@@ -171,19 +171,19 @@ App.prototype = {
 		// gracefully handle many requests
 		if (this.config.strict) {
 			// rate limit
-			server.use(function (req, res, next) {
+			server.use((req, res, next) => {
 				if (req.method.toLowerCase() !== "post") { return next(); }
 
-				var ip = req.headers['x-real-ip'] || req.ip;
+				const ip = req.headers['x-real-ip'] || req.ip;
 				if (!ip || ip == "127.0.0.1") { return next(); }
 
 				// currently blocked
 				if (self._remoteAddrs[ip] === true) {
-					return res.status(420).json([{message: "Enhance your calm, bro. Sending too many requests from `"+ip+"`."}])
+					return res.status(420).json([{message: `Enhance your calm, bro. Sending too many requests from \`${ip}\`.`}]);
 				}
 
 				self._remoteAddrs[ip] = true;
-				setTimeout(function () {
+				setTimeout(() => {
 					delete self._remoteAddrs[ip];
 				}, self.config.rateLimit * 1000);
 
@@ -196,11 +196,11 @@ App.prototype = {
 		// to persist sessions through reload
 		if (!server.sessionHandler) {
 			/* TODO: Implement non-Redis store  */
-			var sessionStore = null;
+			const sessionStore = null;
 
 			server.sessionHandler = session({
 				store: sessionStore,
-				secret: secret, 
+				secret, 
 				resave: false,
 				saveUninitialized: true,
 				cookie: {maxAge: null}
@@ -209,15 +209,15 @@ App.prototype = {
 
 	    server.use(server.sessionHandler);
 
-		if (this.config.static !== false) {
-			if(typeof this.config.static === 'string') {
-				var staticDir = path.join(this.dir, this.config.static);
-				server.use("/" + this.config.static, express.static(staticDir, { maxAge: 1 }));
+		if (this.config.staticDir !== false) {
+			if(typeof this.config.staticDir === 'string') {
+				const staticDirDir = path.join(this.dir, this.config.staticDir);
+				server.use(`/${this.config.staticDir}`, express.static(staticDirDir, { maxAge: 1 }));
 			} 
-			if(typeof this.config.static === 'object') {
-				this.config.static.forEach(function(static){
-					var staticDir = path.join(self.dir, static);
-					server.use("/" + static, express.static(staticDir, { maxAge: 1 }));
+			if(typeof this.config.staticDir === 'object') {
+				this.config.staticDir.forEach(staticDir => {
+					const staticDirDir = path.join(self.dir, staticDir);
+					server.use(`/${staticDir}`, express.static(staticDirDir, { maxAge: 1 }));
 				});
 			}
 		}
@@ -231,7 +231,7 @@ App.prototype = {
 		}
 
 		// enable CORS
-		server.use("/data/", function (req, res, n) {
+		server.use("/data/", ({method}, res, n) => {
 			if(self.config.cors) {
 				res.header("Access-Control-Allow-Origin", "*");
 				res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE");
@@ -239,13 +239,13 @@ App.prototype = {
 			}
 
 			// preflight request
-			if (req.method === "OPTIONS") {
+			if (method === "OPTIONS") {
 				return res.sendStatus(200);
 			}
 
 			n();
 		});
-		server.use("/api/", function (req, res, n) {
+		server.use("/api/", (req, res, n) => {
 			if(self.config.cors) {
 				res.header("Access-Control-Allow-Origin", "*");
 				res.header("Access-Control-Allow-Methods", "GET,POST");
@@ -255,19 +255,19 @@ App.prototype = {
 			n();
 		});
 		
-		if (opts.listen !== false) {
+		if (listen !== false) {
 			Cluster.listening(this.config.port);
 			server.http = server.listen(this.config.port);
 		}
 
 		this.server = server;
 		next();
-	},
+	}
 
-	/**
+    /**
 	* Load the controller JSON file.
 	*/
-	loadController: async function (next) {
+    async loadController(next) {
 		/* Location of the controller file */
 		const controllerPath = path.join(this.dir, this.config.controller);
 
@@ -280,7 +280,7 @@ App.prototype = {
 			try {
 				this.controller = JSON.parse(file.toString());
 			} catch (e) {
-				Cluster.console.error("Controller at path: `" + controllerPath + "` could not be loaded.");
+				Cluster.console.error(`Controller at path: \`${controllerPath}\` could not be loaded.`);
 			}
 		} else {
 			/* If not, let's use a fallback */
@@ -289,22 +289,22 @@ App.prototype = {
 
 		/* Next stage of the setup */
 		next();
-	},
+	}
 
-	/**
+    /**
 	* Load the model structures and initialise
 	* the storage instance for this app.
 	*/
-	loadModel: function (next) {
-		var modelPath = path.join(this.dir, this.config.models);
-		var structure = {};
+    loadModel(next) {
+		const modelPath = path.join(this.dir, this.config.models);
+		const structure = {};
 
 		// models are not mandatory so warn in the log
-		var f = ff(this, function () {
+		const f = ff(this, function () {
 			this.fs.exists(modelPath, f.slotPlain());
 		}, function (exists) {
 			if (!exists) {
-				Cluster.console.warn("Models at path `" + modelPath + "` does not exist")
+				Cluster.console.warn(`Models at path \`${modelPath}\` does not exist`)
 				f.succeed();
 			}
 
@@ -312,11 +312,11 @@ App.prototype = {
 		}, function (files) {
 			
 			f.pass(files);
-			var g = f.group();
+			const g = f.group();
 
-			for (var i = 0; i < files.length; ++i) {
-				var file = files[i];
-				var table = file.split(".")[0];
+			for (let i = 0; i < files.length; ++i) {
+				const file = files[i];
+				const table = file.split(".")[0];
 
 				if (!table) { continue; }
 
@@ -324,9 +324,9 @@ App.prototype = {
 			}
 
 		}, function (files, contents) {
-			for (var i = 0; i < files.length; ++i) {
-				var file = files[i].toString();
-				var table = file.split(".")[0];
+			for (let i = 0; i < files.length; ++i) {
+				const file = files[i].toString();
+				const table = file.split(".")[0];
 
 				if (table == "") {
 					files.splice(i--, 1);
@@ -340,7 +340,7 @@ App.prototype = {
 				}
 			}
 		
-			var storage = new Storage({
+			const storage = new Storage({
 				name: this.name, 
 				schema: structure,
 				config: this.config,
@@ -350,48 +350,48 @@ App.prototype = {
 			this.structure = structure;
 			this.storage = storage;
 		}).cb(next);
-	},
+	}
 
-	/**
+    /**
 	* Load the permissions table and implement
 	* some server middleware to validate the
 	* permission before passing to the next
 	* route handler.
 	*/
-	loadPermissions: function (next) {
-		var permissionsPath = path.join(this.dir, "permissions.json");
+    loadPermissions(next) {
+		const permissionsPath = path.join(this.dir, "permissions.json");
 
-		var f = ff(this, function () {
+		const f = ff(this, function () {
 			this.fs.readFile(permissionsPath, f.slot())
 		}, function (perms) {
 			try {
 				this.permissions = JSON.parse(perms);
 			} catch (e) {
-				Cluster.console.error("permissions at path: [" + permissionsPath + "] not found.");
+				Cluster.console.error(`permissions at path: [${permissionsPath}] not found.`);
 				Cluster.console.error(e);
 				Cluster.console.error(e.stack);
 			}
 
 			// loop over the urls in permissions
-			Object.keys(this.permissions).forEach(function (url) {
-				var parts = url.split(" ");
+			Object.keys(this.permissions).forEach(url => {
+				const parts = url.split(" ");
 				if (parts.length < 2) {
 					return; //permissions could potentially have >2 params
 				}
 
-				var method = parts[0].toLowerCase();
-				var route = parts[1];
-				var user = this.permissions[url];
+				let method = parts[0].toLowerCase();
+				const route = parts[1];
+				const user = this.permissions[url];
 
-				var self = this;
+				const self = this;
 				
 				// default method is `all`.
-				if (["get", "post", "delete"].indexOf(method) == -1) {
+				if (!["get", "post", "delete"].includes(method)) {
 					method = "all";
 				}
 
 				this.server[method](route, function (req, res, next) {
-					Cluster.console.log(this.workerID() + "PERMISSION", method, route, user);
+					Cluster.console.log(`${this.workerID()}PERMISSION`, method, route, user);
 					
 					// make sure users don't accidently lock themselves out
 					// of the admin login
@@ -399,7 +399,7 @@ App.prototype = {
 						return next();
 					}
 
-					var flag = false;
+					let flag = false;
 
 					//save the required permission and pass it on
 					req.permission = user;
@@ -423,30 +423,30 @@ App.prototype = {
 					}
 					//custom roles
 					else {
-						var role = req.session.user && req.session.user.role || "stranger";
+						const role = req.session.user && req.session.user.role || "stranger";
 						flag = !self.storage.inheritRole(role, user);
 					}
 
 					if (flag) {
-						var errorHandler = self.errorHandler(req, res);
+						const errorHandler = self.errorHandler(req, res);
 						return errorHandler([{message: "You do not have permission to complete this action."}]);
 					} else next();
 				});
 				
-			}.bind(this));
+			});
 		}).cb(next);
-	},
+	}
 
-	loadView: function (view, next) {
-		var viewPath = view + "." + this.config.extension;
+    loadView(view, next) {
+		const viewPath = `${view}.${this.config.extension}`;
 
-		var f = ff(this, function () {
+		const f = ff(this, function () {
 			//check the view template exists
 			this.fs.exists(viewPath, f.slotPlain());
 		}, function (viewExists) {
 			//if the view doesn't exist, fail
 			if (!viewExists) {
-				return f.fail("View template does not exist at: " + viewPath);
+				return f.fail(`View template does not exist at: ${viewPath}`);
 			}
 
 			//read the contents of the template
@@ -455,14 +455,14 @@ App.prototype = {
 			//cache the view
 			this._viewCache[view] = template.toString();
 			f.pass(this._viewCache[view])
-		}).error(function (e) {
-			Cluster.console.error("Error loading the view template.", "[" + viewPath + "]")
+		}).error(e => {
+			Cluster.console.error("Error loading the view template.", `[${viewPath}]`)
 			Cluster.console.error(e);
 		}).cb(next);
-	},
+	}
 
-	renderView: function (view, data, req, res, next) {
-		var body = Object.keys(req.body).length ? req.body : null;
+    renderView(view, data, req, res, next) {
+		const body = Object.keys(req.body).length ? req.body : null;
 
 		//build the data to pass into template
 		_.extend(data, {
@@ -485,7 +485,7 @@ App.prototype = {
 			data.self.etc = this.opts.etc;
 		}
 
-		var f = ff(this, function () {
+		const f = ff(this, function () {
 			//grab the template from the cache
 			if (this.config.cacheViews && view in this._viewCache) {
 				f.pass(this._viewCache[view]);
@@ -494,47 +494,47 @@ App.prototype = {
 			}
 		}, function (template) {
 			//render and send it back to client
-			var g = new Greenhouse(this.hooks, this.fs);
-			var slot = f.slot();
-			var config = this.config;
-			var dir = this.dir;
+			const g = new Greenhouse(this.hooks, this.fs);
+			const slot = f.slot();
+			const config = this.config;
+			const dir = this.dir;
 
-			g.oncompiled = function (html) {
+			g.oncompiled = html => {
 				res.send(html);
 				slot();
 			};
 
-			g.onerror = function (error) {
+			g.onerror = error => {
 				slot(error);
 			};
 
-			g.onredirect = function (url) {
+			g.onredirect = url => {
 				res.redirect(url);
 				slot();
 			};
 
-			g.onjson = function (data) {
+			g.onjson = data => {
 				res.json(data);
 				slot();
 			};
 
 			g.render(template, data);
 		}).cb(next);
-	},
+	}
 
-	/**
+    /**
 	* Setup the routes from the controller. Handle
 	* the requests and start an instance of the greenhouse
 	* template parser.
 	*/
-	initRoute: function (route, view) {
+    initRoute(route, view) {
 		if (!this._viewCache[view]) {
 			this.loadView(view);
 		}
 		
 		//handle the route
-		var self = this;
-		var handler = function (req, res) {
+		const self = this;
+		const handler = (req, res) => {
 			self.renderView(
 				view, 
 				{}, 
@@ -550,16 +550,16 @@ App.prototype = {
 
 		this.routeStack.get.push(route);
 		this.routeStack.post.push(route);
-	},
+	}
 
-	testRoute: function (method, url) {
-		var routes = this.routeStack[method];
+    testRoute(method, url) {
+		const routes = this.routeStack[method];
 		
-		for (var i = 0; i < routes.length; ++i) {
+		for (let i = 0; i < routes.length; ++i) {
 			//see if this route matches
 			if (routes[i] == url) {
-				var permissionKey = method.toUpperCase() + " " + routes[i];
-				var userType = this.permissions[permissionKey];
+				const permissionKey = `${method.toUpperCase()} ${routes[i]}`;
+				const userType = this.permissions[permissionKey];
 
 				//return the first matching type
 				if (userType) {
@@ -570,9 +570,9 @@ App.prototype = {
 
 		//default to anyone
 		return "anyone";
-	},
+	}
 
-	testPermission: function (permission, user) {
+    testPermission(permission, user) {
 		//stranger must NOT be logged in
 		if (permission === "stranger") {
 			if (user) {
@@ -592,28 +592,28 @@ App.prototype = {
 		}
 		//custom roles
 		else {
-			var role = user && user.role || "stranger";
+			const role = user && user.role || "stranger";
 			return this.storage.inheritRole(role, permission);
 		}
 
 		return true;
-	},
+	}
 
-	/**
+    /**
 	* Setup hooks into the template parser to
 	* return data from the storage engine.
 	*/
-	loadHook: function (next) {
-		var app = this;
+    loadHook(next) {
+		const app = this;
 		this.hooks = {
-			get: function (block, next) {
+			get(block, next) {
 				//pause parsing and decode request
-				var expr = block.expr.split(" ");
+				const expr = block.expr.split(" ");
 				
-				var url = expr[0];
-				var role = expr[1];
+				const url = expr[0];
+				let role = expr[1];
 				// as = expr[2]
-				var key = expr[3];
+				let key = expr[3];
 				
 				// if role has been left out, use current user or stranger
 				if (role == 'as') {
@@ -621,16 +621,16 @@ App.prototype = {
 					key = expr[2];
 				}
 
-				var baseurl = url.split("?")[0];
+				const baseurl = url.split("?")[0];
 				
 				// see if this url has a permission associated
-				var permission = app.testRoute("get", baseurl);
+				const permission = app.testRoute("get", baseurl);
 
 				// if no role is provided, use current
-				var session = role ? { user: { role: role } } : this.data.session;
+				const session = role ? { user: { role } } : this.data.session;
 
-				var allowed = app.testPermission(permission, session.user);
-				Cluster.console.log(this.workerID() + "\n\nIS ALLOWED", session, allowed, permission)
+				const allowed = app.testPermission(permission, session.user);
+				Cluster.console.log(`${this.workerID()}\n\nIS ALLOWED`, session, allowed, permission)
 
 				// not allowed so give an empty array
 				if (!allowed) {
@@ -640,24 +640,24 @@ App.prototype = {
 
 				//request the data then continue parsing
 				app.storage.get({
-					url: url, 
-					permission: permission, 
-					session: session
-				}, function (err, data) {
+					url, 
+					permission, 
+					session
+				}, (err, data) => {
 					this.saveDots(key, data);
 					next();
-				}.bind(this));
+				});
 			},
 
-			post: function (block, next) {
+			post(block, next) {
 				// pause parsing and decode request
-				var expr = block.expr.split(" ");
+				const expr = block.expr.split(" ");
 				
-				var url = expr[0];
-				var body = expr[1];
-				var role = expr[2];
+				const url = expr[0];
+				const body = expr[1];
+				let role = expr[2];
 				// as = expr[3]
-				var key = expr[4];
+				let key = expr[4];
 
 				// role has been left out
 				if (role == 'as') {
@@ -665,12 +665,12 @@ App.prototype = {
 					key = expr[3];
 				}
 
-				var baseurl = url.split("?")[0];
+				const baseurl = url.split("?")[0];
 				
 				// see if this url has a permission associated
-				var permission = app.testRoute("post", baseurl);
-				var session = role ? { user: { role: role } } : this.data.session;
-				var allowed = app.testPermission(permission, session.user);
+				const permission = app.testRoute("post", baseurl);
+				const session = role ? { user: { role } } : this.data.session;
+				const allowed = app.testPermission(permission, session.user);
 
 				// not allowed so give an empty array
 				if (!allowed) {
@@ -681,47 +681,47 @@ App.prototype = {
 				app.storage.post({
 					url: baseurl,
 					body: this.extractDots(body),
-					permission: permission, 
-					session: session
-				}, function (err, data) {
+					permission, 
+					session
+				}, (err, data) => {
 					if (key) {
 						this.saveDots(key, data);
 					}
 
 					next();
-				}.bind(this));
+				});
 			},
 
-			debug: function (block, next) {
-				var value = this.extractDots(block.rawExpr);
-				this.pieces.push("<pre>" + JSON.stringify(value, null, '\t') + "</pre>");
-				this.start = block.end + 1;
+			debug({rawExpr, end}, next) {
+				const value = this.extractDots(rawExpr);
+				this.pieces.push(`<pre>${JSON.stringify(value, null, '\t')}</pre>`);
+				this.start = end + 1;
 				next();
 			},
 
-			redirect: function (block, next) {
-				this.onredirect && this.onredirect.call(this, block.expr);
+			redirect({expr}, next) {
+				this.onredirect && this.onredirect.call(this, expr);
 				return false;
 			},
 
-			error: function (block, next) {
-				this.onerror && this.onerror.call(this, block.expr);
+			error({expr}, next) {
+				this.onerror && this.onerror.call(this, expr);
 				return false;
 			},
 
-			json: function (block, next) {
-				var data = this.extractDots(block.rawExpr);
+			json({rawExpr}, next) {
+				const data = this.extractDots(rawExpr);
 				this.onjson && this.onjson.call(this, data);
 				return false;
 			}
 		};
-	},
+	}
 
-	/**
+    /**
 	* Setup the endpoints for the REST interface
 	* to the model.
 	*/
-	loadREST: function (next) {
+    loadREST(next) {
 		//don't use the default REST api for creating a user
 		this.server.post(/\/data\/users\/?$/, this.register.bind(this));
 
@@ -731,9 +731,9 @@ App.prototype = {
 		this.server.delete("/data/*", this.handleDELETE.bind(this));
 
 		next();
-	},
+	}
 
-	loadAPI: function (next) {
+    loadAPI(next) {
 		//api endpoints
 		this.server.get("/api/logged", this.getLogged.bind(this));
 		this.server.post("/api/login", this.login.bind(this));
@@ -744,47 +744,47 @@ App.prototype = {
 		this.server.post("/api/register", this.register.bind(this));
 
 		next();
-	},
+	}
 
-	loadMailer: function (next) {
-		var config = _.extend({}, this.config.mailer);
-		var type = config.type;
+    loadMailer(next) {
+		const config = _.extend({}, this.config.mailer);
+		const type = config.type;
 		delete config.type;
 
 		this.mailer = nodemailer.createTransport(type, config);
 
 		next()
-	},
+	}
 
-	/**
+    /**
 	* REST handlers
 	*/
-	handleGET: function (req, res) {
+    handleGET(req, res) {
 		//forward the request to storage
 		this.storage.get(req, this.response(req, res));
-	},
+	}
 
-	handlePOST: function (req, res) {
+    handlePOST(req, res) {
 		//forward the post data to storage
 		this.storage.post(req, this.response(req, res));
-	},
+	}
 
-	handleDELETE: function (req, res) {
+    handleDELETE(req, res) {
 		this.storage.delete(req, this.response(req, res));
-	},
+	}
 
-	/**
+    /**
 	* In-built user account functionality.
 	*/
-	getLogged: function (req, res) {
+    getLogged(req, res) {
 		if (req.session && req.session.user) {
 
 			if (req.query.reload) {
 				// reload the user object
 				this.storage.get({
-					url: "/data/users/_id/" + req.session.user._id + "/?single=true",
+					url: `/data/users/_id/${req.session.user._id}/?single=true`,
 					session: req.session
-				}, function (err, user) {
+				}, (err, user) => {
 					req.session.user = _.extend({}, user);
 					delete req.session.user.password;
 					delete req.session.user._salt;
@@ -796,16 +796,16 @@ App.prototype = {
 		} else {
 			res.json(false);
 		}
-	},
+	}
 
-	login: function (req, res) {
+    login(req, res) {
 
-		var url = "/data/users/email/" + req.body.email;
-		var permission = this.testRoute("get", url);
+		const url = `/data/users/email/${req.body.email}`;
+		const permission = this.testRoute("get", url);
 
-		var f = ff(this, function () {
+		const f = ff(this, function () {
 			this.storage.db.read("users", {email: req.body.email}, {}, [], f.slot());
-		}, function (data) {
+		}, data => {
 			//no user found, throw error
 			if (!data.length) { 
 				return f.fail({
@@ -833,10 +833,10 @@ App.prototype = {
 				});
 			}
 
-			var user = data[0];
+			const user = data[0];
 			f.pass(user);
 			pwd.hash(req.body.password || "", user._salt, f.slot());
-		}, function (user, password) {
+		}, (user, password) => {
 			if (user.password === password.toString("base64")) {
 				req.session.user = _.extend({}, user);
 				delete req.session.user.password;
@@ -860,9 +860,9 @@ App.prototype = {
 				res.redirect(req.query.goto);
 			}
 		}).error(this.errorHandler(req, res));
-	},
+	}
 
-	logout: function (req, res) {
+    logout(req, res) {
 		req.session.destroy();
 		req.session = null;
 
@@ -871,25 +871,25 @@ App.prototype = {
 		} else {
 			res.send(200);
 		}
-	},
+	}
 
-	/**
+    /**
 	* Must go through the /api/register endpoint
 	* If logged in, can only create a role equal to or less than current
 	* If not, cannot specify role
 	*/
-	register: function (req, res) {
-		var err = [];
-		var errorHandler = this.errorHandler(req, res);
-		var next = typeof res === "function" && res;
+    register(req, res) {
+		const err = [];
+		const errorHandler = this.errorHandler(req, res);
+		const next = typeof res === "function" && res;
 
 		if (req.session.user) {
 			if (req.body.role && !this.storage.inheritRole(req.session.user.role, req.body.role)) {
-				err.push({message: "Do not have permission to create the role `"+req.body.role+"`."})
+				err.push({message: `Do not have permission to create the role \`${req.body.role}\`.`})
 			}
 		} else {
 			if (req.body.role) {
-				err.push({message: "Do not have permission to create the role `"+req.body.role+"`."})
+				err.push({message: `Do not have permission to create the role \`${req.body.role}\`.`})
 			}
 		}
 
@@ -923,7 +923,7 @@ App.prototype = {
 			return next ? next(err) : errorHandler(err);
 		}
 
-		var f = ff(this, function () {
+		const f = ff(this, () => {
 			pwd.hash(req.body.password.toString(), f.slot());
 		}, function (hash) {
 			//add these fields after validation
@@ -970,7 +970,7 @@ App.prototype = {
 				permission: req.permission,
 				body: req.body
 			}, f.slot());
-		}, function (data) {
+		}, data => {
 			if (data) {
 				if(data.password) delete data.password;
 				if(data._salt) delete data._salt;
@@ -978,18 +978,18 @@ App.prototype = {
 
 			f.pass(data);
 		}).cb(function (err, data) {
-			Cluster.console.log(this.workerID() + "REGISTER", err, data);
+			Cluster.console.log(`${this.workerID()}REGISTER`, err, data);
 
 			// TODO headers??
 			
-			var cb = next ? next : this.response(req, res);
+			const cb = next ? next : this.response(req, res);
 			cb && cb.call(this, err, data);
 		});
-	},
+	}
 
-	update: function (req, res) {
-		var err = [];
-		var errorHandler = this.errorHandler(req, res);
+    update(req, res) {
+		const err = [];
+		const errorHandler = this.errorHandler(req, res);
 
 		if (!req.session || !req.session.user) {
 			err.push({
@@ -1021,17 +1021,17 @@ App.prototype = {
 			return errorHandler(err); 
 		}
 
-		var user = req.session.user;
+		const user = req.session.user;
 
-		var f = ff(this, function () {
+		const f = ff(this, function () {
 			this.storage.get({
-				url: "/data/users/_id/" + req.session.user._id + "/?single=true",
+				url: `/data/users/_id/${req.session.user._id}/?single=true`,
 				session: req.session
 			}, f.slot());
-		}, function (user) {
+		}, user => {
 			f.pass(user);
 			pwd.hash(req.body.password, user._salt, f.slot());
-		}, function (user, password) {
+		}, (user, password) => {
 			// valid password, update details
 			if (user.password === password.toString("base64")) {
 				delete req.body.password;
@@ -1060,28 +1060,28 @@ App.prototype = {
 			}
 
 			this.storage.post({
-				url: "/data/users/_id/" + user._id,
+				url: `/data/users/_id/${user._id}`,
 				body: req.body,
 				session: req.session
 			}, f.slot());
 		}).cb(this.response(req, res));
-	},
+	}
 
-	forgot: function (req, res) {
-		var f = ff(this, function () {
+    forgot(req, res) {
+		const f = ff(this, function () {
 			this.storage.get({
-				url: "/data/users/email/" + req.body.email + "/?single=true",
+				url: `/data/users/email/${req.body.email}/?single=true`,
 				session: App.adminSession
 			}, f.slot());
-		}, function (user) {
+		}, function({authkey, email}) {
 			// only allow sending authkey once every 2 hours
-			if (user.authkey) {
-				var key = parseInt(user.authkey.substring(0, user.authkey.length - 11), 16);
-				var diff = key - Date.now();
+			if (authkey) {
+				var key = parseInt(authkey.substring(0, authkey.length - 11), 16);
+				const diff = key - Date.now();
 
 				if (diff > 0) {
-					var hours = diff / 60 / 60 / 1000;
-					return f.fail([{message: "Must wait " + hours.toFixed(1) + " hours before sending another recovery email."}]);
+					const hours = diff / 60 / 60 / 1000;
+					return f.fail([{message: `Must wait ${hours.toFixed(1)} hours before sending another recovery email.`}]);
 				}
 			}
 
@@ -1090,27 +1090,27 @@ App.prototype = {
 			key += randString(); // a touch of randomness
 
 			this.storage.post({
-				url: "/data/users/email/" + req.body.email,
+				url: `/data/users/email/${req.body.email}`,
 				body: {authkey: key},
 				session: App.adminSession
 			});
 
-			var templateData = {
+			const templateData = {
 				name: this.name,
-				key: key,
+				key,
 				url: this.config.url
 			};
 
 			this.mailer.sendMail({
-				to: user.email,
-				subject: "Recover Sapling Password for " + this.name,
+				to: email,
+				subject: `Recover Sapling Password for ${this.name}`,
 				html: forgotTemplateHTML(templateData)
 			}, f.slot());
 		}).cb(this.response(req, res));
-	},
+	}
 
-	recover: function (req, res) {
-		var errorHandler = this.errorHandler(req, res);
+    recover(req, res) {
+		const errorHandler = this.errorHandler(req, res);
 
 		if (!req.query.auth) {
 			return errorHandler({
@@ -1126,10 +1126,10 @@ App.prototype = {
 		}
 
 		// could be very invalid keys
-		var key = req.query.auth;
+		let key = req.query.auth;
 		key = parseInt(key.substring(0, key.length - 11), 16);
 
-		var diff = key - Date.now();
+		const diff = key - Date.now();
 
 		// key has expired
 		if (isNaN(diff) || diff <= 0) {
@@ -1146,13 +1146,13 @@ App.prototype = {
 		}
 
 		// generate a random password
-		var newpass = randString();
+		const newpass = randString();
 
-		var f = ff(this, function () {
+		const f = ff(this, function () {
 			pwd.hash(newpass, f.slot());
 
 			this.storage.get({
-				url: "/data/users/authkey/" + req.query.auth + "/?single=true",
+				url: `/data/users/authkey/${req.query.auth}/?single=true`,
 				session: App.adminSession
 			}, f.slot());
 		}, function (hash, user) {
@@ -1171,29 +1171,29 @@ App.prototype = {
 
 			// update the new password and clear the key
 			this.storage.post({
-				url: "/data/users/_id/" + user._id,
+				url: `/data/users/_id/${user._id}`,
 				body: {password: hash[1], _salt: hash[0], authkey: ""},
 				session: App.adminSession
 			}, f.slot());
 		}, function () {
 			this.renderView(
 				path.join(this.config.views, "recover"), 
-				{newpass: newpass}, req, res,
-				function (err) {
-					err && res.send(200, "Your new password is: " + newpass);
+				{newpass}, req, res,
+				err => {
+					err && res.send(200, `Your new password is: ${newpass}`);
 				}
 			);
 		}).error(errorHandler);
-	},
+	}
 
-	/**
+    /**
 	* Create a callback function handle a response
 	* from the storage instance.
 	*/
-	response: function (req, res) {
-		var self = this;
+    response(req, res) {
+		const self = this;
 
-		return function (err, response) {
+		return (err, response) => {
 			if (err) {
 				return self.errorHandler(req, res).call(self, err);
 			}
@@ -1203,19 +1203,19 @@ App.prototype = {
 			}
 
 			res.json(response);
-		}
-	},
+		};
+	}
 
-	/**
+    /**
 	* Create an error handler function
 	*/
-	errorHandler: function (req, res) {
-		var self = this;
-		return function (err) {
+    errorHandler(req, res) {
+		const self = this;
+		return err => {
 			// no error to display
 			if (!err) { return false; }
 
-			var error = new Error(err);
+			const error = new Error(err);
 
 			//log to the server
 			Cluster.console.error("Error occured during %s %s", req.method && req.method.toUpperCase(), req.url)
@@ -1225,48 +1225,48 @@ App.prototype = {
 			}
 
 			// if json or javascript in accept header, give back JSON
-			var acceptJSON = /json|javascript/.test(req.headers.accept || "");
+			const acceptJSON = /json|javascript/.test(req.headers.accept || "");
 
 			// get the appropriate error code from the first error in stack
 			ERROR_CODE = Number(error.template.errors[0].status);
 			
 			// render the error view
 			if (self.config.errorView && !acceptJSON) {
-				var errorPath = path.join(self.dir, self.config.views, self.config.errorView);
+				const errorPath = path.join(self.dir, self.config.views, self.config.errorView);
 				ff(function () {
 					self.loadView(errorPath, this.slot());
-				}, function () {
+				}, () => {
 					self.renderView.call(self, 
 						errorPath, 
 						{error: error.template}, 
 						req, res,
-						function (err) {
+						err => {
 							// in case of error in error
 							if (err) {
 								res.status(ERROR_CODE).json(error.template)
 							}
 						}
 					);
-				}).error(function () {
+				}).error(() => {
 					res.status(ERROR_CODE).json(error.template)
 				});
 			} else {
 				res.status(ERROR_CODE).json(error.template);
 			}
-		}
-	},
+		};
+	}
 
-	reload: function () {
-		Cluster.console.log(this.workerID() + "\n\n**** RESTARTING ****\n\n");
+    reload() {
+		Cluster.console.log(`${this.workerID()}\n\n**** RESTARTING ****\n\n`);
 
 		this._restarting = true;		
 		this.opts.listen = false;
 		this.opts.reload = true;
-		App.call(this, this.config.name, this.opts, function () {
-			Cluster.console.log(this.workerID() + "DONE");
-		}.bind(this));
+		App.call(this, this.config.name, this.opts, () => {
+			Cluster.console.log(`${this.workerID()}DONE`);
+		});
 	}
-};
+}
 
 App.adminSession = {
 	user: { role: "admin" }
