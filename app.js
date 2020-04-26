@@ -30,69 +30,69 @@ let ERROR_CODE = 500;
 let forgotTemplateHTML = _.template(rfs.readFileSync(path.join(__dirname, "/static/mail/lostpass.html")).toString());
 
 class App {
-    constructor(dir, opts, next) {
-        this.dir = dir;
-        opts = opts || {};
-        this.opts = opts;
-        
-        this._viewCache = {};
-        this._remoteAddrs = {};
-        this._sockets = [];
+	constructor(dir, opts, next) {
+		this.dir = dir;
+		opts = opts || {};
+		this.opts = opts;
+		
+		this._viewCache = {};
+		this._remoteAddrs = {};
+		this._sockets = [];
 
-        this.fs = rfs;
-        this.dir = dir;
+		this.fs = rfs;
+		this.dir = dir;
 
-        /* Make core functions return Promises */
-        this.readFile = util.promisify(this.fs.readFile);
+		/* Make core functions return Promises */
+		this.readFile = util.promisify(this.fs.readFile);
 
-        /* Load everything */
-        let f = ff(this, function () {
-            this.loadConfig(f.slot());
-        }, function () {
-            if (opts.loadServer !== false) {
-                this.loadServer(opts, f.slot());
-            }
-        }, function () {
-            if (opts.loadModel !== false)
-                this.loadModel(f.slot());
-        }, function () {
-            if (opts.loadPermissions !== false)
-                this.loadPermissions(f.slot());
-        }, function () {
-            if (opts.loadController !== false)
-                this.loadController(f.slot());
-        }, function () {
-            if (opts.loadViews !== false)
-                this.loadHook(f.slot());
-        }, function () {
-            if (opts.loadViews !== false) {
-                for (const route in this.controller) {
-                    this.initRoute(route, path.join(this.dir, this.config.views, this.controller[route]));
-                }
-            }
+		/* Load everything */
+		let f = ff(this, function () {
+			this.loadConfig(f.slot());
+		}, function () {
+			if (opts.loadServer !== false) {
+				this.loadServer(opts, f.slot());
+			}
+		}, function () {
+			if (opts.loadModel !== false)
+				this.loadModel(f.slot());
+		}, function () {
+			if (opts.loadPermissions !== false)
+				this.loadPermissions(f.slot());
+		}, function () {
+			if (opts.loadController !== false)
+				this.loadController(f.slot());
+		}, function () {
+			if (opts.loadViews !== false)
+				this.loadHook(f.slot());
+		}, function () {
+			if (opts.loadViews !== false) {
+				for (const route in this.controller) {
+					this.initRoute(route, path.join(this.dir, this.config.views, this.controller[route]));
+				}
+			}
 
-            if (opts.loadREST !== false)
-                this.loadREST(f.slot());
-        }, function () {
-            if (opts.loadAPI !== false)
-                this.loadAPI(f.slot());
-        }, function () {
-            if (opts.loadMailer !== false)
-                this.loadMailer(f.slot());
-        }, function () {
-            this._restarting = false;
-        }).error(err => {
-            Cluster.console.error("Error starting Sapling");
-            Cluster.console.error(err);
-            Cluster.console.error(err.stack);
-        }).cb(next);
-    }
+			if (opts.loadREST !== false)
+				this.loadREST(f.slot());
+		}, function () {
+			if (opts.loadAPI !== false)
+				this.loadAPI(f.slot());
+		}, function () {
+			if (opts.loadMailer !== false)
+				this.loadMailer(f.slot());
+		}, function () {
+			this._restarting = false;
+		}).error(err => {
+			Cluster.console.error("Error starting Sapling");
+			Cluster.console.error(err);
+			Cluster.console.error(err.stack);
+		}).cb(next);
+	}
 
-    /*
+	/*
 	* Load the configuration data. Should exist in a file
 	* called "config" and must be valid JSON.
 	*/
-    async loadConfig(next) {
+	async loadConfig(next) {
 		/* Default configuration values */
 		this.config = {
 			"models": "models",
@@ -109,7 +109,7 @@ class App {
 			},
 			"mailer": {
 				"type": "SMTP",
-    			"service": "Gmail",
+				"service": "Gmail",
 				"auth": {
 					user: process.env.MAIL_USER,
 					password: process.env.MAIL_PASS
@@ -150,11 +150,11 @@ class App {
 		next();
 	}
 
-    /**
+	/**
 	* Configure the Express server from
 	* the config data.
 	*/
-    loadServer({reload, listen}, next) {
+	loadServer({reload, listen}, next) {
 		let server;
 		let secret = this.config.secret || (this.config.secret = randString());
 		let self = this;
@@ -207,7 +207,7 @@ class App {
 			});
 		}
 
-	    server.use(server.sessionHandler);
+		server.use(server.sessionHandler);
 
 		if (this.config.staticDir !== false) {
 			if(typeof this.config.staticDir === 'string') {
@@ -264,10 +264,10 @@ class App {
 		next();
 	}
 
-    /**
+	/**
 	* Load the controller JSON file.
 	*/
-    async loadController(next) {
+	async loadController(next) {
 		/* Location of the controller file */
 		const controllerPath = path.join(this.dir, this.config.controller);
 
@@ -291,11 +291,11 @@ class App {
 		next();
 	}
 
-    /**
+	/**
 	* Load the model structures and initialise
 	* the storage instance for this app.
 	*/
-    loadModel(next) {
+	loadModel(next) {
 		const modelPath = path.join(this.dir, this.config.models);
 		const structure = {};
 
@@ -352,13 +352,13 @@ class App {
 		}).cb(next);
 	}
 
-    /**
+	/**
 	* Load the permissions table and implement
 	* some server middleware to validate the
 	* permission before passing to the next
 	* route handler.
 	*/
-    loadPermissions(next) {
+	loadPermissions(next) {
 		const permissionsPath = path.join(this.dir, "permissions.json");
 
 		const f = ff(this, function () {
@@ -437,7 +437,7 @@ class App {
 		}).cb(next);
 	}
 
-    loadView(view, next) {
+	loadView(view, next) {
 		const viewPath = `${view}.${this.config.extension}`;
 
 		const f = ff(this, function () {
@@ -461,7 +461,7 @@ class App {
 		}).cb(next);
 	}
 
-    renderView(view, data, req, res, next) {
+	renderView(view, data, req, res, next) {
 		const body = Object.keys(req.body).length ? req.body : null;
 
 		//build the data to pass into template
@@ -522,12 +522,12 @@ class App {
 		}).cb(next);
 	}
 
-    /**
+	/**
 	* Setup the routes from the controller. Handle
 	* the requests and start an instance of the greenhouse
 	* template parser.
 	*/
-    initRoute(route, view) {
+	initRoute(route, view) {
 		if (!this._viewCache[view]) {
 			this.loadView(view);
 		}
@@ -552,7 +552,7 @@ class App {
 		this.routeStack.post.push(route);
 	}
 
-    testRoute(method, url) {
+	testRoute(method, url) {
 		const routes = this.routeStack[method];
 		
 		for (let i = 0; i < routes.length; ++i) {
@@ -572,7 +572,7 @@ class App {
 		return "anyone";
 	}
 
-    testPermission(permission, user) {
+	testPermission(permission, user) {
 		//stranger must NOT be logged in
 		if (permission === "stranger") {
 			if (user) {
@@ -599,11 +599,11 @@ class App {
 		return true;
 	}
 
-    /**
+	/**
 	* Setup hooks into the template parser to
 	* return data from the storage engine.
 	*/
-    loadHook(next) {
+	loadHook(next) {
 		const app = this;
 		this.hooks = {
 			get(block, next) {
@@ -717,11 +717,11 @@ class App {
 		};
 	}
 
-    /**
+	/**
 	* Setup the endpoints for the REST interface
 	* to the model.
 	*/
-    loadREST(next) {
+	loadREST(next) {
 		//don't use the default REST api for creating a user
 		this.server.post(/\/data\/users\/?$/, this.register.bind(this));
 
@@ -733,7 +733,7 @@ class App {
 		next();
 	}
 
-    loadAPI(next) {
+	loadAPI(next) {
 		//api endpoints
 		this.server.get("/api/logged", this.getLogged.bind(this));
 		this.server.post("/api/login", this.login.bind(this));
@@ -746,7 +746,7 @@ class App {
 		next();
 	}
 
-    loadMailer(next) {
+	loadMailer(next) {
 		const config = _.extend({}, this.config.mailer);
 		const type = config.type;
 		delete config.type;
@@ -756,27 +756,27 @@ class App {
 		next()
 	}
 
-    /**
+	/**
 	* REST handlers
 	*/
-    handleGET(req, res) {
+	handleGET(req, res) {
 		//forward the request to storage
 		this.storage.get(req, this.response(req, res));
 	}
 
-    handlePOST(req, res) {
+	handlePOST(req, res) {
 		//forward the post data to storage
 		this.storage.post(req, this.response(req, res));
 	}
 
-    handleDELETE(req, res) {
+	handleDELETE(req, res) {
 		this.storage.delete(req, this.response(req, res));
 	}
 
-    /**
+	/**
 	* In-built user account functionality.
 	*/
-    getLogged(req, res) {
+	getLogged(req, res) {
 		if (req.session && req.session.user) {
 
 			if (req.query.reload) {
@@ -798,7 +798,7 @@ class App {
 		}
 	}
 
-    login(req, res) {
+	login(req, res) {
 
 		const url = `/data/users/email/${req.body.email}`;
 		const permission = this.testRoute("get", url);
@@ -862,7 +862,7 @@ class App {
 		}).error(this.errorHandler(req, res));
 	}
 
-    logout(req, res) {
+	logout(req, res) {
 		req.session.destroy();
 		req.session = null;
 
@@ -873,12 +873,12 @@ class App {
 		}
 	}
 
-    /**
+	/**
 	* Must go through the /api/register endpoint
 	* If logged in, can only create a role equal to or less than current
 	* If not, cannot specify role
 	*/
-    register(req, res) {
+	register(req, res) {
 		const err = [];
 		const errorHandler = this.errorHandler(req, res);
 		const next = typeof res === "function" && res;
@@ -987,7 +987,7 @@ class App {
 		});
 	}
 
-    update(req, res) {
+	update(req, res) {
 		const err = [];
 		const errorHandler = this.errorHandler(req, res);
 
@@ -1067,7 +1067,7 @@ class App {
 		}).cb(this.response(req, res));
 	}
 
-    forgot(req, res) {
+	forgot(req, res) {
 		const f = ff(this, function () {
 			this.storage.get({
 				url: `/data/users/email/${req.body.email}/?single=true`,
@@ -1109,7 +1109,7 @@ class App {
 		}).cb(this.response(req, res));
 	}
 
-    recover(req, res) {
+	recover(req, res) {
 		const errorHandler = this.errorHandler(req, res);
 
 		if (!req.query.auth) {
@@ -1186,11 +1186,11 @@ class App {
 		}).error(errorHandler);
 	}
 
-    /**
+	/**
 	* Create a callback function handle a response
 	* from the storage instance.
 	*/
-    response(req, res) {
+	response(req, res) {
 		const self = this;
 
 		return (err, response) => {
@@ -1206,10 +1206,10 @@ class App {
 		};
 	}
 
-    /**
+	/**
 	* Create an error handler function
 	*/
-    errorHandler(req, res) {
+	errorHandler(req, res) {
 		const self = this;
 		return err => {
 			// no error to display
@@ -1256,7 +1256,7 @@ class App {
 		};
 	}
 
-    reload() {
+	reload() {
 		Cluster.console.log(`${this.workerID()}\n\n**** RESTARTING ****\n\n`);
 
 		this._restarting = true;		
