@@ -38,6 +38,7 @@
     "nodemailer": "4.0.1",
     "request": "2.88.0",
     "stripe": "^6.31.2",
-    "underscore": "1.9.1"
+    "underscore": "1.9.1",
+    "yargs": "^15.3.1"
   }
 }
