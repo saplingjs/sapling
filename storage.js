@@ -109,7 +109,6 @@ const Storage = Class.extend({
 			}
 		}, function () {
 			Cluster.console.log("CREATED DBS")
-			this.emit("created");
 		}).error(err => {
 			Cluster.console.warn(err)
 		});

@@ -528,6 +528,8 @@ class App {
 	* template parser.
 	*/
 	initRoute(route, view) {
+		Cluster.console.log("Loaded route ", `${route}`)
+
 		if (!this._viewCache[view]) {
 			this.loadView(view);
 		}
@@ -644,6 +646,9 @@ class App {
 					permission, 
 					session
 				}, (err, data) => {
+					if(err)
+						Cluster.console.error(err);
+
 					this.saveDots(key, data);
 					next();
 				});
@@ -684,6 +689,9 @@ class App {
 					permission, 
 					session
 				}, (err, data) => {
+					if(err)
+						Cluster.console.error(err);
+
 					if (key) {
 						this.saveDots(key, data);
 					}
@@ -715,6 +723,8 @@ class App {
 				return false;
 			}
 		};
+
+		next();
 	}
 
 	/**
@@ -751,7 +761,8 @@ class App {
 		const type = config.type;
 		delete config.type;
 
-		this.mailer = nodemailer.createTransport(type, config);
+		if(config.auth.username && config.auth.password)
+			this.mailer = nodemailer.createTransport(type, config);
 
 		next()
 	}

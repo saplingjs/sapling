@@ -7,10 +7,10 @@ const PORT = 27017;
 
 // mongo options
 const mongo_options = {
-	open: { w: 1, strict: true, safe: true },
-	collection: { strict: true },
-	insert: { w: 1, strict: true },
-	update: { upsert: false, multi: true, w: 1, strict: true },
+	open: { w: 1, strict: false, safe: true },
+	collection: { strict: false },
+	insert: { w: 1, strict: false },
+	update: { upsert: false, multi: true, w: 1, strict: false },
 	find: {}
 };
 

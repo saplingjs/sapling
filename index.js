@@ -25,6 +25,9 @@ if (cluster.isMaster && !argv.single) {
 		cluster.fork();
 	}
 } else {
+	if(argv.single)
+		console.log(chalk.green.bold("Starting a single instance of Sapling!"));
+
 	/* Load a single instance */
 	const App = require("./app");
 	const app = new App("./");
