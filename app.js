@@ -20,8 +20,6 @@ const Error = require("./lib/Error");
 const pwd = require("./lib/Hash");
 const Cluster = require("./lib/Cluster");
 
-let stripe;
-
 function randString () {
 	return (`00000000${Math.random().toString(36).substr(2)}`).substr(-11);
 }
@@ -240,10 +238,6 @@ class App {
 		server.use(bodyParser.urlencoded({ extended: true }));
 		server.use(bodyParser.json());
 		server.use(logger(Cluster.logger));
-
-		if (this.config.stripe) {
-			stripe = require('stripe')(this.config.stripe.api_key)
-		}
 
 		// enable CORS
 		server.use("/data/", ({method}, res, n) => {
