@@ -1,5 +1,6 @@
 const path = require("path");
 const util = require("util");
+const async = require("async");
 const ff = require("ff");
 const rfs = require("fs");
 const _ = require("underscore");
@@ -46,46 +47,60 @@ class App {
 		this.readFile = util.promisify(this.fs.readFile);
 
 		/* Load everything */
-		let f = ff(this, function () {
-			this.loadConfig(f.slot());
-		}, function () {
-			if (opts.loadServer !== false) {
-				this.loadServer(opts, f.slot());
-			}
-		}, function () {
-			if (opts.loadModel !== false)
-				this.loadModel(f.slot());
-		}, function () {
-			if (opts.loadPermissions !== false)
-				this.loadPermissions(f.slot());
-		}, function () {
-			if (opts.loadController !== false)
-				this.loadController(f.slot());
-		}, function () {
-			if (opts.loadViews !== false)
-				this.loadHook(f.slot());
-		}, function () {
-			if (opts.loadViews !== false) {
-				for (const route in this.controller) {
-					this.initRoute(route, path.join(this.dir, this.config.views, this.controller[route]));
+		async.series([
+			callback => this.loadConfig(callback),
+			callback => {
+				if (opts.loadServer !== false)
+					this.loadServer(opts, callback);
+			},
+			callback => {
+				if (opts.loadModel !== false)
+					this.loadModel(callback);
+			},
+			callback => {
+				if (opts.loadPermissions !== false)
+					this.loadPermissions(callback);
+			},
+			callback => {
+				if (opts.loadController !== false)
+					this.loadController(callback);
+			},
+			callback => {
+				if (opts.loadViews !== false)
+					this.loadHook(callback);
+			},
+			callback => {
+				if (opts.loadViews !== false) {
+					for (const route in this.controller) {
+						this.initRoute(route, path.join(this.dir, this.config.views, this.controller[route]));
+					}
 				}
+	
+				if (opts.loadREST !== false)
+					this.loadREST(callback);
+			},
+			callback => {
+				if (opts.loadAPI !== false)
+					this.loadAPI(callback);
+			},
+			callback => {
+				if (opts.loadMailer !== false)
+					this.loadMailer(callback);
+			},
+			callback => {
+				this._restarting = false;
+				callback();
+			}
+		], (err, results) => {
+			if(err) {
+				Cluster.console.error("Error starting Sapling");
+				Cluster.console.error(err);
+				Cluster.console.error(err.stack);
+				return false;
 			}
 
-			if (opts.loadREST !== false)
-				this.loadREST(f.slot());
-		}, function () {
-			if (opts.loadAPI !== false)
-				this.loadAPI(f.slot());
-		}, function () {
-			if (opts.loadMailer !== false)
-				this.loadMailer(f.slot());
-		}, function () {
-			this._restarting = false;
-		}).error(err => {
-			Cluster.console.error("Error starting Sapling");
-			Cluster.console.error(err);
-			Cluster.console.error(err.stack);
-		}).cb(next);
+			if(next) next();
+		});
 	}
 
 	/*
@@ -151,9 +166,10 @@ class App {
 	}
 
 	/**
-	* Configure the Express server from
-	* the config data.
-	*/
+	 * Configure the Express server from the config data.
+	 * 
+	 * @param {function} next Chain callback
+	 */
 	loadServer({reload, listen}, next) {
 		let server;
 		let secret = this.config.secret || (this.config.secret = randString());
@@ -168,9 +184,8 @@ class App {
 			this.routeStack = {'get': [], 'post': [], 'delete': []};
 		}
 
-		// gracefully handle many requests
+		/* Add a rate limiter if necessary */
 		if (this.config.strict) {
-			// rate limit
 			server.use((req, res, next) => {
 				if (req.method.toLowerCase() !== "post") { return next(); }
 
@@ -179,7 +194,7 @@ class App {
 
 				// currently blocked
 				if (self._remoteAddrs[ip] === true) {
-					return res.status(420).json([{message: `Enhance your calm, bro. Sending too many requests from \`${ip}\`.`}]);
+					return res.status(420).json([{message: `Sending too many requests from \`${ip}\`.`}]);
 				}
 
 				self._remoteAddrs[ip] = true;
@@ -265,8 +280,10 @@ class App {
 	}
 
 	/**
-	* Load the controller JSON file.
-	*/
+	 * Load the controller JSON file.
+	 * 
+	 * @param {function} next Chain callback
+	 */
 	async loadController(next) {
 		/* Location of the controller file */
 		const controllerPath = path.join(this.dir, this.config.controller);
@@ -292,38 +309,20 @@ class App {
 	}
 
 	/**
-	* Load the model structures and initialise
-	* the storage instance for this app.
-	*/
+	 * Load the model structures and initialise
+	 * the storage instance for this app.
+	 * 
+	 * @param {function} next Chain callback
+	 */
 	loadModel(next) {
 		const modelPath = path.join(this.dir, this.config.models);
 		const structure = {};
 
-		// models are not mandatory so warn in the log
-		const f = ff(this, function () {
-			this.fs.exists(modelPath, f.slotPlain());
-		}, function (exists) {
-			if (!exists) {
-				Cluster.console.warn(`Models at path \`${modelPath}\` does not exist`)
-				f.succeed();
-			}
+		if(this.fs.existsSync(modelPath)) {
+			/* Load all models in the model directory */
+			let files = this.fs.readdirSync(modelPath);
 
-			this.fs.readdir(modelPath, f.slot());
-		}, function (files) {
-			
-			f.pass(files);
-			const g = f.group();
-
-			for (let i = 0; i < files.length; ++i) {
-				const file = files[i];
-				const table = file.split(".")[0];
-
-				if (!table) { continue; }
-
-				this.fs.readFile(path.join(modelPath, file), g());
-			}
-
-		}, function (files, contents) {
+			/* Go through each model */
 			for (let i = 0; i < files.length; ++i) {
 				const file = files[i].toString();
 				const table = file.split(".")[0];
@@ -333,13 +332,17 @@ class App {
 					continue; 
 				}
 
+				const model = this.fs.readFileSync(path.join(modelPath, file));
+
+				/* Read the model JSON into the structure */
 				try {
-					structure[table] = JSON.parse(contents[i].toString());
+					structure[table] = JSON.parse(model.toString());
 				} catch (e) {
 					Cluster.console.error("Error parsing model `%s`", table);
 				}
 			}
-		
+
+			/* Create a storage instance based on the models */
 			const storage = new Storage({
 				name: this.name, 
 				schema: structure,
@@ -349,122 +352,136 @@ class App {
 
 			this.structure = structure;
 			this.storage = storage;
-		}).cb(next);
+
+		} else {
+			Cluster.console.warn(`Models at path \`${modelPath}\` does not exist`);
+		}
+
+		if(next) next();
 	}
 
 	/**
-	* Load the permissions table and implement
-	* some server middleware to validate the
-	* permission before passing to the next
-	* route handler.
-	*/
+	 * Load the permissions file, and implement the middleware
+	 * to validate the permission before continuing to the
+	 * route handler.
+	 * 
+	 * @param {function} next Chain callback
+	 */
 	loadPermissions(next) {
 		const permissionsPath = path.join(this.dir, "permissions.json");
 
-		const f = ff(this, function () {
-			this.fs.readFile(permissionsPath, f.slot())
-		}, function (perms) {
-			try {
-				this.permissions = JSON.parse(perms);
-			} catch (e) {
-				Cluster.console.error(`permissions at path: [${permissionsPath}] not found.`);
-				Cluster.console.error(e);
-				Cluster.console.error(e.stack);
+		const perms = this.fs.readFileSync(permissionsPath);
+
+		try {
+			this.permissions = JSON.parse(perms);
+		} catch (e) {
+			Cluster.console.error(`permissions at path: [${permissionsPath}] not found.`);
+			Cluster.console.error(e);
+			Cluster.console.error(e.stack);
+		}
+
+		// loop over the urls in permissions
+		Object.keys(this.permissions).forEach(url => {
+			const parts = url.split(" ");
+			if (parts.length < 2) {
+				return; //permissions could potentially have >2 params
 			}
 
-			// loop over the urls in permissions
-			Object.keys(this.permissions).forEach(url => {
-				const parts = url.split(" ");
-				if (parts.length < 2) {
-					return; //permissions could potentially have >2 params
+			let method = parts[0].toLowerCase();
+			const route = parts[1];
+			const user = this.permissions[url];
+
+			const self = this;
+			
+			// default method is `all`.
+			if (!["get", "post", "delete"].includes(method)) {
+				method = "all";
+			}
+
+			this.server[method](route, function (req, res, next) {
+				Cluster.console.log(`${this.workerID()}PERMISSION`, method, route, user);
+				
+				// make sure users don't accidently lock themselves out
+				// of the admin login
+				if (req.url.indexOf("/api/login") === 0) {
+					return next();
 				}
 
-				let method = parts[0].toLowerCase();
-				const route = parts[1];
-				const user = this.permissions[url];
+				let flag = false;
 
-				const self = this;
-				
-				// default method is `all`.
-				if (!["get", "post", "delete"].includes(method)) {
-					method = "all";
+				//save the required permission and pass it on
+				req.permission = user;
+
+				//stranger must NOT be logged in
+				if (user === "stranger") {
+					if (req.session && req.session.user) {
+						flag = true;
+					}
+				}
+				//member or owner must be logged in
+				//owner is handled further in the process
+				else if (user === "member" || user === "owner") {
+					if (!req.session.user) {
+						flag = true;
+					}
+				}
+				//no restriction
+				else if (user === "anyone") {
+					flag = false;
+				}
+				//custom roles
+				else {
+					const role = req.session.user && req.session.user.role || "stranger";
+					flag = !self.storage.inheritRole(role, user);
 				}
 
-				this.server[method](route, function (req, res, next) {
-					Cluster.console.log(`${this.workerID()}PERMISSION`, method, route, user);
-					
-					// make sure users don't accidently lock themselves out
-					// of the admin login
-					if (req.url.indexOf("/api/login") === 0) {
-						return next();
-					}
-
-					let flag = false;
-
-					//save the required permission and pass it on
-					req.permission = user;
-
-					//stranger must NOT be logged in
-					if (user === "stranger") {
-						if (req.session && req.session.user) {
-							flag = true;
-						}
-					}
-					//member or owner must be logged in
-					//owner is handled further in the process
-					else if (user === "member" || user === "owner") {
-						if (!req.session.user) {
-							flag = true;
-						}
-					}
-					//no restriction
-					else if (user === "anyone") {
-						flag = false;
-					}
-					//custom roles
-					else {
-						const role = req.session.user && req.session.user.role || "stranger";
-						flag = !self.storage.inheritRole(role, user);
-					}
-
-					if (flag) {
-						const errorHandler = self.errorHandler(req, res);
-						return errorHandler([{message: "You do not have permission to complete this action."}]);
-					} else next();
-				});
-				
+				if (flag) {
+					const errorHandler = self.errorHandler(req, res);
+					return errorHandler([{message: "You do not have permission to complete this action."}]);
+				} else next();
 			});
-		}).cb(next);
+			
+		});
+	
+		if(next) next();
 	}
 
+	/**
+	 * Load the given view from a file
+	 * 
+	 * @param {string} view Name of the view to be loaded
+	 * @param {function} next Chain callback
+	 */
 	loadView(view, next) {
+		/* Construct the path to the view */
+		/* TODO: make smarter about the file extension */
 		const viewPath = `${view}.${this.config.extension}`;
 
-		const f = ff(this, function () {
-			//check the view template exists
-			this.fs.exists(viewPath, f.slotPlain());
-		}, function (viewExists) {
-			//if the view doesn't exist, fail
-			if (!viewExists) {
-				return f.fail(`View template does not exist at: ${viewPath}`);
-			}
-
-			//read the contents of the template
-			this.fs.readFile(viewPath, f.slot());
-		}, function (template) {
-			//cache the view
+		/* If the given view exists, read the file and load it into the cache. Otherwise throw an error */
+		if(this.fs.existsSync(viewPath)) {
+			const template = this.fs.readFileSync(viewPath);
 			this._viewCache[view] = template.toString();
-			f.pass(this._viewCache[view])
-		}).error(e => {
-			Cluster.console.error("Error loading the view template.", `[${viewPath}]`)
-			Cluster.console.error(e);
-		}).cb(next);
+		} else {
+			Cluster.console.error("Error loading the view template.", `[${viewPath}]`);
+			Cluster.console.error(`View template does not exist at: ${viewPath}`);
+		}
+	
+		if(next) next();
 	}
 
+	/**
+	 * Render a given view and send it to the browser.
+	 * 
+	 * @param {string} view The name of the view being rendered
+	 * @param {object} data Query data
+	 * @param {object} req Express req object
+	 * @param {object} res Express res object
+	 * @param {function} next Chain callback
+	 */
 	renderView(view, data, req, res, next) {
 		const body = Object.keys(req.body).length ? req.body : null;
 
-		//build the data to pass into template
+		/* Build the data to pass into template */
 		_.extend(data, {
 			params: _.extend({}, req.params), 
 			query: req.query,
@@ -485,56 +502,62 @@ class App {
 			data.self.etc = this.opts.etc;
 		}
 
-		const f = ff(this, function () {
-			//grab the template from the cache
-			if (this.config.cacheViews && view in this._viewCache) {
-				f.pass(this._viewCache[view]);
-			} else {
-				this.loadView(view, f.slot());
-			}
-		}, function (template) {
-			//render and send it back to client
-			const g = new Greenhouse(this.hooks, this.fs);
-			const slot = f.slot();
-			const config = this.config;
-			const dir = this.dir;
+		/* If the view hasn't been cached or views aren't cached at all, load the view */
+		if (!this.config.cacheViews || !(view in this._viewCache)) {
+			this.loadView(view);
+		}
+		
+		/* Then, get the view from the internal cache */
+		const template = this._viewCache[view];
 
-			g.oncompiled = html => {
-				res.send(html);
-				slot();
-			};
+		/* Create new template engine instance */
+		const g = new Greenhouse(this.hooks, this.fs);
+		const config = this.config;
+		const dir = this.dir;
 
-			g.onerror = error => {
-				slot(error);
-			};
+		/* Send a properly compiled page to the browser */
+		g.oncompiled = html => {
+			res.send(html);
+		};
 
-			g.onredirect = url => {
-				res.redirect(url);
-				slot();
-			};
+		/* Send an error to the console */
+		g.onerror = error => {
+			Cluster.console.error(error);
+		};
 
-			g.onjson = data => {
-				res.json(data);
-				slot();
-			};
+		/* Handle redirects */
+		g.onredirect = url => {
+			res.redirect(url);
+		};
 
-			g.render(template, data);
-		}).cb(next);
+		/* Send JSON if we're doing JSON */
+		g.onjson = data => {
+			res.json(data);
+		};
+
+		/* Kick off the render */
+		g.render(template, data);
+
+		if(next) next();
 	}
 
 	/**
-	* Setup the routes from the controller. Handle
-	* the requests and start an instance of the greenhouse
-	* template parser.
-	*/
+	 * Initialise the given route; load and render the view,
+	 * create the appropriate listeners.
+	 * 
+	 * @param {string} route Name of the route to be loaded
+	 * @param {function} view Chain callback
+	 */
 	initRoute(route, view) {
 		Cluster.console.log("Loaded route ", `${route}`)
 
+		/* If the view is not in the cache, load it first */
+		/* TODO: Isn't this sort of handled inside of renderView anyway? */
 		if (!this._viewCache[view]) {
 			this.loadView(view);
 		}
 		
-		//handle the route
+		/* Create a handler for incoming requests */
 		const self = this;
 		const handler = (req, res) => {
 			self.renderView(
@@ -546,10 +569,11 @@ class App {
 			);
 		};
 
-		// should listen on post and get
+		/* Listen on both GET and POST with the same handler */
 		this.server.get(route, handler);
 		this.server.post(route, handler);
 
+		/* Save the routes for later */
 		this.routeStack.get.push(route);
 		this.routeStack.post.push(route);
 	}
@@ -934,9 +958,7 @@ class App {
 			return next ? next(err) : errorHandler(err);
 		}
 
-		const f = ff(this, () => {
-			pwd.hash(req.body.password.toString(), f.slot());
-		}, function (hash) {
+		pwd.hash(req.body.password.toString(), (err, hash) => {
 			//add these fields after validation
 			req.body._salt = hash[0];
 			req.body.password = hash[1];
@@ -949,52 +971,24 @@ class App {
 			if(req.body.password_confirm)
 				delete req.body.password_confirm;
 
-			if(this.config.stripe) {
-				stripe.customers.create({
-					email: req.body.email
-				}, f.slot());
-			} else {
-				f();
-			}
-		}, function(customer) {
-			if(customer)
-				req.body.stripe_customer = customer.id;
-
-			if(this.config.stripe) {
-				// TODO: validate plan against config
-				stripe.subscriptions.create({
-					customer: customer.id,
-					plan: req.body.plan || this.config.stripe.plans[0]
-				}, f.slot());
-
-				if(req.body.plan) delete req.body.plan;
-			} else {
-				f();
-			}
-		}, function(subscription) {
-			if(subscription)
-				req.body.stripe_subscription = subscription.id;
-
 			this.storage.post({
 				url: "/data/users",
 				session: req.session,
 				permission: req.permission,
 				body: req.body
-			}, f.slot());
-		}, data => {
-			if (data) {
-				if(data.password) delete data.password;
-				if(data._salt) delete data._salt;
-			}
+			}, (err, data) => {
+				if (data) {
+					if(data.password) delete data.password;
+					if(data._salt) delete data._salt;
+				}
 
-			f.pass(data);
-		}).cb(function (err, data) {
-			Cluster.console.log(`${this.workerID()}REGISTER`, err, data);
+				Cluster.console.log(`${this.workerID()}REGISTER`, err, data);
 
-			// TODO headers??
-			
-			const cb = next ? next : this.response(req, res);
-			cb && cb.call(this, err, data);
+				// TODO headers??
+				
+				const cb = next ? next : this.response(req, res);
+				cb && cb.call(this, err, data);
+			});
 		});
 	}
 
@@ -1244,9 +1238,10 @@ class App {
 			// render the error view
 			if (self.config.errorView && !acceptJSON) {
 				const errorPath = path.join(self.dir, self.config.views, self.config.errorView);
-				ff(function () {
-					self.loadView(errorPath, this.slot());
-				}, () => {
+
+				self.loadView(errorPath);
+				
+				try {
 					self.renderView.call(self, 
 						errorPath, 
 						{error: error.template}, 
@@ -1258,9 +1253,9 @@ class App {
 							}
 						}
 					);
-				}).error(() => {
+				} catch {
 					res.status(ERROR_CODE).json(error.template)
-				});
+				}
 			} else {
 				res.status(ERROR_CODE).json(error.template);
 			}

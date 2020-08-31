@@ -539,29 +539,24 @@ Greenhouse.prototype.process = function (template, adt, gnext) {
                     viewPath += ".sap";
                 }
 
-                var f = ff(this, function () {
-                    this.fs.exists(viewPath, f.slotPlain());
-                }, function (exists) {
-                    if (!exists) {
-                        Cluster.console.error("In include: FILE NOT EXISTS", viewPath);
-                        return f.pass("");
-                    }
+                if(this.fs.existsSync(viewPath)) {
+                    let contents = this.fs.readFileSync(viewPath);
+                } else {
+                    Cluster.console.error("In include: FILE NOT EXISTS", viewPath);
+                    let contents = "";
+                }
 
-                    this.fs.readFile(viewPath, f.slot());
-                }, function (contents) {
-                    if (contents === "" || !block.eval) {
-                        return f.pass(contents);
-                    }
-
+                if (!(contents === "" || !block.eval)) {
                     contents = contents.toString();
+    
                     var g = new Greenhouse(this.hooks);
-                    g.oncompiled = f.slotPlain();
+                    g.oncompiled = (html) => {
+                        this.pieces.push(html);
+                    };
                     g.render(contents, this.data, this.includeHash);
-                }, function (html) {
-                    this.pieces.push(html);
-                }).cb(next);
+                }
 
-                return;
+                return next();
 
             /**
             * {<var>}
