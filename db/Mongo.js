@@ -1,11 +1,18 @@
-const mongo = require("mongodb");
-const ff = require("ff");
-const Interface = require("./Interface");
+/**
+ * MongoDB driver
+ */
 
+
+/* Dependencies */
+const { MongoClient, ObjectID } = require("mongodb");
+const Interface = require("./Interface");
+const Cluster = require("../lib/Cluster");
+
+/* Default values */
 const HOST = "localhost";
 const PORT = 27017;
 
-// mongo options
+/* Default options for each type of operation */
 const mongo_options = {
 	open: { w: 1, strict: false, safe: true },
 	collection: { strict: false },
@@ -14,29 +21,51 @@ const mongo_options = {
 	find: {}
 };
 
+/**
+ * Convert all "_id" fields with a string representation of an object ID
+ * to the appropriate MongoDB object ID object
+ * 
+ * @param {object} conditions Search query object
+ */
 function convertObjectId(conditions) {
 	if (conditions._id) {
 		try {
-			conditions._id = new mongo.ObjectID(conditions._id)
+			conditions._id = new ObjectID(conditions._id)
 		} catch (er) {}
 	}
 }
 
 const Mongo = Interface.extend({
-	open({name, host, port}, next) {
-		// setup the mongo connection
-		this.connection = new mongo.Db(
-			name, 
-			new mongo.Server(host || HOST, port || PORT), 
-			mongo_options.open
-		);
 
-		this.connection.open(next);
+	client: null,
+	database: null,
+
+	async connect({name, host, port}) {
+		/* Setup the mongo connection */
+		this.client = new MongoClient(`mongodb://${host || HOST}:${port || PORT}?useUnifiedTopology=true`);
+		this.database = name;
+
+		this.open();
+
+		return true;
 	},
 
-	createTable(table, fields, next) {
+	async open() {
+		this.connection = await this.client.connect();
+		await this.client.db(this.database);
+	},
+
+	async close() {
+		this.client.close();
+	},
+
+	async createCollection(table, fields) {
+
+		Cluster.console.log("CREATE COLLECTION", table, fields);
+		this.open();
+
 		const self = this;
-		this.connection.createCollection(table, mongo_options.open, () => {
+		const collection = await this.database.createCollection(table, mongo_options.open, () => {
 			// create unique indexes
 			for (const key in fields) {
 				const rule = fields[key];
@@ -46,27 +75,37 @@ const Mongo = Interface.extend({
 					self.createIndex(table, ufields, {unique: true});
 				}
 			}
+		});
 
-			// ignore any error for now
-			next();
-		})
+		this.close();
+
+		return collection;
 	},
 
-	createIndex(table, fields, config, next) {
-		const f = ff(this, function () {
-			this.connection.collection(table, mongo_options.collection, f.slot());	
-		}, collection => {
-			collection.ensureIndex(fields, config, f.slot());
-		}).cb(next);
+	async createIndex(table, fields, config) {
+
+		Cluster.console.log("CREATE INDEX", table, fields, config);
+		this.open();
+
+		const collection = await this.database.collection(table, mongo_options.collection);
+		const index = collection.createIndex(fields, config);
+
+		this.close();
+
+		return index;
 	},
 
-	read(table, conditions, options, references, next) {
+	async read(table, conditions, options, references) {
+
+		Cluster.console.log("READ", table, conditions);
+		this.open();
+
 		if (conditions._id) {
 			conditions._id = new mongo.ObjectID(conditions._id)
 		}
 
 		if (options['search']) {
-			return this.search(table, options['search'], next);
+			return this.search(table, options['search']);
 		}
 
 		if (options['in']) {
@@ -85,29 +124,35 @@ const Mongo = Interface.extend({
 			options = {};
 		}
 
-		const f = ff(this, function () {
-			this.connection.collection(table, mongo_options.collection, f.slot());	
-		}, collection => {
-			// plain aggregation stack
-			const stack = [
-				{
-					'$match': conditions
-				}
-			];
+		const collection = await this.database.collection(table, mongo_options.collection);
 
-			// handle references if we have any
-			for(const reference in references) {
-				stack.push({
-					'$lookup': references[reference]
-				});
+		// plain aggregation stack
+		const stack = [
+			{
+				'$match': conditions
 			}
+		];
 
-			// do it
-			collection.aggregate(stack, options, f.slot());
-		}).cb(next);
+		// handle references if we have any
+		for(const reference in references) {
+			stack.push({
+				'$lookup': references[reference]
+			});
+		}
+
+		// do it
+		const result = await collection.aggregate(stack, options);
+
+		this.close
+
+		return result;
 	},
 
-	write(table, conditions, data, next) {
+	async write(table, conditions, data) {
+
+		Cluster.console.log("WRITE", table, conditions, data);
+		this.open();
+
 		for (const i in conditions['references']) {
 			const reference = conditions['references'][i];
 			if(data[reference])
@@ -116,16 +161,19 @@ const Mongo = Interface.extend({
 
 		delete conditions['references'];
 
-		const f = ff(this, function () {
-			console.log("BAH", data)
-			this.connection.collection(table, mongo_options.collection, f.slot());	
-		}, collection => {
-			console.log("WRITE", data)
-			collection.insert(data, mongo_options.insert, f.slot());
-		}).cb(next);
+		const collection = await this.database.collection(table, mongo_options.collection);	
+		const result = await collection.insert(data, mongo_options.insert);
+
+		this.close();
+
+		return result;
 	},
 
-	modify(table, conditions, data, next) {
+	async modify(table, conditions, data) {
+
+		Cluster.console.log("MODIFY", table, conditions, data);
+		this.open();
+
 		convertObjectId(conditions);
 
 		for (const i in conditions['references']) {
@@ -136,35 +184,27 @@ const Mongo = Interface.extend({
 
 		delete conditions['references'];
 
-		console.log("GOING IN", data);
+		const collection = await this.database.collection(table, mongo_options.collection);	
+		const result = await collection.update(conditions, {"$set": data}, mongo_options.update);
 
-		const f = ff(this, function () {
-			this.connection.collection(table, mongo_options.collection, f.slot());	
-		}, collection => {
-			console.log("MODIFY", conditions, data)
-			collection.update(conditions, {"$set": data}, mongo_options.update, f.slot());
-		}).cb(next);
+		this.close();
+
+		return result;
 	},
 
-	remove(table, conditions, next) {
+	async remove(table, conditions) {
+
+		Cluster.console.log("REMOVE", table, conditions);
+		this.open();
+
 		convertObjectId(conditions);
 
-		const f = ff(this, function () {
-			this.connection.collection(table, mongo_options.collection, f.slot());	
-		}, collection => {
-			collection.remove(conditions, mongo_options.remove, f.slot());
-		}).cb(next);
-	},
+		const collection = await this.database.collection(table, mongo_options.collection);
+		const result = await collection.remove(conditions, mongo_options.remove);
 
-	increment(table, conditions, data, next) {
-		convertObjectId(conditions);
+		this.close();
 
-		const f = ff(this, function () {
-			this.connection.collection(table, mongo_options.collection, f.slot());	
-		}, collection => {
-			console.log(conditions, {"$inc": data})
-			collection.update(conditions, {"$inc": data}, mongo_options.modify, f.slot());
-		}).cb(next);
+		return result;
 	}
 });
 

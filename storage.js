@@ -100,12 +100,12 @@ const Storage = Class.extend({
 		this.db = new (require(`./db/${opts.config.db.type}`))(opts);
 		
 		const f = ff(this, function () {
-			this.db.open(dbConfig, f.slot());
+			this.db.connect(dbConfig, f.slot());
 		}, function () {
 			const group = f.group();
 
 			for (const table in this.schema) {
-				this.db.createTable(table, this.schema[table], group());
+				this.db.createCollection(table, this.schema[table], group());
 			}
 		}, function () {
 			Cluster.console.log("CREATED DBS")
@@ -347,11 +347,7 @@ const Storage = Class.extend({
 			}
 		});
 
-		if (req.cmd == "inc") {
-			conditions[req.field] = req.value;
-			Cluster.console.log("increment", req.table, conditions, data)
-			this.db.increment(req.table, conditions, data, next);
-		} else if (req.type == "filter") {
+		if (req.type == "filter") {
 			// add a constraint to the where clause
 			conditions[req.field] = req.value;
 
