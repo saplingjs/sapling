@@ -368,6 +368,23 @@ class Storage {
 
 
 	/**
+	 * Get the user role from the session
+	 * 
+	 * @param {object} req Request object from Express
+	 * @returns {string/null} Role as string, or null if not logged in
+	 */
+	getRole(req) {
+		let role = null;
+
+		if (req.session && req.session.user) {
+			role = req.session.user.role;
+		}
+
+		return role;
+	}
+
+
+	/**
 	 * Serve an incoming GET request from the database
 	 * 
 	 * @param {object} req Request object from Express
@@ -382,10 +399,7 @@ class Storage {
 		const conditions = {};
 
 		/* Get the user role from session */
-		let role = null;
-		if (req.session && req.session.user) {
-			role = req.session.user.role;
-		}
+		const role = this.getRole(req);
 
 		/* Check if we're logged in */
 		if (req.permission && req.permission != "anyone" && req.permission != "stranger" && (!req.session || !req.session.user)) {
@@ -526,10 +540,7 @@ class Storage {
 		}
 
 		/* Get the user role from session */
-		let role = null;
-		if (req.session && req.session.user) {
-			role = req.session.user.role;
-		}
+		const role = this.getRole(req);
 
 		/* If the permission is "owner", check that we are the owner, or an admin */
 		if (req.permission === "owner" && role !== "admin") {
@@ -605,10 +616,7 @@ class Storage {
 		const conditions = {};
 
 		/* Get the user role from session */
-		let role = null;
-		if (req.session && req.session.user) {
-			role = req.session.user.role;
-		}
+		const role = this.getRole(req);
 		
 		/* If the permission is "owner", check that we are the owner, or an admin */
 		if (req.permission === "owner" && role !== "admin") {
