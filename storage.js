@@ -226,12 +226,9 @@ class Storage {
 
 		let errors = [];
 		const data = body || {};
-		let permission = null;
 		
 		/* Get the role from session, if any */
-		if (session && session.user) {
-			permission = session.user.role;
-		}
+		const role = this.getRole({ session });
 
 		/* Model must be defined before pushing data */
 		/* TODO: check if this is strict-only */
@@ -288,9 +285,9 @@ class Storage {
 			if (access === "owner") continue;
 
 			/* If we do not have access, raise hell */
-			if (this.inheritRole(permission, access) === false) {
+			if (this.inheritRole(role, access) === false) {
 				Cluster.console.warn(`NO ACCESS TO FIELD '${key}'`);
-				Cluster.console.warn("Current permission level:", permission);
+				Cluster.console.warn("Current permission level:", role);
 				Cluster.console.warn("Required permission level:", access);
 				delete data[key];
 			}
@@ -343,7 +340,7 @@ class Storage {
 	 * @param {object} req Request object from Express
 	 */
 	getConstraints(req) {
-		let conditions = [];
+		let conditions = {};
 
 		if (req.type == "filter") {
 			/* TODO: Find out what this is */
@@ -361,6 +358,24 @@ class Storage {
 					}
 				}
 			}
+		}
+
+		return conditions;
+	}
+
+
+	/**
+	 * Add a constraint for the creator to match the currently logged in
+	 * user, if appropriate for the given req and role
+	 * 
+	 * @param {object} req Request object from Express
+	 * @param {string} role User role
+	 */
+	getCreatorConstraint(req, role) {
+		let conditions = {};
+
+		if (req.permission === "owner" && role !== "admin") {
+			conditions['_creator'] = req.session.user._id;
 		}
 
 		return conditions;
@@ -415,11 +430,6 @@ class Storage {
 			};
 		}
 
-		/* If the permission is "owner", check that we are the owner, or an admin */
-		if (req.permission === "owner" && role !== "admin") {
-			conditions['_creator'] = req.session.user._id;
-		}
-
 		/* Parse limit options */
 		if (req.query.limit) {
 			const limit = req.query.limit.split(",");
@@ -441,7 +451,8 @@ class Storage {
 		}
 
 		/* Parse "where" clause, if any */
-		conditions = _.extend(conditions, this.getConstraints(req));
+		/* If the permission is "owner", check that we are the owner, or an admin */
+		conditions = _.extend(conditions, this.getConstraints(req), this.getCreatorConstraint(req, role));
 
 		/* If we have reference fields */
 		const references = [];
@@ -542,11 +553,6 @@ class Storage {
 		/* Get the user role from session */
 		const role = this.getRole(req);
 
-		/* If the permission is "owner", check that we are the owner, or an admin */
-		if (req.permission === "owner" && role !== "admin") {
-			conditions['_creator'] = req.session.user._id;
-		}
-
 		/* Specially format certain fields */
 		Object.keys(rules).forEach(field => {
 			const rule = rules[field];
@@ -576,7 +582,8 @@ class Storage {
 		/* If we're updating an existing record */
 		if (req.type == "filter") {
 			/* Parse "where" clause, if any */
-			conditions = _.extend(conditions, this.getConstraints(req));
+		/* If the permission is "owner", check that we are the owner, or an admin */
+			conditions = _.extend(conditions, this.getConstraints(req), this.getCreatorConstraint(req, role));
 
 			/* Update hidden fields */
 			data['_lastUpdated'] = Date.now();
@@ -617,14 +624,10 @@ class Storage {
 
 		/* Get the user role from session */
 		const role = this.getRole(req);
-		
-		/* If the permission is "owner", check that we are the owner, or an admin */
-		if (req.permission === "owner" && role !== "admin") {
-			conditions["_creator"] = req.session.user._id;
-		}
 
 		/* Parse "where" clause, if any */
-		conditions = _.extend(conditions, this.getConstraints(req));
+		/* If the permission is "owner", check that we are the owner, or an admin */
+		conditions = _.extend(conditions, this.getConstraints(req), this.getCreatorConstraint(req, role));
 
 		/* Send it to the database */
 		return await this.db.remove(req.table, conditions);
