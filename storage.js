@@ -338,114 +338,6 @@ class Storage {
 
 
 	/**
-	 * Serve an incoming POST request to the database
-	 * 
-	 * @param {object} req Request object from Express
-	 */
-	async post(req) {
-		/* Prepare the raw request */
-		parseRequest(req);
-
-		/* Check if we're logged in */
-		if (req.permission && req.permission != "anyone" && req.permission != "stranger" && !req.session.user) {
-			return {
-				"status": "401",
-				"code": "4002",
-				"title": "Unauthorized",
-				"detail": "You must log in before completing this action.",
-				"meta": {
-					"type": "login",
-					"error": "unauthorized"
-				}
-			};
-		}
-
-		/* Get the collection definition */
-		const rules = this.schema[req.table];
-
-		const conditions = {};
-		const data = req.body;
-
-		// special case, unfortunately :\
-		if (req.cmd == "in") {
-			return await this.get(req);
-		}
-
-		/* Validate the updated data */
-		const errors = this.validateData(req);
-		if (errors) {
-			return errors;
-		}
-
-		/* Get the user role from session */
-		let role = null;
-		if (req.session && req.session.user) {
-			role = req.session.user.role;
-		}
-
-		/* If the permission is "owner", check that we are the owner, or an admin */
-		if (req.permission === "owner" && role !== "admin") {
-			conditions['_creator'] = req.session.user._id;
-		}
-
-		/* Specially format certain fields */
-		Object.keys(rules).forEach(field => {
-			const rule = rules[field];
-			const type = (rule.type || rule).toLowerCase();
-
-			/* Format reference fields */
-			if(type === "reference" || type === "id") {
-				if(conditions["references"])
-					conditions["references"].push(field);
-				else
-					conditions["references"] = [field];
-			}
-
-			/* Format date fields */
-			if(type === "date") {
-				if(data[field])
-					data[field] = Number(moment(data[field]).format("x"));
-			}
-
-			/* Format boolean fields */
-			if(type === "boolean") {
-				if(data[field])
-					data[field] = Boolean(data[field]);
-			}
-		});
-
-		/* If we're updating an existing record */
-		if (req.type == "filter") {
-			/* Add constraints */
-			conditions[req.field] = req.value;
-
-			/* Update hidden fields */
-			data['_lastUpdated'] = Date.now();
-			if (req.session && req.session.user) {
-				data['_lastUpdator'] = req.session.user._id;
-				data['_lastUpdatorEmail'] = req.session.user.email;
-			}
-
-			/* Send to the database */
-			await this.db.modify(req.table, conditions, data);
-
-		} else {
-			/* If we're creating a new record */
-
-			/* Add in the user metadata */
-			if (req.session && req.session.user) {
-				data['_creator'] = req.session.user._id;
-				data['_creatorEmail'] = req.session.user.email;
-			}
-			data['_created'] = Date.now();
-
-			/* Send to the database */
-			await this.db.write(req.table, conditions, data);
-		}
-	}
-
-
-	/**
 	 * Serve an incoming GET request from the database
 	 * 
 	 * @param {object} req Request object from Express
@@ -576,6 +468,114 @@ class Storage {
 				return arr;
 			}
 		});
+	}
+
+
+	/**
+	 * Serve an incoming POST request to the database
+	 * 
+	 * @param {object} req Request object from Express
+	 */
+	async post(req) {
+		/* Prepare the raw request */
+		parseRequest(req);
+
+		/* Check if we're logged in */
+		if (req.permission && req.permission != "anyone" && req.permission != "stranger" && !req.session.user) {
+			return {
+				"status": "401",
+				"code": "4002",
+				"title": "Unauthorized",
+				"detail": "You must log in before completing this action.",
+				"meta": {
+					"type": "login",
+					"error": "unauthorized"
+				}
+			};
+		}
+
+		/* Get the collection definition */
+		const rules = this.schema[req.table];
+
+		const conditions = {};
+		const data = req.body;
+
+		// special case, unfortunately :\
+		if (req.cmd == "in") {
+			return await this.get(req);
+		}
+
+		/* Validate the updated data */
+		const errors = this.validateData(req);
+		if (errors) {
+			return errors;
+		}
+
+		/* Get the user role from session */
+		let role = null;
+		if (req.session && req.session.user) {
+			role = req.session.user.role;
+		}
+
+		/* If the permission is "owner", check that we are the owner, or an admin */
+		if (req.permission === "owner" && role !== "admin") {
+			conditions['_creator'] = req.session.user._id;
+		}
+
+		/* Specially format certain fields */
+		Object.keys(rules).forEach(field => {
+			const rule = rules[field];
+			const type = (rule.type || rule).toLowerCase();
+
+			/* Format reference fields */
+			if(type === "reference" || type === "id") {
+				if(conditions["references"])
+					conditions["references"].push(field);
+				else
+					conditions["references"] = [field];
+			}
+
+			/* Format date fields */
+			if(type === "date") {
+				if(data[field])
+					data[field] = Number(moment(data[field]).format("x"));
+			}
+
+			/* Format boolean fields */
+			if(type === "boolean") {
+				if(data[field])
+					data[field] = Boolean(data[field]);
+			}
+		});
+
+		/* If we're updating an existing record */
+		if (req.type == "filter") {
+			/* Add constraints */
+			conditions[req.field] = req.value;
+
+			/* Update hidden fields */
+			data['_lastUpdated'] = Date.now();
+			if (req.session && req.session.user) {
+				data['_lastUpdator'] = req.session.user._id;
+				data['_lastUpdatorEmail'] = req.session.user.email;
+			}
+
+			/* Send to the database */
+			await this.db.modify(req.table, conditions, data);
+
+		} else {
+			/* If we're creating a new record */
+
+			/* Add in the user metadata */
+			if (req.session && req.session.user) {
+				data['_creator'] = req.session.user._id;
+				data['_creatorEmail'] = req.session.user.email;
+			}
+			data['_created'] = Date.now();
+
+			/* Send to the database */
+			await this.db.write(req.table, conditions, data);
+		}
 	}
 
 
