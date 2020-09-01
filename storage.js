@@ -127,10 +127,10 @@ class Storage {
 	 * Returns an array of fields that should
 	 * be omitted from the response due to permissions.
 	 * 
-	 * @param {string} permission The permission level being checked
+	 * @param {string} role The role being checked
 	 * @param {string} collection The collection being checked against
 	 */
-	disallowedFields(permission, collection) {
+	disallowedFields(role, collection) {
 		/* Get the collection definition */
 		const rules = this.schema[collection];
 		const omit = [];
@@ -149,7 +149,7 @@ class Storage {
 			if (!access || access.r === "anyone" || access.r === "owner") continue;
 
 			/* Leave out the fields that the viewer can't access */
-			if (this.inheritRole(permission, access.r) === false) {
+			if (this.inheritRole(role, access.r) === false) {
 				omit.push(key);
 			}
 		}
