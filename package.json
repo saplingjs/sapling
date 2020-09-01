@@ -31,7 +31,6 @@
     "cron": "^1.7.1",
     "express": "4.16.4",
     "express-session": "1.16.1",
-    "ff": "0.2.2",
     "moment": "2.24.0",
     "mongodb": "3.6.0",
     "morgan": "^1.9.1",

@@ -1,4 +1,3 @@
-const ff = require("ff");
 const fs = require("fs");
 const path = require("path");
 const url = require("url");
@@ -75,7 +74,7 @@ function parseRequest (req) {
 }
 
 class Storage {
-	init(opts) {
+	async init(opts) {
 		Storage.super(this, "init");
 
 		this.name = opts.name;
@@ -98,19 +97,17 @@ class Storage {
 		//connect to the database backend
 		this.db = new (require(`./db/${opts.config.db.type}`))(opts);
 		
-		const f = ff(this, function () {
-			this.db.connect(dbConfig, f.slot());
-		}, function () {
-			const group = f.group();
+		await this.db.connect(dbConfig);
 
-			for (const table in this.schema) {
-				this.db.createCollection(table, this.schema[table], group());
+		for (const table in this.schema) {
+			try {
+				await this.db.createCollection(table, this.schema[table]);
+			} catch (err) {
+				Cluster.console.warn(err);
 			}
-		}, function () {
-			Cluster.console.log("CREATED DBS")
-		}).error(err => {
-			Cluster.console.warn(err)
-		});
+		}
+
+		Cluster.console.log("CREATED DBS");
 	}
 
 	/**
@@ -281,12 +278,12 @@ class Storage {
 		return errors.length && errors;
 	}
 
-	post(req, next) {
+	async post(req) {
 		parseRequest(req);
 
 		// must be logged in!
 		if (req.permission && req.permission != "anyone" && req.permission != "stranger" && !req.session.user) {
-			return next({
+			return {
 				"status": "401",
 				"code": "4002",
 				"title": "Unauthorized",
@@ -295,7 +292,7 @@ class Storage {
 					"type": "login",
 					"error": "unauthorized"
 				}
-			});
+			};
 		}
 
 		const rules = this.schema[req.table];
@@ -304,13 +301,13 @@ class Storage {
 
 		// special case, unfortunately :\
 		if (req.cmd == "in") {
-			return this.get(req, next);
+			return await this.get(req);
 		}
 
 		// validate the updated data
 		const errors = this.validateData(req);
 		if (errors) {
-			return next(errors);
+			return errors;
 		}
 
 		let role = null;
@@ -357,7 +354,7 @@ class Storage {
 				data['_lastUpdatorEmail'] = req.session.user.email;
 			}
 
-			this.db.modify(req.table, conditions, data, next);
+			await this.db.modify(req.table, conditions, data);
 		} else {
 			// add the user metadata
 			if (req.session && req.session.user) {
@@ -366,7 +363,7 @@ class Storage {
 			}
 
 			data['_created'] = Date.now();
-			this.db.write(req.table, conditions, data, next);
+			await this.db.write(req.table, conditions, data);
 		}
 	}
 
@@ -375,8 +372,7 @@ class Storage {
 	// - method:
 	// - url:
 	// - permission:
-	// next: Callback
-	get(req, next) {
+	async get(req) {
 		parseRequest(req);
 
 		const rules = this.schema[req.table];
@@ -391,7 +387,7 @@ class Storage {
 		// must be logged in!
 		if (req.permission && req.permission != "anyone" && req.permission != "stranger" && (!req.session || !req.session.user)) {
 			Cluster.console.log(req.permission, req.session)
-			return next({
+			return {
 				"status": "401",
 				"code": "4002",
 				"title": "Unauthorized",
@@ -400,7 +396,7 @@ class Storage {
 					"type": "login",
 					"error": "unauthorized"
 				}
-			});
+			};
 		}
 
 		// match the owners at row level
@@ -427,7 +423,7 @@ class Storage {
 
 		// values in array
 		if (req.cmd && req.type === "all") {
-			if (!req.body || !Object.keys(req.body).length) { return next("Body empty"); }
+			if (!req.body || !Object.keys(req.body).length) { return "Body empty"; }
 			options = {"in": req.body};
 		}
 
@@ -470,9 +466,10 @@ class Storage {
 		});
 
 		Cluster.console.log(req.table, conditions, options)
-		this.db.read(req.table, conditions, options, references, (err, arr) => {
+
+		await this.db.read(req.table, conditions, options, references).then((err, arr) => {
 			if (err) {
-				return next(err);
+				return err;
 			}
 
 			Cluster.console.log("HERES WHAT I GOT", arr);
@@ -491,14 +488,14 @@ class Storage {
 			}
 
 			if (req.query.single) {
-				next(null, arr[0]);
+				return arr[0];
 			} else {
-				next(null, arr);
+				return arr;
 			}
 		});
 	}
 
-	delete(req, next) {
+	async delete(req) {
 		parseRequest(req);
 		const conditions = {};
 
@@ -517,7 +514,7 @@ class Storage {
 		}
 
 		//truncate table
-		this.db.remove(req.table, conditions, next);
+		return await this.db.remove(req.table, conditions);
 	}
 }
 

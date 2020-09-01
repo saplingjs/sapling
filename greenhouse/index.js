@@ -1,6 +1,5 @@
 const rfs = require("fs");
 const path = require("path");
-const ff = require("ff");
 const Cluster = require("../lib/Cluster");
 
 var entityMap = {

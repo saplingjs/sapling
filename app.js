@@ -1,7 +1,6 @@
 const path = require("path");
 const util = require("util");
 const async = require("async");
-const ff = require("ff");
 const rfs = require("fs");
 const _ = require("underscore");
 const cron = require("cron").CronJob;
@@ -827,68 +826,65 @@ class App {
 		}
 	}
 
-	login(req, res) {
+	async login(req, res) {
 
 		const url = `/data/users/email/${req.body.email}`;
 		const permission = this.testRoute("get", url);
 
-		const f = ff(this, function () {
-			this.storage.db.read("users", {email: req.body.email}, {}, [], f.slot());
-		}, data => {
-			//no user found, throw error
-			if (!data.length) { 
-				return f.fail({
-					"status": "401",
-					"code": "4001",
-					"title": "Invalid User or Password",
-					"detail": "Either the user does not exist or the password is incorrect.",
-					"meta": {
-						"type": "login",
-						"error": "invalid"
-					}
-				}); 
-			}
+		let data = await this.storage.db.read("users", {email: req.body.email}, {}, []);
 
-			if (!req.body.password) {
-				return f.fail({
-					"status": "422",
-					"code": "1001",
-					"title": "Invalid Input",
-					"detail": "You must provide a value for key `password`",
-					"meta": {
-						"key": "password",
-						"rule": "required"
-					}
-				});
-			}
+		//no user found, throw error
+		if (!data.length) { 
+			return {
+				"status": "401",
+				"code": "4001",
+				"title": "Invalid User or Password",
+				"detail": "Either the user does not exist or the password is incorrect.",
+				"meta": {
+					"type": "login",
+					"error": "invalid"
+				}
+			}; 
+		}
 
-			const user = data[0];
-			f.pass(user);
-			pwd.hash(req.body.password || "", user._salt, f.slot());
-		}, (user, password) => {
-			if (user.password === password.toString("base64")) {
-				req.session.user = _.extend({}, user);
-				delete req.session.user.password;
-				delete req.session.user._salt;
-				if(!req.query.goto)
-					res.json(req.session.user);
-			} else {
-				return f.fail({
-					"status": "401",
-					"code": "4001",
-					"title": "Invalid User or Password",
-					"detail": "Either the user does not exist or the password is incorrect.",
-					"meta": {
-						"type": "login",
-						"error": "invalid"
-					}
-				}); 
-			}
+		if (!req.body.password) {
+			return {
+				"status": "422",
+				"code": "1001",
+				"title": "Invalid Input",
+				"detail": "You must provide a value for key `password`",
+				"meta": {
+					"key": "password",
+					"rule": "required"
+				}
+			};
+		}
 
-			if (req.query.goto) {
-				res.redirect(req.query.goto);
-			}
-		}).error(this.errorHandler(req, res));
+		const user = data[0];
+		const password = await pwd.hash(req.body.password || "", user._salt);
+
+		if (user.password === password.toString("base64")) {
+			req.session.user = _.extend({}, user);
+			delete req.session.user.password;
+			delete req.session.user._salt;
+			if(!req.query.goto)
+				res.json(req.session.user);
+		} else {
+			return {
+				"status": "401",
+				"code": "4001",
+				"title": "Invalid User or Password",
+				"detail": "Either the user does not exist or the password is incorrect.",
+				"meta": {
+					"type": "login",
+					"error": "invalid"
+				}
+			}; 
+		}
+
+		if (req.query.goto) {
+			res.redirect(req.query.goto);
+		}
 	}
 
 	logout(req, res) {
@@ -986,7 +982,7 @@ class App {
 		});
 	}
 
-	update(req, res) {
+	async update(req, res) {
 		const err = [];
 		const errorHandler = this.errorHandler(req, res);
 
@@ -1020,95 +1016,90 @@ class App {
 			return errorHandler(err); 
 		}
 
-		const user = req.session.user;
+		const user = await this.storage.get({
+			url: `/data/users/_id/${req.session.user._id}/?single=true`,
+			session: req.session
+		});
+		
+		const password = await pwd.hash(req.body.password, user._salt);
 
-		const f = ff(this, function () {
-			this.storage.get({
-				url: `/data/users/_id/${req.session.user._id}/?single=true`,
-				session: req.session
-			}, f.slot());
-		}, user => {
-			f.pass(user);
-			pwd.hash(req.body.password, user._salt, f.slot());
-		}, (user, password) => {
-			// valid password, update details
-			if (user.password === password.toString("base64")) {
-				delete req.body.password;
+		// valid password, update details
+		if (user.password === password.toString("base64")) {
+			delete req.body.password;
 
-				// handle new passwords
-				if (req.body.new_password) {
-					pwd.hash(req.body.new_password, f.slot());
-					delete req.body.new_password;
-				}
-			} else {
-				f.fail({
-					"status": "422",
-					"code": "1009",
-					"title": "Incorrect Password",
-					"detail": "Value for key `password` did not match the password in the database.",
-					"meta": {
-						"key": "password",
-						"rule": "match"
-					}
-				});
-			}
-		}, function (hash) {
-			if (hash) {
+			// handle new passwords
+			if (req.body.new_password) {
+				const hash = pwd.hash(req.body.new_password);
+				delete req.body.new_password;
+
 				req.body._salt = hash[0];
 				req.body.password = hash[1];
 			}
-
-			this.storage.post({
-				url: `/data/users/_id/${user._id}`,
-				body: req.body,
-				session: req.session
-			}, f.slot());
-		}).cb(this.response(req, res));
-	}
-
-	forgot(req, res) {
-		const f = ff(this, function () {
-			this.storage.get({
-				url: `/data/users/email/${req.body.email}/?single=true`,
-				session: App.adminSession
-			}, f.slot());
-		}, function({authkey, email}) {
-			// only allow sending authkey once every 2 hours
-			if (authkey) {
-				var key = parseInt(authkey.substring(0, authkey.length - 11), 16);
-				const diff = key - Date.now();
-
-				if (diff > 0) {
-					const hours = diff / 60 / 60 / 1000;
-					return f.fail([{message: `Must wait ${hours.toFixed(1)} hours before sending another recovery email.`}]);
+		} else {
+			return {
+				"status": "422",
+				"code": "1009",
+				"title": "Incorrect Password",
+				"detail": "Value for key `password` did not match the password in the database.",
+				"meta": {
+					"key": "password",
+					"rule": "match"
 				}
-			}
-
-			// make sure key is > Date.now()
-			var key = (Date.now() + 2 * 60 * 60 * 1000).toString(16);
-			key += randString(); // a touch of randomness
-
-			this.storage.post({
-				url: `/data/users/email/${req.body.email}`,
-				body: {authkey: key},
-				session: App.adminSession
-			});
-
-			const templateData = {
-				name: this.name,
-				key,
-				url: this.config.url
 			};
+		}
 
-			this.mailer.sendMail({
-				to: email,
-				subject: `Recover Sapling Password for ${this.name}`,
-				html: forgotTemplateHTML(templateData)
-			}, f.slot());
-		}).cb(this.response(req, res));
+		await this.storage.post({
+			url: `/data/users/_id/${user._id}`,
+			body: req.body,
+			session: req.session
+		});
+		
+		this.response(req, res);
 	}
 
-	recover(req, res) {
+	async forgot(req, res) {
+		const {authkey, email} = await this.storage.get({
+			url: `/data/users/email/${req.body.email}/?single=true`,
+			session: App.adminSession
+		});
+
+		// only allow sending authkey once every 2 hours
+		if (authkey) {
+			var key = parseInt(authkey.substring(0, authkey.length - 11), 16);
+			const diff = key - Date.now();
+
+			if (diff > 0) {
+				const hours = diff / 60 / 60 / 1000;
+				return [{message: `Must wait ${hours.toFixed(1)} hours before sending another recovery email.`}];
+			}
+		}
+
+		// make sure key is > Date.now()
+		var key = (Date.now() + 2 * 60 * 60 * 1000).toString(16);
+		key += randString(); // a touch of randomness
+
+		await this.storage.post({
+			url: `/data/users/email/${req.body.email}`,
+			body: {authkey: key},
+			session: App.adminSession
+		});
+
+		const templateData = {
+			name: this.name,
+			key,
+			url: this.config.url
+		};
+
+		await this.mailer.sendMail({
+			to: email,
+			subject: `Recover Sapling Password for ${this.name}`,
+			html: forgotTemplateHTML(templateData)
+		});
+
+		this.response(req, res);
+	}
+
+	async recover(req, res) {
 		const errorHandler = this.errorHandler(req, res);
 
 		if (!req.query.auth) {
@@ -1147,42 +1138,40 @@ class App {
 		// generate a random password
 		const newpass = randString();
 
-		const f = ff(this, function () {
-			pwd.hash(newpass, f.slot());
+		const hash = await pwd.hash(newpass);
 
-			this.storage.get({
-				url: `/data/users/authkey/${req.query.auth}/?single=true`,
-				session: App.adminSession
-			}, f.slot());
-		}, function (hash, user) {
-			if (!user) {
-				return f.fail({
-					"status": "401",
-					"code": "4004",
-					"title": "Authkey Invalid",
-					"detail": "The authkey could not be located in the database.",
-					"meta": {
-						"type": "recover",
-						"error": "invalid"
-					}
-				})
-			}
+		const user = await this.storage.get({
+			url: `/data/users/authkey/${req.query.auth}/?single=true`,
+			session: App.adminSession
+		});
 
-			// update the new password and clear the key
-			this.storage.post({
-				url: `/data/users/_id/${user._id}`,
-				body: {password: hash[1], _salt: hash[0], authkey: ""},
-				session: App.adminSession
-			}, f.slot());
-		}, function () {
-			this.renderView(
-				path.join(this.config.views, "recover"), 
-				{newpass}, req, res,
-				err => {
-					err && res.send(200, `Your new password is: ${newpass}`);
+		if (!user) {
+			return {
+				"status": "401",
+				"code": "4004",
+				"title": "Authkey Invalid",
+				"detail": "The authkey could not be located in the database.",
+				"meta": {
+					"type": "recover",
+					"error": "invalid"
 				}
-			);
-		}).error(errorHandler);
+			};
+		}
+
+		// update the new password and clear the key
+		await this.storage.post({
+			url: `/data/users/_id/${user._id}`,
+			body: {password: hash[1], _salt: hash[0], authkey: ""},
+			session: App.adminSession
+		});
+		
+		this.renderView(
+			path.join(this.config.views, "recover"), 
+			{newpass}, req, res,
+			err => {
+				err && res.send(200, `Your new password is: ${newpass}`);
+			}
+		);
 	}
 
 	/**
