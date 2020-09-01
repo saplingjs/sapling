@@ -5,7 +5,6 @@ const url = require("url");
 const _ = require("underscore");
 const moment = require("moment");
 
-const Class = require("./lib/Class");
 const Validation = require("./lib/Validation");
 const Cluster = require("./lib/Cluster");
 
@@ -75,7 +74,7 @@ function parseRequest (req) {
 	});
 }
 
-const Storage = Class.extend({
+class Storage {
 	init(opts) {
 		Storage.super(this, "init");
 
@@ -112,7 +111,7 @@ const Storage = Class.extend({
 		}).error(err => {
 			Cluster.console.warn(err)
 		});
-	},
+	}
 
 	/**
 	* Returns an array of fields that should
@@ -141,7 +140,7 @@ const Storage = Class.extend({
 		}
 
 		return omit;
-	},
+	}
 
 	ownerFields(table) {
 		const rules = this.schema[table];
@@ -160,7 +159,7 @@ const Storage = Class.extend({
 		}
 
 		return fields;
-	},
+	}
 
 	/**
 	* Determine if the test role supersedes
@@ -181,7 +180,7 @@ const Storage = Class.extend({
 		}
 
 		return (testIndex <= roleIndex);
-	},
+	}
 
 	validateData({table, body, session, type}) {
 		const rules = this.schema[table];
@@ -280,7 +279,7 @@ const Storage = Class.extend({
 		
 		Cluster.console.log("ERRORS", errors)
 		return errors.length && errors;
-	},
+	}
 
 	post(req, next) {
 		parseRequest(req);
@@ -369,7 +368,7 @@ const Storage = Class.extend({
 			data['_created'] = Date.now();
 			this.db.write(req.table, conditions, data, next);
 		}
-	},
+	}
 
 	// req: Request object 
 	// - session: 
@@ -437,12 +436,12 @@ const Storage = Class.extend({
 			if (req.cmd) {
 				conditions[req.field] = [+req.value, +req.cmd];
 			} else {
-                // handle CSV constraints if specified
-                const multif = req.field.split(",");
+				// handle CSV constraints if specified
+				const multif = req.field.split(",");
 
-                const multiv = req.value.split(",");
+				const multiv = req.value.split(",");
 
-                if(multif.length == 1)
+				if(multif.length == 1)
 					conditions[req.field] = req.value;
 				else {
 					if(multif.length == multiv.length) {
@@ -451,7 +450,7 @@ const Storage = Class.extend({
 						}
 					}
 				}
-            }
+			}
 		}
 
 		// if we have references
@@ -497,7 +496,7 @@ const Storage = Class.extend({
 				next(null, arr);
 			}
 		});
-	},
+	}
 
 	delete(req, next) {
 		parseRequest(req);
@@ -520,7 +519,7 @@ const Storage = Class.extend({
 		//truncate table
 		this.db.remove(req.table, conditions, next);
 	}
-});
+}
 
 
 module.exports = Storage;

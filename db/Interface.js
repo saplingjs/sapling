@@ -6,15 +6,14 @@
  * in whatever way makes sense for the particular database technology.
  */
 
-const Class = require("../lib/Class");
 const Error = require("../lib/Error");
 
-const Interface = Class.extend({
+class Interface {
 
 	/**
 	 * The connection object that should be populated by the connect() method
 	 */
-	connection: null,
+	connection = null
 
 
 	/**
@@ -24,7 +23,7 @@ const Interface = Class.extend({
 	 */
 	async connect(config) {
 		throw new Error("Method not implemented: connect")
-	},
+	}
 
 
 	/**
@@ -35,7 +34,7 @@ const Interface = Class.extend({
 	 */
 	async createCollection(collection, fields) {
 		throw new Error("Method not implemented: createCollection")
-	},
+	}
 
 
 	/**
@@ -47,7 +46,7 @@ const Interface = Class.extend({
 	 */
 	async createIndex(collection, fields, config) {
 		throw new Error("Method not implemented: createIndex")
-	},
+	}
 
 
 	/**
@@ -59,7 +58,7 @@ const Interface = Class.extend({
 	 */
 	async read(collection, conditions, options) {
 		throw new Error("Method not implemented: read")
-	},
+	}
 
 
 	/**
@@ -70,7 +69,7 @@ const Interface = Class.extend({
 	 */
 	async write(collection, data) {
 		throw new Error("Method not implemented: write")
-	},
+	}
 
 	/**
 	 * Modify the given values in data in any and all records matching the given conditions
@@ -81,7 +80,7 @@ const Interface = Class.extend({
 	 */
 	async modify(collection, conditions, data) {
 		throw new Error("Method not implemented: modify")
-	},
+	}
 
 	/**
 	 * Delete any and all matching records for the given conditions
@@ -92,6 +91,6 @@ const Interface = Class.extend({
 	async remove(collection, conditions) {
 		throw new Error("Method not implemented: remove")
 	}
-});
+}
 
 module.exports = Interface;
