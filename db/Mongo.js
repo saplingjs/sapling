@@ -59,20 +59,20 @@ const Mongo = Interface.extend({
 		this.client.close();
 	},
 
-	async createCollection(table, fields) {
+	async createCollection(collection, fields) {
 
-		Cluster.console.log("CREATE COLLECTION", table, fields);
+		Cluster.console.log("CREATE COLLECTION", collection, fields);
 		this.open();
 
 		const self = this;
-		const collection = await this.database.createCollection(table, mongo_options.open, () => {
+		const collection = await this.database.createCollection(collection, mongo_options.open, () => {
 			// create unique indexes
 			for (const key in fields) {
 				const rule = fields[key];
 				if (rule.unique) {
 					const ufields = {};
 					ufields[key] = 1;
-					self.createIndex(table, ufields, {unique: true});
+					self.createIndex(collection, ufields, {unique: true});
 				}
 			}
 		});
@@ -82,12 +82,12 @@ const Mongo = Interface.extend({
 		return collection;
 	},
 
-	async createIndex(table, fields, config) {
+	async createIndex(collection, fields, config) {
 
-		Cluster.console.log("CREATE INDEX", table, fields, config);
+		Cluster.console.log("CREATE INDEX", collection, fields, config);
 		this.open();
 
-		const collection = await this.database.collection(table, mongo_options.collection);
+		const collection = await this.database.collection(collection, mongo_options.collection);
 		const index = collection.createIndex(fields, config);
 
 		this.close();
@@ -95,9 +95,9 @@ const Mongo = Interface.extend({
 		return index;
 	},
 
-	async read(table, conditions, options, references) {
+	async read(collection, conditions, options, references) {
 
-		Cluster.console.log("READ", table, conditions);
+		Cluster.console.log("READ", collection, conditions);
 		this.open();
 
 		if (conditions._id) {
@@ -105,7 +105,7 @@ const Mongo = Interface.extend({
 		}
 
 		if (options['search']) {
-			return this.search(table, options['search']);
+			return this.search(collection, options['search']);
 		}
 
 		if (options['in']) {
@@ -124,7 +124,7 @@ const Mongo = Interface.extend({
 			options = {};
 		}
 
-		const collection = await this.database.collection(table, mongo_options.collection);
+		const collection = await this.database.collection(collection, mongo_options.collection);
 
 		// plain aggregation stack
 		const stack = [
@@ -148,9 +148,9 @@ const Mongo = Interface.extend({
 		return result;
 	},
 
-	async write(table, conditions, data) {
+	async write(collection, conditions, data) {
 
-		Cluster.console.log("WRITE", table, conditions, data);
+		Cluster.console.log("WRITE", collection, conditions, data);
 		this.open();
 
 		for (const i in conditions['references']) {
@@ -161,7 +161,7 @@ const Mongo = Interface.extend({
 
 		delete conditions['references'];
 
-		const collection = await this.database.collection(table, mongo_options.collection);	
+		const collection = await this.database.collection(collection, mongo_options.collection);	
 		const result = await collection.insert(data, mongo_options.insert);
 
 		this.close();
@@ -169,9 +169,9 @@ const Mongo = Interface.extend({
 		return result;
 	},
 
-	async modify(table, conditions, data) {
+	async modify(collection, conditions, data) {
 
-		Cluster.console.log("MODIFY", table, conditions, data);
+		Cluster.console.log("MODIFY", collection, conditions, data);
 		this.open();
 
 		convertObjectId(conditions);
@@ -184,7 +184,7 @@ const Mongo = Interface.extend({
 
 		delete conditions['references'];
 
-		const collection = await this.database.collection(table, mongo_options.collection);	
+		const collection = await this.database.collection(collection, mongo_options.collection);	
 		const result = await collection.update(conditions, {"$set": data}, mongo_options.update);
 
 		this.close();
@@ -192,14 +192,14 @@ const Mongo = Interface.extend({
 		return result;
 	},
 
-	async remove(table, conditions) {
+	async remove(collection, conditions) {
 
-		Cluster.console.log("REMOVE", table, conditions);
+		Cluster.console.log("REMOVE", collection, conditions);
 		this.open();
 
 		convertObjectId(conditions);
 
-		const collection = await this.database.collection(table, mongo_options.collection);
+		const collection = await this.database.collection(collection, mongo_options.collection);
 		const result = await collection.remove(conditions, mongo_options.remove);
 
 		this.close();

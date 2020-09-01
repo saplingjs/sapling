@@ -1,3 +1,12 @@
+/**
+ * Storage
+ * 
+ * Middleware between the app and the database driver to do all
+ * the higher level heavy lifting with data.
+ */
+
+
+/* Dependencies */
 const fs = require("fs");
 const path = require("path");
 const url = require("url");
@@ -7,7 +16,9 @@ const moment = require("moment");
 const Validation = require("./lib/Validation");
 const Cluster = require("./lib/Cluster");
 
-//default user structure
+
+/* Default user structure */
+/* Extensible through a model */
 const user_structure = {
 	email: {type: "String", minlen: 3, unique: true, required: true},
 	password: {type: "String", minlen: 3, required: true, access: "owner"},
@@ -16,77 +27,78 @@ const user_structure = {
 	authkey: {type: "String", access: "owner"}
 };
 
-function randString () {
-	return Math.random().toString(36).substr(2);
-}
 
-function englishKey (str) {
-	let out = str.replace(/^\s*/, "");  // strip leading spaces
-	out = out.replace(/_+/g, " ");
-	out = out.replace(/^[a-z]|[^\s][A-Z]/g, (str, offset) => {
-		if (offset == 0) {
-			return str.toUpperCase();
-		} else {
-			return `${str.substr(0,1)} ${str.substr(1).toUpperCase()}`;
-		}
-	});
-	
-	return out;
-}
-
+/**
+ * Take an incoming request and make sense of it
+ * 
+ * @param {object} req The request object from Express
+ */
 function parseRequest (req) {
+	/* Get the URL segments from the requested URL */
 	const query = url.parse(req.url, true);
 	const parts = query.pathname.split("/");
+
+	/* Request method */
 	const method = req.method && req.method.toUpperCase();
 
-	// trim uneeded parts of the request
-	if (parts[0] == '') { parts.splice(0, 1); }
-	if (parts[parts.length - 1] == '') { parts.splice(parts.length - 1, 1); }
-	if (parts[0] == 'data') { parts.splice(0, 1); }
+	/* Trim uneeded parts of the request */
+	if (parts[0] == '') parts.splice(0, 1);
+	if (parts[parts.length - 1] == '') parts.splice(parts.length - 1, 1);
+	if (parts[0] == 'api') parts.splice(0, 1);
 
-	const table = parts[0];
+	/* Name each of the URL segments */
+	const collection = parts[0];
 	const field = parts[1];
 	const value = parts[2];
-	let cmd   = parts[3];
+	let cmd     = parts[3];
 
-	// can have a command on table
+	/* Can have a command on collection */
+	/* TODO: find out if this is necessary */
 	if (parts.length == 2) {
 		cmd = field;
 	}
 
-	Cluster.console.log("Request", table, field, value, cmd)
+	Cluster.console.log("Request", collection, field, value, cmd);
 
-	// leave a warning if no permission on a writable request
+	/* Leave a warning if no permission on a writable request */
 	if ((method == "POST" || method == "DELETE") && !req.permission) {
 		Cluster.console.warn(`You should add a permission for \`${req.url}\`.`)
 	}
 
-	// modify the req object
+	/* Modify the req object */
 	_.extend(req, {
-		table,
+		collection,
 		field,
 		value,
 		cmd,
-		query: query.query, //query params
+		query: query.query, // Query params
 		type: parts.length >= 3 ? "filter" : "all",
 		isLogged: !!(req.session && req.session.user)
 	});
 }
 
+/**
+ * The Storage class
+ */
 class Storage {
-	async init(opts) {
-		Storage.super(this, "init");
 
+	/**
+	 * Initialise the Storage class
+	 * 
+	 * @param {object} opts Options object
+	 */
+	async init(opts) {
+		/* Load the options into the class */
 		this.name = opts.name;
 		this.schema = opts.schema;
 		this.config = opts.config;
 		this.dir = opts.dir;
 		
-		// every app with storage needs a users collection
+		/* Every app with storage needs a users collection */
 		if (!this.schema.users) {
 			this.schema.users = user_structure;
 		} else {
-			//allow customization of the structure
+			/* Allow customization of the structure */
 			_.defaults(this.schema.users, user_structure);
 		}
 
@@ -94,14 +106,14 @@ class Storage {
 		dbConfig.name = this.name;
 		dbConfig.dataLimit = this.config.dataLimit;
 
-		//connect to the database backend
+		/* Connect to the database backend with the desired driver */
 		this.db = new (require(`./db/${opts.config.db.type}`))(opts);
-		
 		await this.db.connect(dbConfig);
 
-		for (const table in this.schema) {
+		/* Create each collection in the schema in the database */
+		for (const collection in this.schema) {
 			try {
-				await this.db.createCollection(table, this.schema[table]);
+				await this.db.createCollection(collection, this.schema[collection]);
 			} catch (err) {
 				Cluster.console.warn(err);
 			}
@@ -110,27 +122,33 @@ class Storage {
 		Cluster.console.log("CREATED DBS");
 	}
 
+
 	/**
-	* Returns an array of fields that should
-	* be omitted from the response due to permissions.
-	*/
-	disallowedFields(permission, table) {
-		const rules = this.schema[table];
+	 * Returns an array of fields that should
+	 * be omitted from the response due to permissions.
+	 * 
+	 * @param {string} permission The permission level being checked
+	 * @param {string} collection The collection being checked against
+	 */
+	disallowedFields(permission, collection) {
+		/* Get the collection definition */
+		const rules = this.schema[collection];
 		const omit = [];
 
+		/* Loop every field in the collection */
 		for (const key in rules) {
 			const rule = rules[key];
 
-			//create the access r/w object
+			/* Normalise the access rule to be an object with r,w */
 			const access = typeof rule.access === "string" ? {
 				r: rule.access,
 				w: rule.access
 			} : rule.access;
 
-			// skip if not defined or anyone can view
-			if (!access || access.r === "anyone" || access.r === "owner") { continue; }
+			/* Skip if not defined or anyone can view */
+			if (!access || access.r === "anyone" || access.r === "owner") continue;
 
-			//leave out certain fields that the viewer can't access
+			/* Leave out the fields that the viewer can't access */
 			if (this.inheritRole(permission, access.r) === false) {
 				omit.push(key);
 			}
@@ -139,17 +157,28 @@ class Storage {
 		return omit;
 	}
 
-	ownerFields(table) {
-		const rules = this.schema[table];
+
+	/**
+	 * Get a list of fields in a given collection that only "owner"
+	 * level users are allowed to see.
+	 * 
+	 * @param {string} collection The collection being checked
+	 */
+	ownerFields(collection) {
+		/* Get the collection definition */
+		const rules = this.schema[collection];
 		const fields = [];
 
+		/* Loop every field in the collection */
 		for (const key in rules) {
 			const rule = rules[key];
 
+			/* Normalise the access rule to be an object with r */
 			const access = typeof rule.access === "string" ? {
 				r: rule.access
 			} : rule.access;
 
+			/* Get the fields that are owner-only */
 			if (access && access.r == "owner") {
 				fields.push(key)
 			}
@@ -158,38 +187,54 @@ class Storage {
 		return fields;
 	}
 
+
 	/**
-	* Determine if the test role supersedes
-	* the required role.
-	*/
+	 * Determine if a given role supersedes the required role.
+	 * 
+	 * @param {string} test The role being tested
+	 * @param {string} role The access level being tested against
+	 * @returns {boolean} true if "test" is a higher or equal level role as "role"; false if it is lesser
+	 */
 	inheritRole(test, role) {
+		/* Get the indices of both comparison targets */
 		const roleIndex = this.schema.users.role.values.indexOf(role);
 		const testIndex = this.schema.users.role.values.indexOf(test);
 
-		// admin or anyone should always return true
+		/* "admin" or "anyone" must always return true */
 		if (test == 'admin' || role == 'anyone') {
 			return true;
 		}
 
-		// cannot find the role so assume no
+		/* If we cannot find the role, assume no */
 		if (roleIndex === -1 || testIndex === -1) {
 			return false;
 		}
 
+		/* Otherwise do a straight comparison of indices */
 		return (testIndex <= roleIndex);
 	}
 
+
+	/**
+	 * Validate the data of a given POST request
+	 * 
+	 * @param {object} req Request object from Express
+	 */
 	validateData({table, body, session, type}) {
+		/* Get the collection definition */
 		const rules = this.schema[table];
+
 		let errors = [];
 		const data = body || {};
 		let permission = null;
 		
+		/* Get the role from session, if any */
 		if (session && session.user) {
 			permission = session.user.role;
 		}
 
-		// model must be defined before pushing data
+		/* Model must be defined before pushing data */
+		/* TODO: check if this is strict-only */
 		if (!rules) {
 			return {
 				"status": "500",
@@ -203,57 +248,69 @@ class Storage {
 			};
 		}
 
+		/* Go through every key in incoming data */
 		for (var key in data) {
+			/* Get the corresponding ruleset */
 			var rule = rules[key];
 
+			/* If the field isn't defined */
 			if (!rule) {
-				// in strict mode, don't allow unknown fields
+				/* In strict mode, don't allow unknown fields */
 				if (this.config.strict) { 
-					Cluster.console.log("UNKNOWN FIELD", key)
+					Cluster.console.warn("UNKNOWN FIELD", key);
 					delete data[key]; 
 				}
+
+				/* Otherwise skip this field */
 				continue;
 			}
 
 			const dataType = (rule.type || rule).toLowerCase();
+
+			/* If the data is a number, convert from string */
 			if (dataType === "number") {
 				data[key] = parseFloat(data[key], 10);
 			}
 
+			/* Test in the validation library */
 			const error = Validation.test(data[key], key, rule);
 			if (error.length) {
 				errors = error;
 			}
 			
-			// determine the access of the field
-			if (!rule.access) { continue; }
+			/* If this field has no defined access level, we can skip the rest of the checks */
+			if (!rule.access) continue;
+
+			/* Get the write access level */
 			const access = rule.access.w || rule.access;
 
-			// handled elsewhere
-			if (access === "owner") { continue; }
+			/* If the field is owner-only, defer to individual op methods to check against it */
+			if (access === "owner") continue;
 
-			// if the user permission does not have access,
-			// delete the value or set to default
+			/* If we do not have access, raise hell */
 			if (this.inheritRole(permission, access) === false) {
-				Cluster.console.log(`NO ACCESS TO KEY '${key}'`);
-				Cluster.console.log("Current permission level:", permission);
-				Cluster.console.log("Required permission level:", access);
+				Cluster.console.warn(`NO ACCESS TO FIELD '${key}'`);
+				Cluster.console.warn("Current permission level:", permission);
+				Cluster.console.warn("Required permission level:", access);
 				delete data[key];
 			}
 		}
 
-		// for insertations, need to make sure
-		// required fields are defined, otherwise
-		// set to default value
+		/* For insertion, handle required fields and default values */
 		if (type === "all") {
+			/* Go through every defined field */
 			for (var key in rules) {
+				/* Get the ruleset for this field */
 				var rule = rules[key];
 
-				//already been validated above
-				if (key in data) { continue; }
-				if (typeof rules[key] !== "object") { continue; }
+				/* If the value exists, it will have already been validated above */
+				if (key in data) continue;
+				if (typeof rules[key] !== "object") continue;
 
-				//required value so create error
+				/* We now know the given field does not have a corresponding value
+				   in the incoming data */
+
+				/* If required, generate error */
 				if (rules[key].required) {
 					errors.push({
 						"status": "422",
@@ -267,21 +324,29 @@ class Storage {
 					});
 				}
 
-				//default value
+				/* Set the data to the default value, if provided */
 				if ("default" in rules[key]) {
 					data[key] = rules[key]["default"];
 				}
 			}
 		}
 		
-		Cluster.console.log("ERRORS", errors)
+		Cluster.console.log("ERRORS", errors);
+
 		return errors.length && errors;
 	}
 
+
+	/**
+	 * Serve an incoming POST request to the database
+	 * 
+	 * @param {object} req Request object from Express
+	 */
 	async post(req) {
+		/* Prepare the raw request */
 		parseRequest(req);
 
-		// must be logged in!
+		/* Check if we're logged in */
 		if (req.permission && req.permission != "anyone" && req.permission != "stranger" && !req.session.user) {
 			return {
 				"status": "401",
@@ -295,7 +360,9 @@ class Storage {
 			};
 		}
 
+		/* Get the collection definition */
 		const rules = this.schema[req.table];
+
 		const conditions = {};
 		const data = req.body;
 
@@ -304,27 +371,29 @@ class Storage {
 			return await this.get(req);
 		}
 
-		// validate the updated data
+		/* Validate the updated data */
 		const errors = this.validateData(req);
 		if (errors) {
 			return errors;
 		}
 
+		/* Get the user role from session */
 		let role = null;
 		if (req.session && req.session.user) {
 			role = req.session.user.role;
 		}
 
-		// special permission
+		/* If the permission is "owner", check that we are the owner, or an admin */
 		if (req.permission === "owner" && role !== "admin") {
 			conditions['_creator'] = req.session.user._id;
 		}
 
-		// reference log & dates
+		/* Specially format certain fields */
 		Object.keys(rules).forEach(field => {
 			const rule = rules[field];
 			const type = (rule.type || rule).toLowerCase();
 
+			/* Format reference fields */
 			if(type === "reference" || type === "id") {
 				if(conditions["references"])
 					conditions["references"].push(field);
@@ -332,61 +401,72 @@ class Storage {
 					conditions["references"] = [field];
 			}
 
+			/* Format date fields */
 			if(type === "date") {
 				if(data[field])
 					data[field] = Number(moment(data[field]).format("x"));
 			}
 
+			/* Format boolean fields */
 			if(type === "boolean") {
 				if(data[field])
 					data[field] = Boolean(data[field]);
 			}
 		});
 
+		/* If we're updating an existing record */
 		if (req.type == "filter") {
-			// add a constraint to the where clause
+			/* Add constraints */
 			conditions[req.field] = req.value;
 
-			// update hidden fields
+			/* Update hidden fields */
 			data['_lastUpdated'] = Date.now();
 			if (req.session && req.session.user) {
 				data['_lastUpdator'] = req.session.user._id;
 				data['_lastUpdatorEmail'] = req.session.user.email;
 			}
 
+			/* Send to the database */
 			await this.db.modify(req.table, conditions, data);
+
 		} else {
-			// add the user metadata
+			/* If we're creating a new record */
+
+			/* Add in the user metadata */
 			if (req.session && req.session.user) {
 				data['_creator'] = req.session.user._id;
 				data['_creatorEmail'] = req.session.user.email;
 			}
-
 			data['_created'] = Date.now();
+
+			/* Send to the database */
 			await this.db.write(req.table, conditions, data);
 		}
 	}
 
-	// req: Request object 
-	// - session: 
-	// - method:
-	// - url:
-	// - permission:
+
+	/**
+	 * Serve an incoming GET request from the database
+	 * 
+	 * @param {object} req Request object from Express
+	 */
 	async get(req) {
+		/* Prepare the raw request */
 		parseRequest(req);
 
+		/* Get the collection definition */
 		const rules = this.schema[req.table];
 		let options = {};
 		const conditions = {};
 
+		/* Get the user role from session */
 		let role = null;
 		if (req.session && req.session.user) {
 			role = req.session.user.role;
 		}
 
-		// must be logged in!
+		/* Check if we're logged in */
 		if (req.permission && req.permission != "anyone" && req.permission != "stranger" && (!req.session || !req.session.user)) {
-			Cluster.console.log(req.permission, req.session)
 			return {
 				"status": "401",
 				"code": "4002",
@@ -399,57 +479,51 @@ class Storage {
 			};
 		}
 
-		// match the owners at row level
-		if (req.permission === "owner" && role != "admin") {
+		/* If the permission is "owner", check that we are the owner, or an admin */
+		if (req.permission === "owner" && role !== "admin") {
 			conditions['_creator'] = req.session.user._id;
 		}
 
-		const omit = this.disallowedFields(role, req.table);
-		const ownerFields = this.ownerFields(req.table);
-
-		// parse limit options
+		/* Parse limit options */
 		if (req.query.limit) {
 			const limit = req.query.limit.split(",");
 			options.limit = +limit[1] || +limit[0];
 			if (limit.length == 2) { options.skip = +limit[0]; }
 		}
 
-		// parse sorting option
+		/* Parse sorting option */
 		if (req.query.sort) {
 			const sort = req.query.sort.split(",");
 			const sorter = sort[1] === "desc" ? -1 : 1;
 			options.sort = [[sort[0], sorter]];
 		}
 
-		// values in array
+		/* Values in array */
 		if (req.cmd && req.type === "all") {
 			if (!req.body || !Object.keys(req.body).length) { return "Body empty"; }
 			options = {"in": req.body};
 		}
 
+		/* If we need to have a "where" clause */
 		if (req.type == "filter") {
-			// add the where constraint
+			/* TODO: Find out what this is */
 			if (req.cmd) {
 				conditions[req.field] = [+req.value, +req.cmd];
 			} else {
-				// handle CSV constraints if specified
+				/* Split the constraint segments in case we have multiple */
 				const multif = req.field.split(",");
-
 				const multiv = req.value.split(",");
 
-				if(multif.length == 1)
-					conditions[req.field] = req.value;
-				else {
-					if(multif.length == multiv.length) {
-						for (index = 0; index < multif.length; ++index) {
-							conditions[multif[index]] = multiv[index];
-						}
+				/* Add any and all constraints to the query */
+				if(multif.length == multiv.length) {
+					for (index = 0; index < multif.length; ++index) {
+						conditions[multif[index]] = multiv[index];
 					}
 				}
 			}
 		}
 
-		// if we have references
+		/* If we have reference fields */
 		const references = [];
 		Object.keys(rules).forEach(field => {
 			const rule = rules[field];
@@ -465,19 +539,26 @@ class Storage {
 			}
 		});
 
-		Cluster.console.log(req.table, conditions, options)
+		Cluster.console.log(req.table, conditions, options);
 
+		/* Get it from the database */
 		await this.db.read(req.table, conditions, options, references).then((err, arr) => {
 			if (err) {
 				return err;
 			}
 
-			Cluster.console.log("HERES WHAT I GOT", arr);
+			/* Get the list of fields we should not be able to see */
+			const omit = this.disallowedFields(role, req.table);
+	
+			/* Get the list of fields that only owners can see */
+			const ownerFields = this.ownerFields(req.table);
 			
-			// omit fields not allowed
+			/* Process fields against both lists */
 			for (let i = 0; i < arr.length; ++i) {
+				/* Omit fields from the disallowedFields */
 				arr[i] = _.omit(arr[i], omit);
 
+				/* Check for ownership */
 				const owner = arr[i]._creator || arr[i]._id;
 				
 				if (role != 'admin' && (!req.isLogged || owner != req.session.user._id)) {
@@ -487,6 +568,8 @@ class Storage {
 				}
 			}
 
+			/* If we only have a single result, return it bare */
+			/* Otherwise, an array */
 			if (req.query.single) {
 				return arr[0];
 			} else {
@@ -495,25 +578,35 @@ class Storage {
 		});
 	}
 
+
+	/**
+	 * Serve an incoming DELETE request to the database
+	 * 
+	 * @param {object} req Request object from Express
+	 */
 	async delete(req) {
+		/* Prepare the raw request */
 		parseRequest(req);
+
 		const conditions = {};
 
+		/* Get the user role from session */
 		let role = null;
 		if (req.session && req.session.user) {
 			role = req.session.user.role;
 		}
 		
-		//if not the admin, default to owner
+		/* If the permission is "owner", check that we are the owner, or an admin */
 		if (req.permission === "owner" && role !== "admin") {
 			conditions["_creator"] = req.session.user._id;
 		}
 
+		/* If we need to have a "where" clause */
 		if (req.type == "filter") {
 			conditions[req.field] = req.value;
 		}
 
-		//truncate table
+		/* Send it to the database */
 		return await this.db.remove(req.table, conditions);
 	}
 }
