@@ -338,6 +338,36 @@ class Storage {
 
 
 	/**
+	 * Parse URL segments into "where" clause constraints
+	 * 
+	 * @param {object} req Request object from Express
+	 */
+	getConstraints(req) {
+		let conditions = [];
+
+		if (req.type == "filter") {
+			/* TODO: Find out what this is */
+			if (req.cmd) {
+				conditions[req.field] = [+req.value, +req.cmd];
+			} else {
+				/* Split the constraint segments in case we have multiple */
+				const multif = req.field.split(",");
+				const multiv = req.value.split(",");
+
+				/* Add any and all constraints to the query */
+				if(multif.length == multiv.length) {
+					for (index = 0; index < multif.length; ++index) {
+						conditions[multif[index]] = multiv[index];
+					}
+				}
+			}
+		}
+
+		return conditions;
+	}
+
+
+	/**
 	 * Serve an incoming GET request from the database
 	 * 
 	 * @param {object} req Request object from Express
@@ -396,24 +426,8 @@ class Storage {
 			options = {"in": req.body};
 		}
 
-		/* If we need to have a "where" clause */
-		if (req.type == "filter") {
-			/* TODO: Find out what this is */
-			if (req.cmd) {
-				conditions[req.field] = [+req.value, +req.cmd];
-			} else {
-				/* Split the constraint segments in case we have multiple */
-				const multif = req.field.split(",");
-				const multiv = req.value.split(",");
-
-				/* Add any and all constraints to the query */
-				if(multif.length == multiv.length) {
-					for (index = 0; index < multif.length; ++index) {
-						conditions[multif[index]] = multiv[index];
-					}
-				}
-			}
-		}
+		/* Parse "where" clause, if any */
+		conditions = _.extend(conditions, this.getConstraints(req));
 
 		/* If we have reference fields */
 		const references = [];
@@ -550,8 +564,8 @@ class Storage {
 
 		/* If we're updating an existing record */
 		if (req.type == "filter") {
-			/* Add constraints */
-			conditions[req.field] = req.value;
+			/* Parse "where" clause, if any */
+			conditions = _.extend(conditions, this.getConstraints(req));
 
 			/* Update hidden fields */
 			data['_lastUpdated'] = Date.now();
@@ -601,10 +615,8 @@ class Storage {
 			conditions["_creator"] = req.session.user._id;
 		}
 
-		/* If we need to have a "where" clause */
-		if (req.type == "filter") {
-			conditions[req.field] = req.value;
-		}
+		/* Parse "where" clause, if any */
+		conditions = _.extend(conditions, this.getConstraints(req));
 
 		/* Send it to the database */
 		return await this.db.remove(req.table, conditions);
