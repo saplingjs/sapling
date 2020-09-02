@@ -23,7 +23,7 @@ const logger = require('morgan');
 const nodemailer = require('nodemailer');
 
 /* Internal dependencies */
-const Storage = require("./storage");
+const Storage = require("./lib/Storage");
 const Greenhouse = require("./greenhouse");
 const Error = require("./lib/Error");
 const pwd = require("./lib/Hash");
