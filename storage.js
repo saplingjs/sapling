@@ -44,7 +44,7 @@ function parseRequest (req) {
 	/* Trim uneeded parts of the request */
 	if (parts[0] == '') parts.splice(0, 1);
 	if (parts[parts.length - 1] == '') parts.splice(parts.length - 1, 1);
-	if (parts[0] == 'api') parts.splice(0, 1);
+	if (parts[0] == 'data') parts.splice(0, 1);
 
 	/* Name each of the URL segments */
 	const collection = parts[0];

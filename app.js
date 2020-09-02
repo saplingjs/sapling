@@ -48,8 +48,10 @@ class App {
 	 * 
 	 * @param {string} dir Directory for the site files
 	 * @param {object} opts Optional options to override the defaults and filesystem ones
+	 * @param {function} next Callback after initialisation
 	 */
-	constructor(dir, opts) {
+	constructor(dir, opts, next) {
+		/* Global vars */
 		this.dir = dir;
 		opts = opts || {};
 		this.opts = opts;
@@ -57,8 +59,13 @@ class App {
 		/* Cache of rendered views */
 		this._viewCache = {};
 
+		/* Filesystem */
 		this.fs = rfs;
-		this.dir = dir;
+
+		/* Define an admin session for big ops */
+		this.adminSession = {
+			user: { role: "admin" }
+		};
 
 		/* Load everything */
 		async.series([
@@ -100,10 +107,6 @@ class App {
 			callback => {
 				if (opts.loadMailer !== false)
 					this.loadMailer(callback);
-			},
-			callback => {
-				this._restarting = false;
-				callback();
 			}
 		], (err, results) => {
 			if(err) {
@@ -112,6 +115,8 @@ class App {
 				Cluster.console.error(err.stack);
 				return false;
 			}
+
+			if(next) next();
 		});
 	}
 
@@ -173,7 +178,6 @@ class App {
 		/* Set the app name */
 		this.name = this.config.name;
 
-		/* Next stage of the setup */
 		next();
 	}
 
@@ -184,7 +188,6 @@ class App {
 	 */
 	loadServer({reload, listen}, next) {
 		let server;
-		let secret = this.config.secret || (this.config.secret = randString());
 		let self = this;
 
 		if (reload && this.server) {
@@ -196,9 +199,13 @@ class App {
 			this.routeStack = {'get': [], 'post': [], 'delete': []};
 		}
 
+
+		/* Use the app secret from config, or generate one if needed */
+		let secret = this.config.secret || (this.config.secret = randString());
 		server.use(cookieParser(secret));
 
-		// to persist sessions through reload
+
+		/* Persist sessions through reload */
 		if (!server.sessionHandler) {
 			/* TODO: Implement non-Redis store  */
 			const sessionStore = null;
@@ -211,14 +218,19 @@ class App {
 				cookie: {maxAge: null}
 			});
 		}
-
 		server.use(server.sessionHandler);
 
+
+		/* Handle the directory for our static resources */
+		/* TODO: Make into a recursive function to reduce duplicated code */
 		if (this.config.staticDir !== false) {
+			/* If it's a string, surface it */
 			if(typeof this.config.staticDir === 'string') {
 				const staticDirDir = path.join(this.dir, this.config.staticDir);
 				server.use(`/${this.config.staticDir}`, express.static(staticDirDir, { maxAge: 1 }));
-			} 
+			}
+
+			/* If it's an array, loop through it */
 			if(typeof this.config.staticDir === 'object') {
 				this.config.staticDir.forEach(staticDir => {
 					const staticDirDir = path.join(self.dir, staticDir);
@@ -231,22 +243,26 @@ class App {
 		server.use(bodyParser.json());
 		server.use(logger(Cluster.logger));
 
-		// enable CORS
+		/* Enable the /data data interface */
 		server.use("/data/", ({method}, res, n) => {
+			/* Send CORS headers if explicitly enabled in config */
 			if(self.config.cors) {
 				res.header("Access-Control-Allow-Origin", "*");
 				res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE");
 				res.header("Access-Control-Allow-Headers", "Content-Type");
 			}
 
-			// preflight request
+			/* Handle preflight requests */
 			if (method === "OPTIONS") {
 				return res.sendStatus(200);
 			}
 
 			n();
 		});
+
+		/* Define the /api interface */
 		server.use("/api/", (req, res, n) => {
+			/* Send CORS headers if explicitly enabled in config */
 			if(self.config.cors) {
 				res.header("Access-Control-Allow-Origin", "*");
 				res.header("Access-Control-Allow-Methods", "GET,POST");
@@ -256,6 +272,7 @@ class App {
 			n();
 		});
 		
+		/* Start listening on the given port */
 		if (listen !== false) {
 			Cluster.listening(this.config.port);
 			server.http = server.listen(this.config.port);
@@ -354,10 +371,12 @@ class App {
 	 * @param {function} next Chain callback
 	 */
 	loadPermissions(next) {
+		/* Load the permissions file */
+		/* TODO: Provide fallback in case the file is missing or mangled */
 		const permissionsPath = path.join(this.dir, "permissions.json");
-
 		const perms = this.fs.readFileSync(permissionsPath);
 
+		/* Try to parse it into JSON */
 		try {
 			this.permissions = JSON.parse(perms);
 		} catch (e) {
@@ -366,62 +385,37 @@ class App {
 			Cluster.console.error(e.stack);
 		}
 
-		// loop over the urls in permissions
+		/* Loop over the urls in permissions */
 		Object.keys(this.permissions).forEach(url => {
+			/* Format expected: "GET /url/here" */
 			const parts = url.split(" ");
+
+			/* If we have more than two bits, skip it */
 			if (parts.length < 2) {
-				return; //permissions could potentially have >2 params
+				return;
 			}
 
+			/* First part is the method: get, post, delete */
 			let method = parts[0].toLowerCase();
+			/* Second part is the URL */
 			const route = parts[1];
-			const user = this.permissions[url];
+
+			/* The minimum role level required for this method+route combination */
+			const role = this.permissions[url];
 
 			const self = this;
 			
-			// default method is `all`.
+			/* default method is `all`. */
 			if (!["get", "post", "delete"].includes(method)) {
 				method = "all";
 			}
 
+			/* Create middleware for each particular method+route combination */
 			this.server[method](route, function (req, res, next) {
-				Cluster.console.log(`${this.workerID()}PERMISSION`, method, route, user);
-				
-				// make sure users don't accidently lock themselves out
-				// of the admin login
-				if (req.url.indexOf("/api/login") === 0) {
-					return next();
-				}
+				Cluster.console.log("PERMISSION", method, route, role);
 
-				let flag = false;
-
-				//save the required permission and pass it on
-				req.permission = user;
-
-				//stranger must NOT be logged in
-				if (user === "stranger") {
-					if (req.session && req.session.user) {
-						flag = true;
-					}
-				}
-				//member or owner must be logged in
-				//owner is handled further in the process
-				else if (user === "member" || user === "owner") {
-					if (!req.session.user) {
-						flag = true;
-					}
-				}
-				//no restriction
-				else if (user === "anyone") {
-					flag = false;
-				}
-				//custom roles
-				else {
-					const role = req.session.user && req.session.user.role || "stranger";
-					flag = !self.storage.inheritRole(role, user);
-				}
-
-				if (flag) {
+				/* If the current route is not allowed for the current user, display an error */
+				if (!self.isUserAllowed(req.permission, req.session.user)) {
 					const errorHandler = self.errorHandler(req, res);
 					return errorHandler([{message: "You do not have permission to complete this action."}]);
 				} else next();
@@ -564,50 +558,72 @@ class App {
 		this.routeStack.post.push(route);
 	}
 
-	testRoute(method, url) {
+	
+	/**
+	 * Get the defined permission role for a given method and route
+	 * 
+	 * @param {string} method One of "get", "post" or "delete"
+	 * @param {string} url The route being tested
+	 */
+	getRoleForRoute(method, url) {
 		const routes = this.routeStack[method];
 		
+		/* Go through all the routes */
 		for (let i = 0; i < routes.length; ++i) {
-			//see if this route matches
+			/* If the given route matches the url */
+			/* TODO: Check how fragile this is for things like trailing slashes */
 			if (routes[i] == url) {
+				/* Find the given permission rule in the loaded permissionset */
 				const permissionKey = `${method.toUpperCase()} ${routes[i]}`;
 				const userType = this.permissions[permissionKey];
 
-				//return the first matching type
+				/* Return the first match */
 				if (userType) {
 					return userType;
 				}
 			}
 		}
 
-		//default to anyone
+		/* Default to anyone */
 		return "anyone";
 	}
 
-	testPermission(permission, user) {
-		//stranger must NOT be logged in
+
+	/**
+	 * Check if the given user is permitted carry out a specific action
+	 * for the given permission level
+	 * 
+	 * @param {string} permission The role level required for a given action
+	 * @param {object} user The user object
+	 */
+	isUserAllowed(permission, user) {
+		/* Stranger must NOT be logged in */
 		if (permission === "stranger") {
 			if (user) {
 				return false;
 			}
 		}
-		//member or owner must be logged in
-		//owner is handled further in the process
+		
+		/* "member" or "owner" must be logged in */
+		/* "owner" is handled further in the process */
 		else if (permission === "member" || permission === "owner") {
 			if (!user) {
 				return false;
 			}
 		}
-		//no restriction
+
+		/* Remove any restriction from "anyone" routes */
 		else if (permission === "anyone") {
 			return true;
 		}
-		//custom roles
+
+		/* Handle custom roles */
 		else {
 			const role = user && user.role || "stranger";
 			return this.storage.inheritRole(role, permission);
 		}
 
+		/* Default to allowed */
 		return true;
 	}
 
@@ -636,13 +652,13 @@ class App {
 				const baseurl = url.split("?")[0];
 				
 				// see if this url has a permission associated
-				const permission = app.testRoute("get", baseurl);
+				const permission = app.getRoleForRoute("get", baseurl);
 
 				// if no role is provided, use current
 				const session = role ? { user: { role } } : this.data.session;
 
-				const allowed = app.testPermission(permission, session.user);
-				Cluster.console.log(`${this.workerID()}\n\nIS ALLOWED`, session, allowed, permission)
+				const allowed = app.isUserAllowed(permission, session.user);
+				Cluster.console.log("IS ALLOWED", session, allowed, permission)
 
 				// not allowed so give an empty array
 				if (!allowed) {
@@ -683,9 +699,9 @@ class App {
 				const baseurl = url.split("?")[0];
 				
 				// see if this url has a permission associated
-				const permission = app.testRoute("post", baseurl);
+				const permission = app.getRoleForRoute("post", baseurl);
 				const session = role ? { user: { role } } : this.data.session;
-				const allowed = app.testPermission(permission, session.user);
+				const allowed = app.isUserAllowed(permission, session.user);
 
 				// not allowed so give an empty array
 				if (!allowed) {
@@ -822,7 +838,7 @@ class App {
 	async login(req, res) {
 
 		const url = `/data/users/email/${req.body.email}`;
-		const permission = this.testRoute("get", url);
+		const permission = this.getRoleForRoute("get", url);
 
 		let data = await this.storage.db.read("users", {email: req.body.email}, {}, []);
 
@@ -965,7 +981,7 @@ class App {
 					if(data._salt) delete data._salt;
 				}
 
-				Cluster.console.log(`${this.workerID()}REGISTER`, err, data);
+				Cluster.console.log("REGISTER", err, data);
 
 				// TODO headers??
 				
@@ -1238,20 +1254,21 @@ class App {
 		};
 	}
 
+	/**
+	 * Reload the whole server (get new views, config, etc)
+	 */
 	reload() {
-		Cluster.console.log(`${this.workerID()}\n\n**** RESTARTING ****\n\n`);
-
-		this._restarting = true;		
+		Cluster.console.log(`\n\n**** RESTARTING ****\n\n`);
+	
+		/* Don't attempt to listen on the same port again */
 		this.opts.listen = false;
 		this.opts.reload = true;
+
+		/* Restart the server */
 		App.call(this, this.config.name, this.opts, () => {
-			Cluster.console.log(`${this.workerID()}DONE`);
+			Cluster.console.log("RESTARTED");
 		});
 	}
 }
-
-App.adminSession = {
-	user: { role: "admin" }
-};
 
 module.exports = App;
