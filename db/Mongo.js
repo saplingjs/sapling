@@ -6,7 +6,7 @@
 /* Dependencies */
 const { MongoClient, ObjectID } = require("mongodb");
 const Interface = require("./Interface");
-const Cluster = require("../lib/Cluster");
+const { console } = require("../lib/Cluster");
 
 /* Default values */
 const HOST = "localhost";
@@ -21,17 +21,17 @@ const mongo_options = {
 	find: {}
 };
 
-const Mongo = Interface.extend({
+class Mongo extends Interface {
 
 	/**
 	 * The MongoClient instance
 	 */
-	client: null,
+	client = null
 
 	/**
 	 * The selected database instance
 	 */
-	database: null,
+	database = null
 
 
 	/**
@@ -48,7 +48,7 @@ const Mongo = Interface.extend({
 		}
 	
 		return conditions;
-	},
+	}
 
 
 	/**
@@ -65,7 +65,7 @@ const Mongo = Interface.extend({
 		this.open();
 
 		return true;
-	},
+	}
 
 
 	/**
@@ -74,7 +74,7 @@ const Mongo = Interface.extend({
 	async open() {
 		this.connection = await this.client.connect();
 		await this.client.db(this.database);
-	},
+	}
 
 
 	/**
@@ -82,22 +82,22 @@ const Mongo = Interface.extend({
 	 */
 	async close() {
 		this.client.close();
-	},
+	}
 
 
 	/**
 	 * Create a collection in the database where one doesn't yet exist
 	 * 
-	 * @param {string} collection Name for the collection being created
+	 * @param {string} name Name for the collection being created
 	 * @param {array} fields Model object
 	 */
-	async createCollection(collection, fields) {
+	async createCollection(name, fields) {
 
-		Cluster.console.log("CREATE COLLECTION", collection, fields);
+		console.log("CREATE COLLECTION", name, fields);
 		this.open();
 
 		const self = this;
-		const collection = await this.database.createCollection(collection, mongo_options.open, () => {
+		const collection = await this.database.createCollection(name, mongo_options.open, () => {
 			/* Go through all the fields in the model */
 			for (const key in fields) {
 				const rule = fields[key];
@@ -106,7 +106,7 @@ const Mongo = Interface.extend({
 				if (rule.unique) {
 					const ufields = {};
 					ufields[key] = 1;
-					self.createIndex(collection, ufields, {unique: true});
+					self.createIndex(name, ufields, {unique: true});
 				}
 			}
 		});
@@ -114,23 +114,23 @@ const Mongo = Interface.extend({
 		this.close();
 
 		return collection;
-	},
+	}
 
 
 	/**
 	 * Create an index for the specified fields
 	 * 
-	 * @param {string} collection Name of the target collection
+	 * @param {string} name Name of the target collection
 	 * @param {object} fields List of field names that should have indexes created. Key is the field name, value is the type of index
 	 * @param {object} config Driver specific options for the operation
 	 */
-	async createIndex(collection, fields, config) {
+	async createIndex(name, fields, config) {
 
-		Cluster.console.log("CREATE INDEX", collection, fields, config);
+		console.log("CREATE INDEX", name, fields, config);
 		this.open();
 
 		/* Select the given collection */
-		const collection = await this.database.collection(collection, mongo_options.collection);
+		const collection = await this.database.collection(name, mongo_options.collection);
 
 		/* Create an index for the given field(s) */
 		const index = collection.createIndex(fields, config);
@@ -138,19 +138,19 @@ const Mongo = Interface.extend({
 		this.close();
 
 		return index;
-	},
+	}
 
 
 	/**
 	 * Find one or more records for the given conditions in the given collection
 	 * 
-	 * @param {string} collection Name of the target collection
+	 * @param {string} name Name of the target collection
 	 * @param {object} conditions The search query
 	 * @param {object} options Driver specific options for the operation
 	 */
-	async read(collection, conditions, options, references) {
+	async read(name, conditions, options, references) {
 
-		Cluster.console.log("READ", collection, conditions);
+		console.log("READ", name, conditions);
 		this.open();
 
 		/* If there is an _id field in constraints, create a proper object ID object */
@@ -174,7 +174,7 @@ const Mongo = Interface.extend({
 		}
 
 		/* Get the collection */
-		const collection = await this.database.collection(collection, mongo_options.collection);
+		const collection = await this.database.collection(name, mongo_options.collection);
 
 		/* Plain aggregation stack */
 		const stack = [
@@ -196,18 +196,18 @@ const Mongo = Interface.extend({
 		this.close();
 
 		return result;
-	},
+	}
 
 
 	/**
 	 * Create one new records in the given collection
 	 * 
-	 * @param {string} collection Name of the target collection
+	 * @param {string} name Name of the target collection
 	 * @param {object} data Data for the collection
 	 */
-	async write(collection, conditions, data) {
+	async write(name, conditions, data) {
 
-		Cluster.console.log("WRITE", collection, conditions, data);
+		console.log("WRITE", name, conditions, data);
 		this.open();
 
 		/* For any reference constraints, create a proper object ID object */
@@ -221,7 +221,7 @@ const Mongo = Interface.extend({
 		delete conditions['references'];
 
 		/* Select the given collection */
-		const collection = await this.database.collection(collection, mongo_options.collection);
+		const collection = await this.database.collection(name, mongo_options.collection);
 
 		/* Create a new record with the data */
 		const result = await collection.insert(data, mongo_options.insert);
@@ -229,7 +229,7 @@ const Mongo = Interface.extend({
 		this.close();
 
 		return result;
-	},
+	}
 
 
 	/**
@@ -239,9 +239,9 @@ const Mongo = Interface.extend({
 	 * @param {object} conditions The search query
 	 * @param {object} data New data for the matching record(s). Omitted values does not imply deletion.
 	 */
-	async modify(collection, conditions, data) {
+	async modify(name, conditions, data) {
 
-		Cluster.console.log("MODIFY", collection, conditions, data);
+		console.log("MODIFY", name, conditions, data);
 		this.open();
 
 		/* If there is an _id field in constraints, create a proper object ID object */
@@ -258,7 +258,7 @@ const Mongo = Interface.extend({
 		delete conditions['references'];
 
 		/* Select the given collection */
-		const collection = await this.database.collection(collection, mongo_options.collection);	
+		const collection = await this.database.collection(name, mongo_options.collection);	
 
 		/* Update the given record with new data */
 		const result = await collection.update(conditions, {"$set": data}, mongo_options.update);
@@ -266,7 +266,7 @@ const Mongo = Interface.extend({
 		this.close();
 
 		return result;
-	},
+	}
 
 
 	/**
@@ -275,16 +275,16 @@ const Mongo = Interface.extend({
 	 * @param {string} collection Name of the target collection
 	 * @param {object} conditions The search query
 	 */
-	async remove(collection, conditions) {
+	async remove(name, conditions) {
 
-		Cluster.console.log("REMOVE", collection, conditions);
+		console.log("REMOVE", name, conditions);
 		this.open();
 
 		/* If there is an _id field in constraints, create a proper object ID object */
 		conditions = this.convertObjectId(conditions);
 
 		/* Select the given collection */
-		const collection = await this.database.collection(collection, mongo_options.collection);
+		const collection = await this.database.collection(name, mongo_options.collection);
 
 		/* Delete the given records */
 		const result = await collection.remove(conditions, mongo_options.remove);
@@ -293,6 +293,6 @@ const Mongo = Interface.extend({
 
 		return result;
 	}
-});
+};
 
 module.exports = Mongo;

@@ -27,7 +27,7 @@ const Storage = require("./lib/Storage");
 const Greenhouse = require("./greenhouse");
 const Error = require("./lib/Error");
 const pwd = require("./lib/Hash");
-const Cluster = require("./lib/Cluster");
+const { Cluster, console } = require("./lib/Cluster");
 const User = require("./lib/User");
 
 
@@ -111,9 +111,9 @@ class App {
 			}
 		], (err, results) => {
 			if(err) {
-				Cluster.console.error("Error starting Sapling");
-				Cluster.console.error(err);
-				Cluster.console.error(err.stack);
+				console.error("Error starting Sapling");
+				console.error(err);
+				console.error(err.stack);
 				return false;
 			}
 
@@ -168,8 +168,8 @@ class App {
 				const c = JSON.parse(file.toString());
 				_.extend(this.config, c);
 			} catch (e) {
-				Cluster.console.error("Error loading config");
-				Cluster.console.error(e, e.stack);
+				console.error("Error loading config");
+				console.error(e, e.stack);
 			}
 		} else {
 			/* If not, let's add a fallback */
@@ -301,7 +301,7 @@ class App {
 			try {
 				this.controller = JSON.parse(file.toString());
 			} catch (e) {
-				Cluster.console.error(`Controller at path: \`${controllerPath}\` could not be loaded.`);
+				console.error(`Controller at path: \`${controllerPath}\` could not be loaded.`);
 			}
 		} else {
 			/* If not, let's use a fallback */
@@ -320,7 +320,7 @@ class App {
 	 */
 	loadModel(next) {
 		const modelPath = path.join(this.dir, this.config.models);
-		const structure = {};
+		let structure = {};
 
 		if(this.fs.existsSync(modelPath)) {
 			/* Load all models in the model directory */
@@ -342,7 +342,7 @@ class App {
 				try {
 					structure[table] = JSON.parse(model.toString());
 				} catch (e) {
-					Cluster.console.error("Error parsing model `%s`", table);
+					console.error("Error parsing model `%s`", table);
 				}
 			}
 
@@ -358,7 +358,7 @@ class App {
 			this.storage = storage;
 
 		} else {
-			Cluster.console.warn(`Models at path \`${modelPath}\` does not exist`);
+			console.warn(`Models at path \`${modelPath}\` does not exist`);
 		}
 
 		if(next) next();
@@ -381,9 +381,9 @@ class App {
 		try {
 			this.permissions = JSON.parse(perms);
 		} catch (e) {
-			Cluster.console.error(`permissions at path: [${permissionsPath}] not found.`);
-			Cluster.console.error(e);
-			Cluster.console.error(e.stack);
+			console.error(`permissions at path: [${permissionsPath}] not found.`);
+			console.error(e);
+			console.error(e.stack);
 		}
 
 		/* Loop over the urls in permissions */
@@ -413,7 +413,7 @@ class App {
 
 			/* Create middleware for each particular method+route combination */
 			this.server[method](route, function (req, res, next) {
-				Cluster.console.log("PERMISSION", method, route, role);
+				console.log("PERMISSION", method, route, role);
 
 				/* If the current route is not allowed for the current user, display an error */
 				if (!self.isUserAllowed(req.permission, req.session.user)) {
@@ -443,8 +443,8 @@ class App {
 			const template = this.fs.readFileSync(viewPath);
 			this._viewCache[view] = template.toString();
 		} else {
-			Cluster.console.error("Error loading the view template.", `[${viewPath}]`);
-			Cluster.console.error(`View template does not exist at: ${viewPath}`);
+			console.error("Error loading the view template.", `[${viewPath}]`);
+			console.error(`View template does not exist at: ${viewPath}`);
 		}
 	
 		if(next) next();
@@ -503,7 +503,7 @@ class App {
 
 		/* Send an error to the console */
 		g.onerror = error => {
-			Cluster.console.error(error);
+			console.error(error);
 		};
 
 		/* Handle redirects */
@@ -530,7 +530,7 @@ class App {
 	 * @param {function} view Chain callback
 	 */
 	initRoute(route, view) {
-		Cluster.console.log("Loaded route ", `${route}`)
+		console.log("Loaded route ", `${route}`)
 
 		/* If the view is not in the cache, load it first */
 		/* TODO: Isn't this sort of handled inside of renderView anyway? */
@@ -662,7 +662,7 @@ class App {
 				const session = role ? { user: { role } } : this.data.session;
 
 				const allowed = self.isUserAllowed(permission, session.user);
-				Cluster.console.log("IS ALLOWED", session, allowed, permission)
+				console.log("IS ALLOWED", session, allowed, permission)
 
 				// not allowed so give an empty array
 				if (!allowed) {
@@ -677,7 +677,7 @@ class App {
 					session
 				}, (err, data) => {
 					if(err)
-						Cluster.console.error(err);
+						console.error(err);
 
 					this.saveDots(key, data);
 					next();
@@ -720,7 +720,7 @@ class App {
 					session
 				}, (err, data) => {
 					if(err)
-						Cluster.console.error(err);
+						console.error(err);
 
 					if (key) {
 						this.saveDots(key, data);
@@ -848,10 +848,10 @@ class App {
 			const error = new Error(err);
 
 			//log to the server
-			Cluster.console.error("Error occured during %s %s", req.method && req.method.toUpperCase(), req.url)
+			console.error("Error occured during %s %s", req.method && req.method.toUpperCase(), req.url)
 			if (self.config.showError) {
-				Cluster.console.error(err);
-				if (err.stack) Cluster.console.error(err.stack);
+				console.error(err);
+				if (err.stack) console.error(err.stack);
 			}
 
 			// if json or javascript in accept header, give back JSON
@@ -892,7 +892,7 @@ class App {
 	 * Reload the whole server (get new views, config, etc)
 	 */
 	reload() {
-		Cluster.console.log(`\n\n**** RESTARTING ****\n\n`);
+		console.log(`\n\n**** RESTARTING ****\n\n`);
 	
 		/* Don't attempt to listen on the same port again */
 		this.opts.listen = false;
@@ -900,7 +900,7 @@ class App {
 
 		/* Restart the server */
 		App.call(this, this.config.name, this.opts, () => {
-			Cluster.console.log("RESTARTED");
+			console.log("RESTARTED");
 		});
 	}
 }
