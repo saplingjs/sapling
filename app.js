@@ -1,3 +1,11 @@
+/**
+ * App
+ * 
+ * Initialises a Sapling instance and handles incoming requests
+ */
+
+
+/* System dependencies */
 const path = require("path");
 const util = require("util");
 const async = require("async");
@@ -5,37 +13,50 @@ const rfs = require("fs");
 const _ = require("underscore");
 const cron = require("cron").CronJob;
 
+/* Server dependencies */
 const express = require("express");
 const session = require("express-session");
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const logger = require('morgan');
 
+/* Messaging depedencies */
 const nodemailer = require('nodemailer');
 
+/* Internal dependencies */
 const Storage = require("./storage");
 const Greenhouse = require("./greenhouse");
 const Error = require("./lib/Error");
 const pwd = require("./lib/Hash");
 const Cluster = require("./lib/Cluster");
 
+
+/* TODO: Move all this somewhere more sensible */
 function randString () {
 	return (`00000000${Math.random().toString(36).substr(2)}`).substr(-11);
 }
-
 let ERROR_CODE = 500;
-
 let forgotTemplateHTML = _.template(rfs.readFileSync(path.join(__dirname, "/static/mail/lostpass.html")).toString());
 
+
+/**
+ * The App class
+ */
 class App {
-	constructor(dir, opts, next) {
+
+	/**
+	 * Load and construct all aspects of the app
+	 * 
+	 * @param {string} dir Directory for the site files
+	 * @param {object} opts Optional options to override the defaults and filesystem ones
+	 */
+	constructor(dir, opts) {
 		this.dir = dir;
 		opts = opts || {};
 		this.opts = opts;
 		
+		/* Cache of rendered views */
 		this._viewCache = {};
-		this._remoteAddrs = {};
-		this._sockets = [];
 
 		this.fs = rfs;
 		this.dir = dir;
@@ -179,28 +200,6 @@ class App {
 		} else {
 			server = express();
 			this.routeStack = {'get': [], 'post': [], 'delete': []};
-		}
-
-		/* Add a rate limiter if necessary */
-		if (this.config.strict) {
-			server.use((req, res, next) => {
-				if (req.method.toLowerCase() !== "post") { return next(); }
-
-				const ip = req.headers['x-real-ip'] || req.ip;
-				if (!ip || ip == "127.0.0.1") { return next(); }
-
-				// currently blocked
-				if (self._remoteAddrs[ip] === true) {
-					return res.status(420).json([{message: `Sending too many requests from \`${ip}\`.`}]);
-				}
-
-				self._remoteAddrs[ip] = true;
-				setTimeout(() => {
-					delete self._remoteAddrs[ip];
-				}, self.config.rateLimit * 1000);
-
-				next();
-			});
 		}
 
 		server.use(cookieParser(secret));
