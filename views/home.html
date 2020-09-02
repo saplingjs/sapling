@@ -5,44 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>It works!</title>
 
-    <style>
-        body {
-            font-family: Inter,BlinkMacSystemFont,-apple-system,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Fira Sans","Droid Sans","Helvetica Neue",Helvetica,Arial,sans-serif;
-            text-align: center;
-            color: #4a4a4a;
-        }
-
-        a {
-            color: #4dcf89;
-            text-decoration: none;
-        }
-
-        h1 {
-            font-weight: normal;
-        }
-
-        code {
-            background-color: #f5f5f5;
-            color: #da1c42;
-            font-size: .875em;
-            font-weight: 400;
-            border-radius: 3px;
-            padding: .25em .5em .25em;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 128px auto;
-            padding: 0 16px;
-        }
-
-        .container svg {
-            width: 100%;
-            height: auto;
-            max-width: 250px;
-            margin: 0 auto 48px;
-        }
-    </style>
+    <link rel="stylesheet" href="/public/app.css">
 </head>
 <body>
     
@@ -57,6 +20,62 @@
         <p>This view is being loaded by Sapling from <code>views/home.html</code>.</p>
 
         <p>Now <a href="https://www.saplingjs.com/docs" target="_blank">read the docs</a>, and get building!</p>
+
+        <div class="separator">
+            <hr>
+            <h2>The Test Range</h2>
+            <hr>
+        </div>
+
+        <div class="columns">
+            <div class="column">
+                <h3>Post an update</h3>
+
+                <form action="/data/updates" method="post">
+                    <label for="name">Your name</label>
+                    <input type="text" name="name" id="name" />
+
+                    <label for="message">Your update</label>
+                    <textarea name="message" id="message"></textarea>
+
+                    <button type="submit">Post update</button>
+                </form>
+
+                <hr>
+
+                <h3>Previous updates</h3>
+            </div>
+            <div class="column">
+                <h3>Create an account</h3>
+
+                <form action="/api/register" method="post">
+                    <label for="email">Email</label>
+                    <input type="email" name="email" id="email" />
+
+                    <label for="password">Password</label>
+                    <input type="password" name="password" id="password" />
+
+                    <label for="password_confirm">Password again</label>
+                    <input type="password" name="password_confirm" id="password_confirm" />
+
+                    <button type="submit">Create an account</button>
+                </form>
+
+                <hr>
+
+                <h3>Log in</h3>
+
+                <form action="/api/login" method="post">
+                    <label for="email">Your email</label>
+                    <input type="email" name="email" id="email" />
+
+                    <label for="password">Your password</label>
+                    <input type="password" name="password" id="password" />
+
+                    <button type="submit">Log in</button>
+                </form>
+            </div>
+        </div>
     </div>
 
 </body>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Account</title>
+
+    <link rel="stylesheet" href="/public/app.css">
+</head>
+<body>
+    
+    <div class="container">
+        <div class="separator">
+            <hr>
+            <h2>My Account</h2>
+            <hr>
+        </div>
+
+        <div class="columns">
+            <div class="column">
+                <h3>Modify my account</h3>
+
+                <form action="/api/update" method="post">
+                    <label for="password">Your password to confirm changes</label>
+                    <input type="password" name="password" id="password" />
+
+                    <label for="email">New email</label>
+                    <input type="email" name="email" id="email" />
+
+                    <label for="new_password">New password</label>
+                    <input type="password" name="new_password" id="new_password" />
+
+                    <button type="submit">Change email</button>
+                </form>
+
+                <hr>
+
+                <a href="/api/logout?redirect=/" class="button">Log out</a>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
