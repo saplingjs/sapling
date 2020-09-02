@@ -7,7 +7,6 @@
 
 /* System dependencies */
 const path = require("path");
-const util = require("util");
 const async = require("async");
 const rfs = require("fs");
 const _ = require("underscore");
@@ -61,9 +60,6 @@ class App {
 		this.fs = rfs;
 		this.dir = dir;
 
-		/* Make core functions return Promises */
-		this.readFile = util.promisify(this.fs.readFile);
-
 		/* Load everything */
 		async.series([
 			callback => this.loadConfig(callback),
@@ -116,8 +112,6 @@ class App {
 				Cluster.console.error(err.stack);
 				return false;
 			}
-
-			if(next) next();
 		});
 	}
 
@@ -161,7 +155,7 @@ class App {
 		/* Load the configuration */
 		if(this.fs.existsSync(configPath)) {
 			/* If we have a config file, let's load it */
-			let file = await this.readFile(configPath);
+			let file = this.fs.readFileSync(configPath);
 
 			/* Parse and merge the config, or throw an error if it's malformed */
 			try {
@@ -283,7 +277,7 @@ class App {
 		/* Load the controller */
 		if(this.fs.existsSync(controllerPath)) {
 			/* If we have a controller file, let's load it */
-			let file = await this.readFile(controllerPath);
+			let file = this.fs.readFileSync(controllerPath);
 
 			/* Parse and merge the controller, or throw an error if it's malformed */
 			try {
