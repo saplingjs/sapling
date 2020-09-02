@@ -627,12 +627,15 @@ class App {
 		return true;
 	}
 
+
 	/**
-	* Setup hooks into the template parser to
-	* return data from the storage engine.
-	*/
+	 * Setup hooks into the template parser to
+	 * return data from the storage engine.
+	 *
+	 * @param {function} view Chain callback
+	 */
 	loadHook(next) {
-		const app = this;
+		const self = this;
 		this.hooks = {
 			get(block, next) {
 				//pause parsing and decode request
@@ -652,12 +655,12 @@ class App {
 				const baseurl = url.split("?")[0];
 				
 				// see if this url has a permission associated
-				const permission = app.getRoleForRoute("get", baseurl);
+				const permission = self.getRoleForRoute("get", baseurl);
 
 				// if no role is provided, use current
 				const session = role ? { user: { role } } : this.data.session;
 
-				const allowed = app.isUserAllowed(permission, session.user);
+				const allowed = self.isUserAllowed(permission, session.user);
 				Cluster.console.log("IS ALLOWED", session, allowed, permission)
 
 				// not allowed so give an empty array
@@ -667,7 +670,7 @@ class App {
 				}
 
 				//request the data then continue parsing
-				app.storage.get({
+				self.storage.get({
 					url, 
 					permission, 
 					session
@@ -699,9 +702,9 @@ class App {
 				const baseurl = url.split("?")[0];
 				
 				// see if this url has a permission associated
-				const permission = app.getRoleForRoute("post", baseurl);
+				const permission = self.getRoleForRoute("post", baseurl);
 				const session = role ? { user: { role } } : this.data.session;
-				const allowed = app.isUserAllowed(permission, session.user);
+				const allowed = self.isUserAllowed(permission, session.user);
 
 				// not allowed so give an empty array
 				if (!allowed) {
@@ -709,7 +712,7 @@ class App {
 				}
 
 				// request the data then continue parsing
-				app.storage.post({
+				self.storage.post({
 					url: baseurl,
 					body: this.extractDots(body),
 					permission, 
@@ -753,24 +756,38 @@ class App {
 		next();
 	}
 
+
 	/**
-	* Setup the endpoints for the REST interface
-	* to the model.
-	*/
+	 * Setup the endpoints for the /data interface
+	 *
+	 * @param {function} view Chain callback
+	 */
 	loadREST(next) {
-		//don't use the default REST api for creating a user
+		/* Direct user creation to a special case endpoint */
 		this.server.post(/\/data\/users\/?$/, this.register.bind(this));
 
-		//rest endpoints
-		this.server.get("/data/*", this.handleGET.bind(this));
-		this.server.post("/data/*", this.handlePOST.bind(this));
-		this.server.delete("/data/*", this.handleDELETE.bind(this));
+		/* Otherwise, send each type of query to be handled by Storage */
+		this.server.get("/data/*", (req, res) => {
+			this.storage.get(req, this.response(req, res));
+		});
+		this.server.post("/data/*", (req, res) => {
+			this.storage.post(req, this.response(req, res));
+		});
+		this.server.delete("/data/*", (req, res) => {
+			this.storage.delete(req, this.response(req, res));
+		});
 
 		next();
 	}
 
+
+	/**
+	 * Setup the endpoints for the /api interface for functionality
+	 *
+	 * @param {function} view Chain callback
+	 */
 	loadAPI(next) {
-		//api endpoints
+		/* Default API endpoints */
 		this.server.get("/api/logged", this.getLogged.bind(this));
 		this.server.post("/api/login", this.login.bind(this));
 		this.server.post("/api/update", this.update.bind(this));
@@ -782,33 +799,27 @@ class App {
 		next();
 	}
 
+
+	/**
+	 * Setup email sending functionality
+	 *
+	 * @param {function} view Chain callback
+	 */
 	loadMailer(next) {
+		/* Load the config */
 		const config = _.extend({}, this.config.mailer);
+
+		/* Don't send type to nodemailer */
 		const type = config.type;
 		delete config.type;
 
+		/* Create mailer if we have the necessary config */
 		if(config.auth.username && config.auth.password)
 			this.mailer = nodemailer.createTransport(type, config);
 
 		next()
 	}
 
-	/**
-	* REST handlers
-	*/
-	handleGET(req, res) {
-		//forward the request to storage
-		this.storage.get(req, this.response(req, res));
-	}
-
-	handlePOST(req, res) {
-		//forward the post data to storage
-		this.storage.post(req, this.response(req, res));
-	}
-
-	handleDELETE(req, res) {
-		this.storage.delete(req, this.response(req, res));
-	}
 
 	/**
 	* In-built user account functionality.
