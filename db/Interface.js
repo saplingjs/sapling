@@ -71,6 +71,7 @@ class Interface {
 		throw new Error("Method not implemented: write")
 	}
 
+
 	/**
 	 * Modify the given values in data in any and all records matching the given conditions
 	 * 
@@ -81,6 +82,7 @@ class Interface {
 	async modify(collection, conditions, data) {
 		throw new Error("Method not implemented: modify")
 	}
+
 
 	/**
 	 * Delete any and all matching records for the given conditions
