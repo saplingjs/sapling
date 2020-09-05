@@ -131,7 +131,7 @@ class App {
 			"models": "models",
 			"views": "views",
 			"autoRouting": "auto",
-			"controller": "controller.json",
+			"controller": "routes.json",
 			"extension": "html",
 			"secret": randString(),
 			"staticDir": "public",
@@ -192,7 +192,7 @@ class App {
 			if(this.fs.existsSync(prodConfigPath)) {
 				/* If we have a config file, let's load it */
 				let file = this.fs.readFileSync(prodConfigPath);
-				
+
 				this.config = {};
 				Object.assign(this.config, defaultConfig);
 	

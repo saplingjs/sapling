@@ -27,7 +27,7 @@ case "$1" in
 	\"name\": \"$name\"
 }" > config.json
 
-	echo "{}" > controller.json	
+	echo "{}" > routes.json	
 	echo "{}" > permissions.json
 
 	npm install
