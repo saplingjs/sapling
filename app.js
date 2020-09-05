@@ -8,7 +8,7 @@
 /* System dependencies */
 const path = require("path");
 const async = require("async");
-const rfs = require("fs");
+const fs = require("fs");
 const _ = require("underscore");
 const cron = require("cron").CronJob;
 
@@ -19,24 +19,14 @@ const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const logger = require('morgan');
 
-/* Messaging depedencies */
-const nodemailer = require('nodemailer');
-
 /* Internal dependencies */
-const Storage = require("./lib/Storage");
-const Greenhouse = require("./greenhouse");
-const Error = require("./lib/Error");
-const pwd = require("./lib/Hash");
 const { Cluster, console } = require("./lib/Cluster");
+const Error = require("./lib/Error");
+const Greenhouse = require("./greenhouse");
+const Storage = require("./lib/Storage");
 const User = require("./lib/User");
-
-
-/* TODO: Move all this somewhere more sensible */
-function randString () {
-	return (`00000000${Math.random().toString(36).substr(2)}`).substr(-11);
-}
-let ERROR_CODE = 500;
-let forgotTemplateHTML = _.template(rfs.readFileSync(path.join(__dirname, "/static/mail/lostpass.html")).toString());
+const Utils = require("./lib/Utils");
+const Notifications = require("./lib/Notifications");
 
 
 /**
@@ -60,13 +50,13 @@ class App {
 		/* Cache of rendered views */
 		this._viewCache = {};
 
-		/* Filesystem */
-		this.fs = rfs;
-
 		/* Define an admin session for big ops */
 		this.adminSession = {
 			user: { role: "admin" }
 		};
+
+		/* Load utility functions */
+		this.utils = new Utils(this);
 
 		/* Load everything */
 		async.series([
@@ -92,8 +82,7 @@ class App {
 					this.loadHook(callback);
 			},
 			callback => {
-				if (opts.loadAPI !== false)
-					this.loadAPI(callback);
+				this.loadModules(callback);
 			},
 			callback => {
 				if (opts.loadViews !== false) {
@@ -105,10 +94,6 @@ class App {
 				if (opts.loadREST !== false)
 					this.loadREST(callback);
 			},
-			callback => {
-				if (opts.loadMailer !== false)
-					this.loadMailer(callback);
-			}
 		], (err, results) => {
 			if(err) {
 				console.error("Error starting Sapling");
@@ -133,7 +118,7 @@ class App {
 			"autoRouting": "auto",
 			"controller": "routes.json",
 			"extension": "html",
-			"secret": randString(),
+			"secret": this.utils.randString(),
 			"staticDir": "public",
 			"cacheViews": true,
 			"showError": true,
@@ -142,7 +127,7 @@ class App {
 			"db": {
 				"type": "Mongo"
 			},
-			"mailer": {
+			"mail": {
 				"type": "SMTP",
 				"service": "Gmail",
 				"auth": {
@@ -162,9 +147,9 @@ class App {
 		const configPath = path.join(this.dir, "config.json");
 
 		/* Load the configuration */
-		if(this.fs.existsSync(configPath)) {
+		if(fs.existsSync(configPath)) {
 			/* If we have a config file, let's load it */
-			let file = this.fs.readFileSync(configPath);
+			let file = fs.readFileSync(configPath);
 
 			/* Parse and merge the config, or throw an error if it's malformed */
 			try {
@@ -189,9 +174,9 @@ class App {
 			/* Check if there's a separate production config */
 			const prodConfigPath = path.join(this.dir, `config.${process.env.NODE_ENV}.json`);
 			
-			if(this.fs.existsSync(prodConfigPath)) {
+			if(fs.existsSync(prodConfigPath)) {
 				/* If we have a config file, let's load it */
-				let file = this.fs.readFileSync(prodConfigPath);
+				let file = fs.readFileSync(prodConfigPath);
 
 				this.config = {};
 				Object.assign(this.config, defaultConfig);
@@ -240,7 +225,7 @@ class App {
 
 
 		/* Use the app secret from config, or generate one if needed */
-		let secret = this.config.secret || (this.config.secret = randString());
+		let secret = this.config.secret || (this.config.secret = this.utils.randString());
 		server.use(cookieParser(secret));
 
 
@@ -323,31 +308,6 @@ class App {
 
 
 	/**
-	 * Get all files recursively from a given directory
-	 * 
-	 * @param {string} dir Directory path
-	 */
-	getFiles(dir) {
-		let results = [];
-		const list = this.fs.readdirSync(dir);
-
-		list.forEach(file => {
-			const dirfile = dir + '/' + file;
-			const stat = this.fs.statSync(dirfile);
-			if (stat && stat.isDirectory()) { 
-				/* Recurse into a subdirectory */
-				results = results.concat(this.getFiles(dirfile));
-			} else { 
-				/* Is a file */
-				results.push(dirfile);
-			}
-		});
-
-		return results;
-	}
-
-
-	/**
 	 * Load the controller JSON file.
 	 * 
 	 * @param {function} next Chain callback
@@ -362,9 +322,9 @@ class App {
 		if(this.config.autoRouting === "on" || this.config.autoRouting === "auto" || this.config.autoRouting === true) {
 			const viewsPath = path.join(this.dir, this.config.views);
 
-			if(this.fs.existsSync(viewsPath)) {
+			if(fs.existsSync(viewsPath)) {
 				/* Load all views in the views directory */
-				const views = this.getFiles(viewsPath);
+				const views = this.utils.getFiles(viewsPath);
 
 				/* Go through each view */
 				for (let i = 0; i < views.length; ++i) {
@@ -390,9 +350,9 @@ class App {
 		}
 
 		/* Load the controller file */
-		if(this.fs.existsSync(controllerPath)) {
+		if(fs.existsSync(controllerPath)) {
 			/* If we have a controller file, let's load it */
-			let file = this.fs.readFileSync(controllerPath);
+			let file = fs.readFileSync(controllerPath);
 
 			/* Parse and merge the controller, or throw an error if it's malformed */
 			try {
@@ -422,9 +382,9 @@ class App {
 		const modelPath = path.join(this.dir, this.config.models);
 		let structure = {};
 
-		if(this.fs.existsSync(modelPath)) {
+		if(fs.existsSync(modelPath)) {
 			/* Load all models in the model directory */
-			let files = this.fs.readdirSync(modelPath);
+			let files = fs.readdirSync(modelPath);
 
 			/* Go through each model */
 			for (let i = 0; i < files.length; ++i) {
@@ -436,7 +396,7 @@ class App {
 					continue; 
 				}
 
-				const model = this.fs.readFileSync(path.join(modelPath, file));
+				const model = fs.readFileSync(path.join(modelPath, file));
 
 				/* Read the model JSON into the structure */
 				try {
@@ -475,7 +435,7 @@ class App {
 		/* Load the permissions file */
 		/* TODO: Provide fallback in case the file is missing or mangled */
 		const permissionsPath = path.join(this.dir, "permissions.json");
-		const perms = this.fs.readFileSync(permissionsPath);
+		const perms = fs.readFileSync(permissionsPath);
 
 		/* Try to parse it into JSON */
 		try {
@@ -516,7 +476,7 @@ class App {
 				console.log("PERMISSION", method, route, role);
 
 				/* If the current route is not allowed for the current user, display an error */
-				if (!self.isUserAllowed(req.permission, req.session.user)) {
+				if (!self.user.isUserAllowed(req.permission, req.session.user)) {
 					const errorHandler = self.errorHandler(req, res);
 					return errorHandler([{message: "You do not have permission to complete this action."}]);
 				} else next();
@@ -539,8 +499,8 @@ class App {
 		const viewPath = `${view}.${this.config.extension}`;
 
 		/* If the given view exists, read the file and load it into the cache. Otherwise throw an error */
-		if(this.fs.existsSync(viewPath)) {
-			const template = this.fs.readFileSync(viewPath);
+		if(fs.existsSync(viewPath)) {
+			const template = fs.readFileSync(viewPath);
 			this._viewCache[view] = template.toString();
 		} else {
 			console.error("Error loading the view template.", `[${viewPath}]`);
@@ -592,7 +552,7 @@ class App {
 		const template = this._viewCache[view];
 
 		/* Create new template engine instance */
-		const g = new Greenhouse(this.hooks, this.fs);
+		const g = new Greenhouse(this.hooks);
 		const config = this.config;
 		const dir = this.dir;
 
@@ -659,75 +619,6 @@ class App {
 		this.routeStack.post.push(route);
 	}
 
-	
-	/**
-	 * Get the defined permission role for a given method and route
-	 * 
-	 * @param {string} method One of "get", "post" or "delete"
-	 * @param {string} url The route being tested
-	 */
-	getRoleForRoute(method, url) {
-		const routes = this.routeStack[method];
-		
-		/* Go through all the routes */
-		for (let i = 0; i < routes.length; ++i) {
-			/* If the given route matches the url */
-			/* TODO: Check how fragile this is for things like trailing slashes */
-			if (routes[i] == url) {
-				/* Find the given permission rule in the loaded permissionset */
-				const permissionKey = `${method.toUpperCase()} ${routes[i]}`;
-				const userType = this.permissions[permissionKey];
-
-				/* Return the first match */
-				if (userType) {
-					return userType;
-				}
-			}
-		}
-
-		/* Default to anyone */
-		return "anyone";
-	}
-
-
-	/**
-	 * Check if the given user is permitted carry out a specific action
-	 * for the given permission level
-	 * 
-	 * @param {string} permission The role level required for a given action
-	 * @param {object} user The user object
-	 */
-	isUserAllowed(permission, user) {
-		/* Stranger must NOT be logged in */
-		if (permission === "stranger") {
-			if (user) {
-				return false;
-			}
-		}
-		
-		/* "member" or "owner" must be logged in */
-		/* "owner" is handled further in the process */
-		else if (permission === "member" || permission === "owner") {
-			if (!user) {
-				return false;
-			}
-		}
-
-		/* Remove any restriction from "anyone" routes */
-		else if (permission === "anyone") {
-			return true;
-		}
-
-		/* Handle custom roles */
-		else {
-			const role = user && user.role || "stranger";
-			return this.storage.inheritRole(role, permission);
-		}
-
-		/* Default to allowed */
-		return true;
-	}
-
 
 	/**
 	 * Setup hooks into the template parser to
@@ -756,12 +647,12 @@ class App {
 				const baseurl = url.split("?")[0];
 				
 				// see if this url has a permission associated
-				const permission = self.getRoleForRoute("get", baseurl);
+				const permission = self.user.getRoleForRoute("get", baseurl);
 
 				// if no role is provided, use current
 				const session = role ? { user: { role } } : this.data.session;
 
-				const allowed = self.isUserAllowed(permission, session.user);
+				const allowed = self.user.isUserAllowed(permission, session.user);
 				console.log("IS ALLOWED", session, allowed, permission)
 
 				// not allowed so give an empty array
@@ -803,9 +694,9 @@ class App {
 				const baseurl = url.split("?")[0];
 				
 				// see if this url has a permission associated
-				const permission = self.getRoleForRoute("post", baseurl);
+				const permission = self.user.getRoleForRoute("post", baseurl);
 				const session = role ? { user: { role } } : this.data.session;
-				const allowed = self.isUserAllowed(permission, session.user);
+				const allowed = self.user.isUserAllowed(permission, session.user);
 
 				// not allowed so give an empty array
 				if (!allowed) {
@@ -883,35 +774,17 @@ class App {
 
 
 	/**
-	 * Setup the endpoints for the /api interface for functionality
+	 * Load all separate modules as needed
 	 *
 	 * @param {function} view Chain callback
 	 */
-	loadAPI(next) {
+	loadModules(next) {
 		this.user = new User(this);
 
+		if(this.config.mail)
+			this.notifications = new Notifications(this);
+
 		next();
-	}
-
-
-	/**
-	 * Setup email sending functionality
-	 *
-	 * @param {function} view Chain callback
-	 */
-	loadMailer(next) {
-		/* Load the config */
-		const config = _.extend({}, this.config.mailer);
-
-		/* Don't send type to nodemailer */
-		const type = config.type;
-		delete config.type;
-
-		/* Create mailer if we have the necessary config */
-		if(config.auth.username && config.auth.password)
-			this.mailer = nodemailer.createTransport(type, config);
-
-		next()
 	}
 
 
@@ -957,7 +830,7 @@ class App {
 			const acceptJSON = /json|javascript/.test(req.headers.accept || "");
 
 			// get the appropriate error code from the first error in stack
-			ERROR_CODE = Number(error.template.errors[0].status);
+			ERROR_CODE = Number(error.template.errors[0].status) || 500;
 			
 			// render the error view
 			if (self.config.errorView && !acceptJSON) {

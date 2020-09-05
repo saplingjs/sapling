@@ -1,4 +1,4 @@
-const rfs = require("fs");
+const fs = require("fs");
 const path = require("path");
 const { console } = require("../lib/Cluster");
 
@@ -122,7 +122,6 @@ function Greenhouse (hooks, fs) {
     }
 
     this.pieces = [];
-    this.fs = fs || rfs;
 }
 
 Greenhouse.toJSON = function (adt) {
@@ -538,8 +537,8 @@ Greenhouse.prototype.process = function (template, adt, gnext) {
                     viewPath += ".sap";
                 }
 
-                if(this.fs.existsSync(viewPath)) {
-                    let contents = this.fs.readFileSync(viewPath);
+                if(fs.existsSync(viewPath)) {
+                    let contents = fs.readFileSync(viewPath);
                 } else {
                     console.error("In include: FILE NOT EXISTS", viewPath);
                     let contents = "";
