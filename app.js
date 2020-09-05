@@ -130,6 +130,7 @@ class App {
 		this.config = {
 			"models": "models",
 			"views": "views",
+			"autoRouting": "auto",
 			"controller": "controller.json",
 			"extension": "html",
 			"secret": randString(),
@@ -283,6 +284,32 @@ class App {
 		next();
 	}
 
+
+	/**
+	 * Get all files recursively from a given directory
+	 * 
+	 * @param {string} dir Directory path
+	 */
+	getFiles(dir) {
+		let results = [];
+		const list = this.fs.readdirSync(dir);
+
+		list.forEach(file => {
+			const dirfile = dir + '/' + file;
+			const stat = this.fs.statSync(dirfile);
+			if (stat && stat.isDirectory()) { 
+				/* Recurse into a subdirectory */
+				results = results.concat(this.getFiles(dirfile));
+			} else { 
+				/* Is a file */
+				results.push(dirfile);
+			}
+		});
+
+		return results;
+	}
+
+
 	/**
 	 * Load the controller JSON file.
 	 * 
@@ -292,21 +319,57 @@ class App {
 		/* Location of the controller file */
 		const controllerPath = path.join(this.dir, this.config.controller);
 
-		/* Load the controller */
+		this.controller = {};
+
+		/* Generate a controller from the available views */
+		if(this.config.autoRouting === "on" || this.config.autoRouting === "auto" || this.config.autoRouting === true) {
+			const viewsPath = path.join(this.dir, this.config.views);
+
+			if(this.fs.existsSync(viewsPath)) {
+				/* Load all views in the views directory */
+				const views = this.getFiles(viewsPath);
+
+				/* Go through each view */
+				for (let i = 0; i < views.length; ++i) {
+					const segments = views[i].split("/");
+
+					/* Filter out the views where any segment begins with _ */
+					const protectedSegments = segments.filter(item => {
+						var re = /^\_/;
+						return re.test(item);
+					});
+
+					if(protectedSegments.length)
+						continue;
+					
+					/* Filter out filesystem bits */
+					const view = views[i].replace(this.config.views, "").replace(`.${this.config.extension}`, "");
+					const route = view.replace("/index", "");
+
+					/* Create an automatic GET route for a given view */
+					this.controller[route] = view;
+				}
+			}
+		}
+
+		/* Load the controller file */
 		if(this.fs.existsSync(controllerPath)) {
 			/* If we have a controller file, let's load it */
 			let file = this.fs.readFileSync(controllerPath);
 
 			/* Parse and merge the controller, or throw an error if it's malformed */
 			try {
-				this.controller = JSON.parse(file.toString());
+				if(this.config.autoRouting === "on") {
+					Object.assign(this.controller, JSON.parse(file.toString()));
+				} else {
+					this.controller = JSON.parse(file.toString());
+				}
 			} catch (e) {
 				console.error(`Controller at path: \`${controllerPath}\` could not be loaded.`);
 			}
-		} else {
-			/* If not, let's use a fallback */
-			this.controller = {};
 		}
+
+		console.log("CONTROLLER", this.controller);
 
 		/* Next stage of the setup */
 		next();
