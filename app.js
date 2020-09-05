@@ -828,7 +828,7 @@ class App {
 	 */
 	loadREST(next) {
 		/* Direct user creation to a special case endpoint */
-		this.server.post(/\/data\/users\/?$/, this.register.bind(this));
+		this.server.post(/\/data\/users\/?$/, this.user.register);
 
 		/* Otherwise, send each type of query to be handled by Storage */
 		this.server.get("/data/*", (req, res) => {
@@ -851,8 +851,7 @@ class App {
 	 * @param {function} view Chain callback
 	 */
 	loadAPI(next) {
-		Object.assign(this, User);
-		this.initialiseUserRoutes();
+		this.user = new User(this);
 
 		next();
 	}
