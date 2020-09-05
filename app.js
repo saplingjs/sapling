@@ -127,7 +127,7 @@ class App {
 	*/
 	async loadConfig(next) {
 		/* Default configuration values */
-		this.config = {
+		const defaultConfig = {
 			"models": "models",
 			"views": "views",
 			"autoRouting": "auto",
@@ -138,6 +138,7 @@ class App {
 			"cacheViews": true,
 			"showError": true,
 			"strict": true,
+			"production": "auto",
 			"db": {
 				"type": "Mongo"
 			},
@@ -150,11 +151,12 @@ class App {
 				}
 			},
 			"port": this.opts.port || 8000,
-			"csrf": false,
 			"cors": true,
-			"rateLimit": 10,
 			"url": ""
 		};
+
+		this.config = {};
+		Object.assign(this.config, defaultConfig);
 
 		/* Location of the configuration */
 		const configPath = path.join(this.dir, "config.json");
@@ -176,6 +178,41 @@ class App {
 			/* If not, let's add a fallback */
 			_.extend(this.config, {"name": "untitled"});
 		}
+
+		/* Detect production environment */
+		if(this.config.production === "auto" && process.env.NODE_ENV === "production") {
+			this.config.production = true;
+		}
+
+		/* Set other config based on production */
+		if(this.config.production === true || this.config.production === "on") {
+			/* Check if there's a separate production config */
+			const prodConfigPath = path.join(this.dir, `config.${process.env.NODE_ENV}.json`);
+			
+			if(this.fs.existsSync(prodConfigPath)) {
+				/* If we have a config file, let's load it */
+				let file = this.fs.readFileSync(prodConfigPath);
+				
+				this.config = {};
+				Object.assign(this.config, defaultConfig);
+	
+				/* Parse and merge the config, or throw an error if it's malformed */
+				try {
+					const pc = JSON.parse(file.toString());
+					_.extend(this.config, pc);
+				} catch (e) {
+					console.error("Error loading production config");
+					console.error(e, e.stack);
+				}
+			}
+
+			/* Set immutable production vars */
+			this.config.strict = true;
+			this.config.autoRouting = false;
+			this.config.showError = false;
+		}
+
+		console.log("CONFIG", this.config);
 
 		/* Set the app name */
 		this.name = this.config.name;
