@@ -8,7 +8,7 @@
 
 const Error = require("../lib/Error");
 
-class Interface {
+module.exports = class Interface {
 
 	/**
 	 * The connection object that should be populated by the connect() method
@@ -94,5 +94,3 @@ class Interface {
 		throw new Error("Method not implemented: remove")
 	}
 }
-
-module.exports = Interface;

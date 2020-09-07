@@ -21,7 +21,7 @@ const mongo_options = {
 	find: {}
 };
 
-class Mongo extends Interface {
+module.exports = class Mongo extends Interface {
 
 	/**
 	 * The MongoClient instance
@@ -300,5 +300,3 @@ class Mongo extends Interface {
 		return result;
 	}
 };
-
-module.exports = Mongo;

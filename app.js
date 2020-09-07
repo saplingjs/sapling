@@ -22,8 +22,8 @@ const logger = require('morgan');
 /* Internal dependencies */
 const { Cluster, console } = require("./lib/Cluster");
 const Error = require("./lib/Error");
-const Greenhouse = require("./greenhouse");
 const Storage = require("./lib/Storage");
+const Templating = require("./lib/Templating");
 const User = require("./lib/User");
 const Utils = require("./lib/Utils");
 const Notifications = require("./lib/Notifications");
@@ -46,9 +46,6 @@ class App {
 		this.dir = dir;
 		opts = opts || {};
 		this.opts = opts;
-		
-		/* Cache of rendered views */
-		this._viewCache = {};
 
 		/* Define an admin session for big ops */
 		this.adminSession = {
@@ -87,7 +84,7 @@ class App {
 			callback => {
 				if (opts.loadViews !== false) {
 					for (const route in this.controller) {
-						this.initRoute(route, path.join(this.dir, this.config.views, this.controller[route]));
+						this.initRoute(route, this.controller[route]);
 					}
 				}
 	
@@ -126,6 +123,9 @@ class App {
 			"production": "auto",
 			"db": {
 				"type": "Mongo"
+			},
+			"render": {
+				"type": "Nunjucks"
 			},
 			"mail": {
 				"type": "SMTP",
@@ -313,6 +313,9 @@ class App {
 	 * @param {function} next Chain callback
 	 */
 	async loadController(next) {
+		/* Load templating engine */
+		this.templating = new Templating(this);
+
 		/* Location of the controller file */
 		const controllerPath = path.join(this.dir, this.config.controller);
 
@@ -344,7 +347,7 @@ class App {
 					const route = view.replace("/index", "");
 
 					/* Create an automatic GET route for a given view */
-					this.controller[route] = view;
+					this.controller[route] = view.replace(/^\/+/g, '');
 				}
 			}
 		}
@@ -487,100 +490,6 @@ class App {
 		if(next) next();
 	}
 
-	/**
-	 * Load the given view from a file
-	 * 
-	 * @param {string} view Name of the view to be loaded
-	 * @param {function} next Chain callback
-	 */
-	loadView(view, next) {
-		/* Construct the path to the view */
-		/* TODO: make smarter about the file extension */
-		const viewPath = `${view}.${this.config.extension}`;
-
-		/* If the given view exists, read the file and load it into the cache. Otherwise throw an error */
-		if(fs.existsSync(viewPath)) {
-			const template = fs.readFileSync(viewPath);
-			this._viewCache[view] = template.toString();
-		} else {
-			console.error("Error loading the view template.", `[${viewPath}]`);
-			console.error(`View template does not exist at: ${viewPath}`);
-		}
-	
-		if(next) next();
-	}
-
-	/**
-	 * Render a given view and send it to the browser.
-	 * 
-	 * @param {string} view The name of the view being rendered
-	 * @param {object} data Query data
-	 * @param {object} req Express req object
-	 * @param {object} res Express res object
-	 * @param {function} next Chain callback
-	 */
-	renderView(view, data, req, res, next) {
-		const body = Object.keys(req.body).length ? req.body : null;
-
-		/* Build the data to pass into template */
-		_.extend(data, {
-			params: _.extend({}, req.params), 
-			query: req.query,
-			headers: req.headers,
-			session: req.session,
-			form: body,
-			"$_POST": body, // php-like alias
-			"$_GET": req.query,
-			self: {
-				dir: path.join(this.dir, this.config.views),
-				url: req.url,
-				method: req.method,
-				name: this.name
-			}
-		});
-
-		if (this.opts.etc) {
-			data.self.etc = this.opts.etc;
-		}
-
-		/* If the view hasn't been cached or views aren't cached at all, load the view */
-		if (!this.config.cacheViews || !(view in this._viewCache)) {
-			this.loadView(view);
-		}
-		
-		/* Then, get the view from the internal cache */
-		const template = this._viewCache[view];
-
-		/* Create new template engine instance */
-		const g = new Greenhouse(this.hooks);
-		const config = this.config;
-		const dir = this.dir;
-
-		/* Send a properly compiled page to the browser */
-		g.oncompiled = html => {
-			res.send(html);
-		};
-
-		/* Send an error to the console */
-		g.onerror = error => {
-			console.error(error);
-		};
-
-		/* Handle redirects */
-		g.onredirect = url => {
-			res.redirect(url);
-		};
-
-		/* Send JSON if we're doing JSON */
-		g.onjson = data => {
-			res.json(data);
-		};
-
-		/* Kick off the render */
-		g.render(template, data);
-
-		if(next) next();
-	}
 
 	/**
 	 * Initialise the given route; load and render the view,
@@ -591,17 +500,11 @@ class App {
 	 */
 	initRoute(route, view) {
 		console.log("Loaded route ", `${route}`)
-
-		/* If the view is not in the cache, load it first */
-		/* TODO: Isn't this sort of handled inside of renderView anyway? */
-		if (!this._viewCache[view]) {
-			this.loadView(view);
-		}
 		
 		/* Create a handler for incoming requests */
 		const self = this;
 		const handler = (req, res) => {
-			self.renderView(
+			self.templating.renderView(
 				view, 
 				{}, 
 				req, 
@@ -830,26 +733,12 @@ class App {
 			const acceptJSON = /json|javascript/.test(req.headers.accept || "");
 
 			// get the appropriate error code from the first error in stack
-			ERROR_CODE = Number(error.template.errors[0].status) || 500;
+			let ERROR_CODE = Number(error.template.errors[0].status) || 500;
 			
 			// render the error view
 			if (self.config.errorView && !acceptJSON) {
-				const errorPath = path.join(self.dir, self.config.views, self.config.errorView);
-
-				self.loadView(errorPath);
-				
 				try {
-					self.renderView.call(self, 
-						errorPath, 
-						{error: error.template}, 
-						req, res,
-						err => {
-							// in case of error in error
-							if (err) {
-								res.status(ERROR_CODE).json(error.template)
-							}
-						}
-					);
+					/* TODO: RENDER ERROR */
 				} catch {
 					res.status(ERROR_CODE).json(error.template)
 				}
