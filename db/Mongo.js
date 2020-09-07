@@ -33,6 +33,11 @@ class Mongo extends Interface {
 	 */
 	database = null
 
+	/**
+	 * Name of the database to be selected
+	 */
+	databaseName = null
+
 
 	/**
 	 * Convert all "_id" fields with a string representation of an object ID
@@ -61,8 +66,8 @@ class Mongo extends Interface {
 		this.client = new MongoClient(`mongodb://${host || HOST}:${port || PORT}?useUnifiedTopology=true`);
 
 		/* Set the given database (actually select it in open()) */
-		this.database = name;
-		this.open();
+		this.databaseName = name;
+		await this.open();
 
 		return true;
 	}
@@ -73,7 +78,7 @@ class Mongo extends Interface {
 	 */
 	async open() {
 		this.connection = await this.client.connect();
-		await this.client.db(this.database);
+		this.database = await this.client.db(this.databaseName);
 	}
 
 
@@ -81,7 +86,7 @@ class Mongo extends Interface {
 	 * Close a connection
 	 */
 	async close() {
-		this.client.close();
+		return await this.client.close();
 	}
 
 
@@ -94,9 +99,10 @@ class Mongo extends Interface {
 	async createCollection(name, fields) {
 
 		console.log("CREATE COLLECTION", name, fields);
-		this.open();
+		await this.open();
 
 		const self = this;
+
 		const collection = await this.database.createCollection(name, mongo_options.open, () => {
 			/* Go through all the fields in the model */
 			for (const key in fields) {
@@ -111,7 +117,7 @@ class Mongo extends Interface {
 			}
 		});
 
-		this.close();
+		await this.close();
 
 		return collection;
 	}
@@ -127,7 +133,7 @@ class Mongo extends Interface {
 	async createIndex(name, fields, config) {
 
 		console.log("CREATE INDEX", name, fields, config);
-		this.open();
+		await this.open();
 
 		/* Select the given collection */
 		const collection = await this.database.collection(name, mongo_options.collection);
@@ -135,7 +141,7 @@ class Mongo extends Interface {
 		/* Create an index for the given field(s) */
 		const index = collection.createIndex(fields, config);
 
-		this.close();
+		await this.close();
 
 		return index;
 	}
@@ -151,7 +157,7 @@ class Mongo extends Interface {
 	async read(name, conditions, options, references) {
 
 		console.log("READ", name, conditions);
-		this.open();
+		await this.open();
 
 		/* If there is an _id field in constraints, create a proper object ID object */
 		conditions = this.convertObjectId(conditions);
@@ -193,7 +199,7 @@ class Mongo extends Interface {
 		/* Do it */
 		const result = await collection.aggregate(stack, options);
 
-		this.close();
+		await this.close();
 
 		return result;
 	}
@@ -208,7 +214,7 @@ class Mongo extends Interface {
 	async write(name, conditions, data) {
 
 		console.log("WRITE", name, conditions, data);
-		this.open();
+		await this.open();
 
 		/* For any reference constraints, create a proper object ID object */
 		for (const i in conditions['references']) {
@@ -226,7 +232,7 @@ class Mongo extends Interface {
 		/* Create a new record with the data */
 		const result = await collection.insert(data, mongo_options.insert);
 
-		this.close();
+		await this.close();
 
 		return result;
 	}
@@ -242,7 +248,7 @@ class Mongo extends Interface {
 	async modify(name, conditions, data) {
 
 		console.log("MODIFY", name, conditions, data);
-		this.open();
+		await this.open();
 
 		/* If there is an _id field in constraints, create a proper object ID object */
 		conditions = this.convertObjectId(conditions);
@@ -263,7 +269,7 @@ class Mongo extends Interface {
 		/* Update the given record with new data */
 		const result = await collection.update(conditions, {"$set": data}, mongo_options.update);
 
-		this.close();
+		await this.close();
 
 		return result;
 	}
@@ -278,7 +284,7 @@ class Mongo extends Interface {
 	async remove(name, conditions) {
 
 		console.log("REMOVE", name, conditions);
-		this.open();
+		await this.open();
 
 		/* If there is an _id field in constraints, create a proper object ID object */
 		conditions = this.convertObjectId(conditions);
@@ -289,7 +295,7 @@ class Mongo extends Interface {
 		/* Delete the given records */
 		const result = await collection.remove(conditions, mongo_options.remove);
 
-		this.close();
+		await this.close();
 
 		return result;
 	}
