@@ -21,7 +21,10 @@ module.exports = class Nunjucks extends Interface {
 		this.app = App;
 
 		/* TODO: path below is fragile */
-		nunjucks.configure(path.resolve(__dirname, '../../', this.app.config.views), { autoescape: true });
+		nunjucks.configure(path.resolve(__dirname, '../../', this.app.config.views), {
+			autoescape: true,
+			noCache: !(this.app.config.production === 'on' || this.app.config.production === true)
+		});
 	}
 
 
@@ -32,8 +35,6 @@ module.exports = class Nunjucks extends Interface {
 	 * @param {object} data Object of data to pass to the template
 	 */
 	async render(template, data) {
-		console.log("RENDERING", template, data);
-		
 		return nunjucks.render(template, data);
 	}
 
