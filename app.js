@@ -343,7 +343,7 @@ class App {
 						continue;
 					
 					/* Filter out filesystem bits */
-					const view = views[i].replace(this.config.views, "").replace(`.${this.config.extension}`, "");
+					const view = views[i].replace(path.resolve(this.dir, this.config.views), "").replace(`.${this.config.extension}`, "");
 					const route = view.replace("/index", "");
 
 					/* Create an automatic GET route for a given view */

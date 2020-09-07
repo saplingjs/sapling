@@ -20,8 +20,7 @@ module.exports = class Nunjucks extends Interface {
 
 		this.app = App;
 
-		/* TODO: path below is fragile */
-		this.engine = nunjucks.configure(path.resolve(__dirname, '../../', this.app.config.views), {
+		this.engine = nunjucks.configure(path.resolve(this.app.dir, this.app.config.views), {
 			autoescape: true,
 			noCache: !(this.app.config.production === 'on' || this.app.config.production === true)
 		});

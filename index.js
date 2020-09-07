@@ -30,5 +30,5 @@ if (cluster.isMaster && !argv.single) {
 
 	/* Load a single instance */
 	const App = require("./app");
-	const app = new App("./");
+	const app = new App(__dirname);
 }
