@@ -7,7 +7,7 @@
  * database technology.
  */
 
-const Error = require("../lib/Error");
+const Error = require("../../lib/Error");
 
 class Interface {
 

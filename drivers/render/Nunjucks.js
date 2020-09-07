@@ -7,7 +7,7 @@
 const path = require("path");
 const nunjucks = require("nunjucks");
 const Interface = require("./Interface");
-const { console } = require("../lib/Cluster");
+const { console } = require("../../lib/Cluster");
 
 
 module.exports = class Nunjucks extends Interface {
@@ -21,7 +21,7 @@ module.exports = class Nunjucks extends Interface {
 		this.app = App;
 
 		/* TODO: path below is fragile */
-		nunjucks.configure(path.resolve(__dirname, '../', this.app.config.views), { autoescape: true });
+		nunjucks.configure(path.resolve(__dirname, '../../', this.app.config.views), { autoescape: true });
 	}
 
 

@@ -6,7 +6,7 @@
 /* Dependencies */
 const { MongoClient, ObjectID } = require("mongodb");
 const Interface = require("./Interface");
-const { console } = require("../lib/Cluster");
+const { console } = require("../../lib/Cluster");
 
 /* Default values */
 const HOST = "localhost";

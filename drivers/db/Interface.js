@@ -6,7 +6,7 @@
  * in whatever way makes sense for the particular database technology.
  */
 
-const Error = require("../lib/Error");
+const Error = require("../../lib/Error");
 
 module.exports = class Interface {
 
