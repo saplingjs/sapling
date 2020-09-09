@@ -21,12 +21,12 @@ const logger = require('morgan');
 
 /* Internal dependencies */
 const { Cluster, console } = require("./lib/Cluster");
-const Error = require("./lib/Error");
+const Notifications = require("./lib/Notifications");
+const Response = require("./lib/Response");
 const Storage = require("./lib/Storage");
 const Templating = require("./lib/Templating");
 const User = require("./lib/User");
 const Utils = require("./lib/Utils");
-const Notifications = require("./lib/Notifications");
 
 
 /**
@@ -410,7 +410,7 @@ class App {
 			}
 
 			/* Create a storage instance based on the models */
-			const storage = new Storage({
+			const storage = new Storage(this, {
 				name: this.name, 
 				schema: structure,
 				config: this.config,
@@ -466,8 +466,6 @@ class App {
 
 			/* The minimum role level required for this method+route combination */
 			const role = this.permissions[url];
-
-			const self = this;
 			
 			/* default method is `all`. */
 			if (!["get", "post", "delete"].includes(method)) {
@@ -475,13 +473,12 @@ class App {
 			}
 
 			/* Create middleware for each particular method+route combination */
-			this.server[method](route, function (req, res, next) {
+			this.server[method](route, (req, res, next) => {
 				console.log("PERMISSION", method, route, role);
 
 				/* If the current route is not allowed for the current user, display an error */
-				if (!self.user.isUserAllowed(req.permission, req.session.user)) {
-					const errorHandler = self.errorHandler(req, res);
-					return errorHandler([{message: "You do not have permission to complete this action."}]);
+				if (!this.user.isUserAllowed(req.permission, req.session.user)) {
+					new Response(this, req, res, [{message: "You do not have permission to complete this action."}]);
 				} else next();
 			});
 			
@@ -508,8 +505,7 @@ class App {
 				view, 
 				{}, 
 				req, 
-				res, 
-				self.errorHandler(req, res)
+				res
 			);
 		};
 
@@ -662,14 +658,20 @@ class App {
 		this.server.post(/\/data\/users\/?$/, this.user.register);
 
 		/* Otherwise, send each type of query to be handled by Storage */
-		this.server.get("/data/*", (req, res) => {
-			this.storage.get(req, this.response(req, res));
+		this.server.get("/data/*", async (req, res) => {
+			const data = await this.storage.get(req);
+			if(data)
+				new Response(this, req, res, null, data);
 		});
-		this.server.post("/data/*", (req, res) => {
-			this.storage.post(req, this.response(req, res));
+		this.server.post("/data/*", async (req, res) => {
+			const data = await this.storage.post(req);
+			if(data)
+				new Response(this, req, res, null, data);
 		});
-		this.server.delete("/data/*", (req, res) => {
-			this.storage.delete(req, this.response(req, res));
+		this.server.delete("/data/*", async (req, res) => {
+			const data = await this.storage.delete(req);
+			if(data)
+				new Response(this, req, res, null, data);
 		});
 
 		next();
@@ -688,64 +690,6 @@ class App {
 			this.notifications = new Notifications(this);
 
 		next();
-	}
-
-
-	/**
-	* Create a callback function handle a response
-	* from the storage instance.
-	*/
-	response(req, res) {
-		const self = this;
-
-		return (err, response) => {
-			if (err) {
-				return self.errorHandler(req, res).call(self, err);
-			}
-
-			if (req.query.goto) {
-				res.redirect(req.query.goto);
-			}
-
-			res.json(response);
-		};
-	}
-
-	/**
-	* Create an error handler function
-	*/
-	errorHandler(req, res) {
-		const self = this;
-		return err => {
-			// no error to display
-			if (!err) { return false; }
-
-			const error = new Error(err);
-
-			//log to the server
-			console.error("Error occured during %s %s", req.method && req.method.toUpperCase(), req.url)
-			if (self.config.showError) {
-				console.error(err);
-				if (err.stack) console.error(err.stack);
-			}
-
-			// if json or javascript in accept header, give back JSON
-			const acceptJSON = /json|javascript/.test(req.headers.accept || "");
-
-			// get the appropriate error code from the first error in stack
-			let ERROR_CODE = Number(error.template.errors[0].status) || 500;
-			
-			// render the error view
-			if (self.config.errorView && !acceptJSON) {
-				try {
-					/* TODO: RENDER ERROR */
-				} catch {
-					res.status(ERROR_CODE).json(error.template)
-				}
-			} else {
-				res.status(ERROR_CODE).json(error.template);
-			}
-		};
 	}
 
 
