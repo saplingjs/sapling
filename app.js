@@ -135,6 +135,13 @@ class App {
 					password: process.env.MAIL_PASS
 				}
 			},
+			"upload": {
+				"type": "local",
+				"destination": "public/uploads"
+			},
+			"aws": {
+				"region": "us-west-2"
+			},
 			"port": this.opts.port || 8000,
 			"cors": true,
 			"url": ""
