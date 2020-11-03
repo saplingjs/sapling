@@ -11,6 +11,7 @@ const async = require("async");
 const fs = require("fs");
 const _ = require("underscore");
 const cron = require("cron").CronJob;
+const argv = require('yargs').argv
 
 /* Server dependencies */
 const express = require("express");
@@ -142,7 +143,7 @@ class App {
 			"aws": {
 				"region": "us-west-2"
 			},
-			"port": this.opts.port || 8000,
+			"port": argv.port || this.opts.port || 3000,
 			"url": ""
 		};
 
