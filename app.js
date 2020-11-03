@@ -143,7 +143,6 @@ class App {
 				"region": "us-west-2"
 			},
 			"port": this.opts.port || 8000,
-			"cors": true,
 			"url": ""
 		};
 
@@ -172,9 +171,17 @@ class App {
 		}
 
 		/* Detect production environment */
-		if(this.config.production === "auto" && process.env.NODE_ENV === "production") {
-			this.config.production = true;
+		if(this.config.production === "auto") {
+			this.config.production = process.env.NODE_ENV === "production";
 		}
+
+		/* Figure out automatic CORS */
+		if(!('cors' in this.config)) {
+			this.config.cors = !this.config.production;
+		}
+
+		console.log("Production mode is", this.config.production);
+		console.log("CORS is", this.config.cors);
 
 		/* Set other config based on production */
 		if(this.config.production === true || this.config.production === "on") {
@@ -277,7 +284,7 @@ class App {
 		/* Enable the /data data interface */
 		server.use("/data/", ({method}, res, n) => {
 			/* Send CORS headers if explicitly enabled in config */
-			if(self.config.cors) {
+			if(self.config.cors === true) {
 				res.header("Access-Control-Allow-Origin", "*");
 				res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE");
 				res.header("Access-Control-Allow-Headers", "Content-Type");
