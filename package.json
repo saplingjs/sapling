@@ -37,7 +37,7 @@
     "nodemailer": "4.0.1",
     "nunjucks": "^3.2.2",
     "request": "2.88.0",
-    "underscore": "1.9.1",
+    "underscore": "1.11.0",
     "yargs": "^15.3.1"
   }
 }
