@@ -1,82 +1,40 @@
-# Sapling Framework
+<p align="center"><a href="https://saplingjs.com" target="_blank" rel="noopener noreferrer"><img width="200" src="https://saplingjs.com/images/logo.svg" alt="Sapling logo"></a></p>
 
-## Installation Guide
+<p align="center">
+  <a href="https://www.npmjs.com/package/@saplingjs/sapling"><img src="https://img.shields.io/npm/v/@saplingjs/sapling.svg?sanitize=true" alt="Version"></a>
+  <a href="https://www.npmjs.com/package/@saplingjs/sapling"><img src="https://img.shields.io/npm/l/@saplingjs/sapling.svg?sanitize=true" alt="License"></a>
+</p>
 
-**1. Clone the repo in your project folder**
+**Sapling** is a Node.js framework for building websites, web apps and APIs as fast as you can imagine them.  With unrivalled speed of development, you can prototype quickly, iterate with ease, and deploy the same day.  Zero code, zero config – unless you want to.  And what's more, it comes with all the SaaS features you never want to write, all built-in.
 
-Make sure the directory is named `sapling` and exists in your project directory.
+## Documentation
 
-For unix-like systems (e.g. OSX, BSD, Linux) you may use the command-line tool. You must link it to your path by running the following:
+For the full documentation, go to [saplingjs.com/docs](https://saplingjs.com/docs/).
 
-	cd /path/to/sapling
-	./sapling.sh link
+## Quick installation
 
-**2. Install the dependencies and modules**
+1. Make sure you have Node.js 10 or later.
+2. Run `npm i -g @sapling/cli && sapling create`
 
-- Node.js v8, npm
+## Ecosystem
 
-Run the following in a terminal:
-	
-	cd /path/to/project
-	sapling modules
+Project                                                                                   | Description
+------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------
+[@saplingjs/cli](https://github.com/saplingjs/cli)                                        | Command Line Interface for creating and managing Sapling projects.
+[@saplingjs/vue-components](https://github.com/saplingjs/vue-components)                  | Assortment of optional unopinionated semi-automatic frontend Vue components for common UI tasks.
+[@saplingjs/db-driver-mongodb](https://github.com/saplingjs/db-driver-mongodb)            | Support for MongoDB databases.
+[@saplingjs/render-driver-nunjucks](https://github.com/saplingjs/render-driver-nunjucks)  | Support for Nunjucks templating engine.
 
-or in Windows run `windows/install.bat`
+## Questions & Issues
 
-**3. Create the necessary files**
+Bug reports, feature requests and support queries can be filed as [issues on GitHub](https://github.com/saplingjs/sapling/issues).  Please use the templates provided and fill in all the requested details.
 
-Inside the project directory:
+## Changelog
 
-	D  models/
-	D  views/
-	   controller.js
-	   config.js
-	   permissions.js
+Detailed changes for each release are documented in the [release notes](https://github.com/saplingjs/sapling/releases).
 
-or use the command-line tool to generate them:
+## License
 
-	cd /path/to/project
-	sapling init
+[Mozilla Public License 2.0](https://opensource.org/licenses/MPL-2.0)
 
-**4. Run the server**
-	
-	cd /path/to/project
-	sapling serve
-
-or on Windows run `windows/start-server.bat`
-
-
-## Error codes
-
-
-### Validation
-
-1001: Field is required, but no value was provided.
-
-1002: Field is provided, but it's the wrong type.
-
-1003: Field is provided, but it's not one of the enumerated acceptable values.
-
-1004: Input is too long.
-
-1005: Input is too short.
-
-1006: Input is too big.
-
-1007: Input is too small.
-
-1008: Input is not a valid email address.
-
-1009: Input is not the correct password.
-
-1010: Model does not exist.
-
-
-### Authorization & Access
-
-4001: Invalid username or password.
-
-4002: User is not logged in.
-
-4003: Recovery key has expired.
-
-4004: Recovery key is invalid.
+Originally adapted from "Sproute" by Louis Stowasser.
