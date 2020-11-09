@@ -11,3 +11,5 @@ updates:
       interval: "daily"
     reviewers:
       - "groenroos"
+    labels:
+      - "maintenance"
