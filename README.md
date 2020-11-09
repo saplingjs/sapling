@@ -1,8 +1,8 @@
 <p align="center"><a href="https://saplingjs.com" target="_blank" rel="noopener noreferrer"><img width="200" src="https://saplingjs.com/images/logo.svg" alt="Sapling logo"></a></p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/@saplingjs/sapling"><img src="https://img.shields.io/npm/v/@saplingjs/sapling.svg?sanitize=true" alt="Version"></a>
-  <a href="https://www.npmjs.com/package/@saplingjs/sapling"><img src="https://img.shields.io/npm/l/@saplingjs/sapling.svg?sanitize=true" alt="License"></a>
+  <a href="https://www.npmjs.com/package/@sapling/sapling"><img src="https://img.shields.io/npm/v/@sapling/sapling.svg?sanitize=true" alt="Version"></a>
+  <a href="https://www.npmjs.com/package/@sapling/sapling"><img src="https://img.shields.io/npm/l/@sapling/sapling.svg?sanitize=true" alt="License"></a>
 </p>
 
 **Sapling** is a Node.js framework for building websites, web apps and APIs as fast as you can imagine them.  With unrivalled speed of development, you can prototype quickly, iterate with ease, and deploy the same day.  Zero code, zero config – unless you want to.  And what's more, it comes with all the SaaS features you never want to write, all built-in.
@@ -18,12 +18,12 @@ For the full documentation, go to [saplingjs.com/docs](https://saplingjs.com/doc
 
 ## Ecosystem
 
-Project                                                                                   | Description
-------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------
-[@saplingjs/cli](https://github.com/saplingjs/cli)                                        | Command Line Interface for creating and managing Sapling projects.
-[@saplingjs/vue-components](https://github.com/saplingjs/vue-components)                  | Assortment of optional unopinionated semi-automatic frontend Vue components for common UI tasks.
-[@saplingjs/db-driver-mongodb](https://github.com/saplingjs/db-driver-mongodb)            | Support for MongoDB databases.
-[@saplingjs/render-driver-nunjucks](https://github.com/saplingjs/render-driver-nunjucks)  | Support for Nunjucks templating engine.
+Project                                                                                 | Description
+----------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------
+[@sapling/cli](https://github.com/saplingjs/cli)                                        | Command Line Interface for creating and managing Sapling projects.
+[@sapling/vue-components](https://github.com/saplingjs/vue-components)                  | Assortment of optional unopinionated semi-automatic frontend Vue components for common UI tasks.
+[@sapling/db-driver-mongodb](https://github.com/saplingjs/db-driver-mongodb)            | Support for MongoDB databases.
+[@sapling/render-driver-nunjucks](https://github.com/saplingjs/render-driver-nunjucks)  | Support for Nunjucks templating engine.
 
 ## Questions & Issues
 
