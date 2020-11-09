@@ -786,10 +786,10 @@ negotiator@0.6.2:
   resolved "https://registry.yarnpkg.com/negotiator/-/negotiator-0.6.2.tgz#feacf7ccf525a77ae9634436a64883ffeca346fb"
   integrity sha512-hZXc7K2e+PgeI1eDBe/10Ard4ekbfrrqG8Ep+8Jmf4JID2bNg7NvCPOZN+kfF574pFQI7mum2AUqDidoKqcTOw==
 
-nodemailer@4.0.1:
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/nodemailer/-/nodemailer-4.0.1.tgz#b95864b07facee8287e8232effd6f1d56ec75ab2"
-  integrity sha1-uVhksH+s7oKH6CMu/9bx1W7HWrI=
+nodemailer@6.4.15:
+  version "6.4.15"
+  resolved "https://registry.yarnpkg.com/nodemailer/-/nodemailer-6.4.15.tgz#da5dbb78b8376e34c232c6aa3d2d65cfe17440e9"
+  integrity sha512-2/z13dBTWdgTRlxVMAK6C13dCI22GEShET4+jFLlQsxpblxYhojnucfcTZO1QBu5CsHvABsBj2JCGO3vl0HSQA==
 
 normalize-path@^3.0.0, normalize-path@~3.0.0:
   version "3.0.0"
