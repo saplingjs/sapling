@@ -30,7 +30,7 @@
     "cookie-parser": "1.4.4",
     "cron": "^1.7.1",
     "express": "4.16.4",
-    "express-session": "1.16.1",
+    "express-session": "1.17.1",
     "moment": "2.29.1",
     "mongodb": "3.6.0",
     "morgan": "^1.9.1",
