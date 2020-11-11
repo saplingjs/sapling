@@ -11,7 +11,7 @@ const async = require("async");
 const fs = require("fs");
 const _ = require("underscore");
 const cron = require("cron").CronJob;
-const argv = require('yargs').argv
+const argv = require('yargs').argv;
 
 /* Server dependencies */
 const express = require("express");
@@ -123,7 +123,7 @@ class App {
 			"strict": true,
 			"production": "auto",
 			"db": {
-				"type": "Mongo"
+				"type": "MongoDB"
 			},
 			"render": {
 				"type": "Nunjucks"

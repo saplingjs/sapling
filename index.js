@@ -12,7 +12,7 @@
 const cluster = require('cluster');
 const os = require('os');
 const chalk = require('chalk');
-const argv = require('yargs').argv
+const argv = require('yargs').argv;
 
 if (cluster.isMaster && !argv.single) {
 	console.log(chalk.green.bold("Starting Sapling!"));
