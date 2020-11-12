@@ -126,7 +126,7 @@ class App {
 				"type": "MongoDB"
 			},
 			"render": {
-				"type": "Nunjucks"
+				"type": "HTML"
 			},
 			"mail": {
 				"type": "SMTP",
