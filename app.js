@@ -676,7 +676,7 @@ class App {
 		/* Otherwise, send each type of query to be handled by Storage */
 		this.server.get("/data/*", async (req, res) => {
 			const data = await this.storage.get(req, res);
-			if(!data)
+			if(data)
 				new Response(this, req, res, null, data);
 			else
 				new Response(this, req, res, new SaplingError("Something went wrong"));
@@ -685,11 +685,15 @@ class App {
 			const data = await this.storage.post(req, res);
 			if(data)
 				new Response(this, req, res, null, data);
+			else
+				new Response(this, req, res, new SaplingError("Something went wrong"));
 		});
 		this.server.delete("/data/*", async (req, res) => {
 			const data = await this.storage.delete(req, res);
 			if(data)
 				new Response(this, req, res, null, data);
+			else
+				new Response(this, req, res, new SaplingError("Something went wrong"));
 		});
 
 		next();
