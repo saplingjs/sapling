@@ -22,6 +22,7 @@ const logger = require('morgan');
 
 /* Internal dependencies */
 const { Cluster, console } = require("./lib/Cluster");
+const SaplingError = require("./lib/SaplingError");
 const Notifications = require("./lib/Notifications");
 const Response = require("./lib/Response");
 const Storage = require("./lib/Storage");
@@ -123,7 +124,7 @@ class App {
 			"strict": true,
 			"production": "auto",
 			"db": {
-				"type": "MongoDB"
+				"type": "Memory"
 			},
 			"render": {
 				"type": "HTML"
@@ -675,8 +676,10 @@ class App {
 		/* Otherwise, send each type of query to be handled by Storage */
 		this.server.get("/data/*", async (req, res) => {
 			const data = await this.storage.get(req, res);
-			if(data)
+			if(!data)
 				new Response(this, req, res, null, data);
+			else
+				new Response(this, req, res, new SaplingError("Something went wrong"));
 		});
 		this.server.post("/data/*", async (req, res) => {
 			const data = await this.storage.post(req, res);

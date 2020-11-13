@@ -7,7 +7,7 @@
  * database technology.
  */
 
-const Error = require("../../lib/Error");
+const SaplingError = require("../../lib/SaplingError");
 
 class Interface {
 
@@ -26,7 +26,7 @@ class Interface {
 	 * @param {object} data Object of data to pass to the template
 	 */
 	async render(template, data) {
-		throw new Error("Method not implemented: render")
+		throw new SaplingError("Method not implemented: render")
 	}
 
 
@@ -36,7 +36,7 @@ class Interface {
 	 * @param {object} hooks Object of functions
 	 */
 	async registerHooks(hooks) {
-		throw new Error("Method not implemented: registerHooks")
+		throw new SaplingError("Method not implemented: registerHooks")
 	}
 }
 

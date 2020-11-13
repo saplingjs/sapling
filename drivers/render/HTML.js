@@ -37,10 +37,8 @@ module.exports = class HTML extends Interface {
 
 	/**
 	 * Register custom tags with the template engine
-	 * 
-	 * @param {object} hooks Object of functions
 	 */
-	async registerHooks(hooks) {
-		throw new Error("Method not supported: registerHooks")
+	registerHooks() {
+		return true;
 	}
 };

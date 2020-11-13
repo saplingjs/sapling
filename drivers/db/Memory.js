@@ -1,28 +1,27 @@
 /**
- * Database Interface
+ * In-memory "database" driver for Sapling
  * 
- * This is the blank slate for abstracting any database system for use
- * in Sapling.  A new database driver should implement the below methods
- * in whatever way makes sense for the particular database technology.
+ * A simple fallback database driver that just keeps everything in an
+ * object in app memory, and gets wiped when the server dies.
  */
 
-const SaplingError = require("../../lib/SaplingError");
 
-module.exports = class Interface {
+const SaplingError = require("../../lib/SaplingError");
+const Interface = require("./Interface");
+
+module.exports = class Memory extends Interface {
 
 	/**
-	 * The connection object that should be populated by the connect() method
+	 * The object that contains everything
 	 */
-	connection = null
+	memory = {}
 
 
 	/**
 	 * Establish a connection to the database server
-	 * 
-	 * @param {object} config {name: Name of the database, host: Host IP, port: Port number}
 	 */
-	async connect(config) {
-		throw new SaplingError("Method not implemented: connect")
+	connect() {
+		return true;
 	}
 
 
@@ -33,19 +32,15 @@ module.exports = class Interface {
 	 * @param {array} fields Model object
 	 */
 	async createCollection(collection, fields) {
-		throw new SaplingError("Method not implemented: createCollection")
+		this.memory[collection] = [];
 	}
 
 
 	/**
 	 * Create an index for the specified fields
-	 * 
-	 * @param {string} collection Name of the target collection
-	 * @param {object} fields List of field names that should have indexes created. Key is the field name, value is the type of index
-	 * @param {object} config Driver specific options for the operation
 	 */
-	async createIndex(collection, fields, config) {
-		throw new SaplingError("Method not implemented: createIndex")
+	createIndex() {
+		return true;
 	}
 
 
@@ -54,10 +49,14 @@ module.exports = class Interface {
 	 * 
 	 * @param {string} collection Name of the target collection
 	 * @param {object} conditions The search query
-	 * @param {object} options Driver specific options for the operation
 	 */
-	async read(collection, conditions, options) {
-		throw new SaplingError("Method not implemented: read")
+	async read(collection, conditions) {
+		const coll = this.memory[collection];
+		const data = [];
+
+		return new Promise(resolve => {
+			resolve(data);
+		});
 	}
 
 
@@ -68,7 +67,8 @@ module.exports = class Interface {
 	 * @param {object} data Data for the collection
 	 */
 	async write(collection, data) {
-		throw new SaplingError("Method not implemented: write")
+		this.memory[collection].push(data);
+		return data;
 	}
 
 
