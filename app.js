@@ -424,20 +424,20 @@ class App {
 				}
 			}
 
-			/* Create a storage instance based on the models */
-			const storage = new Storage(this, {
-				name: this.name, 
-				schema: structure,
-				config: this.config,
-				dir: this.dir
-			});
-
 			this.structure = structure;
-			this.storage = storage;
-
 		} else {
 			console.warn(`Models at path \`${modelPath}\` does not exist`);
+
+			this.structure = {};
 		}
+
+		/* Create a storage instance based on the models */
+		this.storage = new Storage(this, {
+			name: this.name, 
+			schema: this.structure,
+			config: this.config,
+			dir: this.dir
+		});
 
 		if(next) next();
 	}
@@ -674,17 +674,17 @@ class App {
 
 		/* Otherwise, send each type of query to be handled by Storage */
 		this.server.get("/data/*", async (req, res) => {
-			const data = await this.storage.get(req);
+			const data = await this.storage.get(req, res);
 			if(data)
 				new Response(this, req, res, null, data);
 		});
 		this.server.post("/data/*", async (req, res) => {
-			const data = await this.storage.post(req);
+			const data = await this.storage.post(req, res);
 			if(data)
 				new Response(this, req, res, null, data);
 		});
 		this.server.delete("/data/*", async (req, res) => {
-			const data = await this.storage.delete(req);
+			const data = await this.storage.delete(req, res);
 			if(data)
 				new Response(this, req, res, null, data);
 		});
