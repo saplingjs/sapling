@@ -469,19 +469,17 @@ class App {
 		/* Load the permissions file */
 		/* TODO: Provide fallback in case the file is missing or mangled */
 		const permissionsPath = path.join(this.dir, "permissions.json");
-		const perms = fs.readFileSync(permissionsPath);
 
-		/* Try to parse it into JSON */
 		try {
+			let perms = fs.readFileSync(permissionsPath);
 			this.permissions = JSON.parse(perms);
 		} catch (e) {
-			console.error(`permissions at path: [${permissionsPath}] not found.`);
-			console.error(e);
-			console.error(e.stack);
+			console.warn(`Permissions at path: ${permissionsPath} not found.`);
+			this.permissions = {};
 		}
 
 		/* Loop over the urls in permissions */
-		Object.keys(this.permissions).forEach(url => {
+		Object.keys(this.permissions || {}).forEach(url => {
 			/* Format expected: "GET /url/here" */
 			const parts = url.split(" ");
 
@@ -496,7 +494,11 @@ class App {
 			const route = parts[1];
 
 			/* The minimum role level required for this method+route combination */
-			const role = this.permissions[url];
+			let role = this.permissions[url];
+
+			if(typeof this.permissions[url] === 'object' && this.permissions[url] !== null) {
+				role = this.permissions[url].role;
+			}
 			
 			/* default method is `all`. */
 			if (!["get", "post", "delete"].includes(method)) {
@@ -509,7 +511,11 @@ class App {
 
 				/* If the current route is not allowed for the current user, display an error */
 				if (!this.user.isUserAllowed(req.permission, req.session.user)) {
-					new Response(this, req, res, [{message: "You do not have permission to complete this action."}]);
+					if(typeof this.permissions[url] === 'object' && this.permissions[url].redirect) {
+						this.res.redirect(this.permissions[url].redirect);
+					} else {
+						new Response(this, req, res, new SaplingError("You do not have permission to complete this action."));
+					}
 				} else next();
 			});
 			
