@@ -114,8 +114,8 @@ class App {
 		const defaultConfig = {
 			"models": "models",
 			"views": "views",
-			"autoRouting": "auto",
-			"controller": "routes.json",
+			"autoRouting": true,
+			"routes": "routes.json",
 			"extension": "html",
 			"secret": this.utils.randString(),
 			"staticDir": "public",
@@ -209,7 +209,6 @@ class App {
 
 			/* Set immutable production vars */
 			this.config.strict = true;
-			this.config.autoRouting = false;
 			this.config.showError = false;
 		}
 
@@ -333,12 +332,12 @@ class App {
 		this.templating = new Templating(this);
 
 		/* Location of the controller file */
-		const controllerPath = path.join(this.dir, this.config.controller);
+		const controllerPath = path.join(this.dir, this.config.routes);
 
 		this.controller = {};
 
 		/* Generate a controller from the available views */
-		if(this.config.autoRouting === "on" || this.config.autoRouting === "auto" || this.config.autoRouting === true) {
+		if(this.config.autoRouting === 'on' || this.config.autoRouting === true) {
 			const viewsPath = path.join(this.dir, this.config.views);
 
 			if(fs.existsSync(viewsPath)) {
@@ -347,7 +346,7 @@ class App {
 
 				/* Go through each view */
 				for (let i = 0; i < views.length; ++i) {
-					const segments = views[i].split("/");
+					const segments = views[i].split('/');
 
 					/* Filter out the views where any segment begins with _ */
 					const protectedSegments = segments.filter(item => {
@@ -358,9 +357,17 @@ class App {
 					if(protectedSegments.length)
 						continue;
 					
+					/* Filter out any files that do not use the correct file extension */
+					if(views[i].split('.').slice(-1)[0] !== this.config.extension)
+						continue;
+					
 					/* Filter out filesystem bits */
-					const view = views[i].replace(path.resolve(this.dir, this.config.views), "").replace(`.${this.config.extension}`, "");
-					const route = view.replace("/index", "");
+					const view = views[i].replace(path.resolve(this.dir, this.config.views), '').replace(`.${this.config.extension}`, '');
+					let route = view.replace('/index', '');
+
+					/* Make sure root index is a slash and not an empty key */
+					if(route === '')
+						route = '/';
 
 					/* Create an automatic GET route for a given view */
 					this.controller[route] = view.replace(/^\/+/g, '');
@@ -375,10 +382,18 @@ class App {
 
 			/* Parse and merge the controller, or throw an error if it's malformed */
 			try {
-				if(this.config.autoRouting === "on") {
-					Object.assign(this.controller, JSON.parse(file.toString()));
+				let routes = JSON.parse(file.toString());
+
+				/* Remove file extension */
+				Object.keys(routes).forEach(route => {
+					routes[route] = routes[route].split('.').slice(0, -1).join('.');
+				});
+
+				/* Merge routes if autorouting, replace routes if not */
+				if(this.config.autoRouting === "on" || this.config.autoRouting === true) {
+					Object.assign(this.controller, routes);
 				} else {
-					this.controller = JSON.parse(file.toString());
+					this.controller = routes;
 				}
 			} catch (e) {
 				console.error(`Controller at path: \`${controllerPath}\` could not be loaded.`);
