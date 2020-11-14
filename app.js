@@ -121,7 +121,7 @@ class App {
 			"staticDir": "public",
 			"cacheViews": true,
 			"showError": true,
-			"strict": true,
+			"strict": false,
 			"production": "auto",
 			"db": {
 				"type": "Memory"
