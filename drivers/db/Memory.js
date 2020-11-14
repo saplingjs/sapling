@@ -20,14 +20,7 @@ module.exports = class Memory extends Interface {
 	/**
 	 * The object that contains everything
 	 */
-	memory = {
-		"posts": [
-			{"_id":1,"name":"oskari","gender":"m"},
-			{"_id":2,"name":"shrenik","gender":"m"},
-			{"_id":3,"name":"helen","gender":"f"},
-			{"_id":11,"name":"sofia","gender":"f"},
-		]
-	}
+	memory = {}
 
 
 	/**
