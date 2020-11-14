@@ -6,15 +6,28 @@
  */
 
 
+/* Dependencies */
+const _ = require("underscore");
 const SaplingError = require("../../lib/SaplingError");
 const Interface = require("./Interface");
 
+
+/**
+ * The Memory class
+ */
 module.exports = class Memory extends Interface {
 
 	/**
 	 * The object that contains everything
 	 */
-	memory = {}
+	memory = {
+		"posts": [
+			{"_id":1,"name":"oskari","gender":"m"},
+			{"_id":2,"name":"shrenik","gender":"m"},
+			{"_id":3,"name":"helen","gender":"f"},
+			{"_id":11,"name":"sofia","gender":"f"},
+		]
+	}
 
 
 	/**
@@ -51,12 +64,22 @@ module.exports = class Memory extends Interface {
 	 * @param {object} conditions The search query
 	 */
 	async read(collection, conditions) {
-		const coll = this.memory[collection];
-		const data = [];
+		let records = this.memory[collection] || [];
 
-		return new Promise(resolve => {
-			resolve(data);
-		});
+		if(Object.keys(conditions).length > 0) {
+			records = records.filter(record => {
+				let match = false;
+	
+				Object.keys(conditions).forEach(field => {
+					match = (field !== '_id' && record[field].indexOf(conditions[field]) > -1) ||
+						(field === '_id' && record[field] == conditions[field]);
+				});
+	
+				return match;
+			});
+		}
+
+		return records;
 	}
 
 
@@ -80,7 +103,26 @@ module.exports = class Memory extends Interface {
 	 * @param {object} data New data for the matching record(s). Omitted values does not imply deletion.
 	 */
 	async modify(collection, conditions, data) {
-		throw new SaplingError("Method not implemented: modify")
+		let records = this.memory[collection] || [];
+		let newRecords = [];
+
+		if(Object.keys(conditions).length > 0) {
+			records.forEach((record, index) => {
+				let match = false;
+	
+				Object.keys(conditions).forEach(field => {
+					match = (field !== '_id' && record[field].indexOf(conditions[field]) > -1) ||
+						(field === '_id' && record[field] == conditions[field]);
+				});
+	
+				if(match && this.memory[collection]) {
+					this.memory[collection][index] = _.extend(this.memory[collection][index], data);
+					newRecords.push(this.memory[collection][index]);
+				}
+			});
+		}
+
+		return newRecords;
 	}
 
 
@@ -91,6 +133,25 @@ module.exports = class Memory extends Interface {
 	 * @param {object} conditions The search query
 	 */
 	async remove(collection, conditions) {
-		throw new SaplingError("Method not implemented: remove")
+		let records = this.memory[collection] || [];
+
+		if(Object.keys(conditions).length > 0) {
+			records.forEach((record, index) => {
+				let match = false;
+	
+				Object.keys(conditions).forEach(field => {
+					match = (field !== '_id' && record[field].indexOf(conditions[field]) > -1) ||
+						(field === '_id' && record[field] == conditions[field]);
+				});
+	
+				if(match && this.memory[collection]) {
+					this.memory[collection].splice(index, 1);
+				}
+			});
+		} else {
+			this.memory[collection] = [];
+		}
+
+		return [{"success": true}];
 	}
 }
