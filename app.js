@@ -124,10 +124,10 @@ class App {
 			"strict": false,
 			"production": "auto",
 			"db": {
-				"type": "Memory"
+				"driver": "Memory"
 			},
 			"render": {
-				"type": "HTML"
+				"driver": "HTML"
 			},
 			"mail": {
 				"type": "SMTP",
@@ -140,9 +140,6 @@ class App {
 			"upload": {
 				"type": "local",
 				"destination": "public/uploads"
-			},
-			"aws": {
-				"region": "us-west-2"
 			},
 			"port": argv.port || this.opts.port || 3000,
 			"url": ""
