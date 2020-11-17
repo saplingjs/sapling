@@ -530,10 +530,13 @@ class App {
 			this.server[method](route, (req, res, next) => {
 				console.log("PERMISSION", method, route, perm);
 
+				/* Save for later */
+				req.permission = perm;
+
 				/* If the current route is not allowed for the current user, display an error */
-				if (!this.user.isUserAllowed(req.permission, req.session.user)) {
-					if(this.permissions[url].redirect) {
-						this.res.redirect(this.permissions[url].redirect);
+				if (!this.user.isUserAllowed(req.permission.role, req.session.user)) {
+					if(req.permission.redirect) {
+						res.redirect(req.permission.redirect);
 					} else {
 						new Response(this, req, res, new SaplingError("You do not have permission to complete this action."));
 					}
@@ -541,8 +544,6 @@ class App {
 			});
 			
 		});
-
-		console.log(this.permissions);
 	
 		if(next) next();
 	}
@@ -606,7 +607,7 @@ class App {
 				const baseurl = url.split("?")[0];
 				
 				// see if this url has a permission associated
-				const permission = self.user.getRoleForRoute("get", baseurl);
+				const permission = self.user.getRolesForRoute("get", baseurl);
 
 				// if no role is provided, use current
 				const session = role ? { user: { role } } : this.data.session;
@@ -653,7 +654,7 @@ class App {
 				const baseurl = url.split("?")[0];
 				
 				// see if this url has a permission associated
-				const permission = self.user.getRoleForRoute("post", baseurl);
+				const permission = self.user.getRolesForRoute("post", baseurl);
 				const session = role ? { user: { role } } : this.data.session;
 				const allowed = self.user.isUserAllowed(permission, session.user);
 
