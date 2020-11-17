@@ -13,9 +13,31 @@ const cluster = require('cluster');
 const os = require('os');
 const chalk = require('chalk');
 const argv = require('yargs').argv;
+const path = require('path');
+const fs = require('fs');
 
-if (cluster.isMaster && !argv.single) {
-	console.log(chalk.green.bold("Starting Sapling!"));
+/* Determine if session store is configured */
+const configPath = path.join(__dirname, 'config.json');
+let sessionAvailable = false;
+
+if(fs.existsSync(configPath)) {
+	/* If we have a config file, let's load it */
+	let file = fs.readFileSync(configPath);
+
+	/* Parse config, or throw an error if it's malformed */
+	try {
+		const c = JSON.parse(file.toString());
+		if('session' in c && 'driver' in c.session) {
+			sessionAvailable = true;
+		}
+	} catch (e) {
+		console.error('Error loading config');
+		console.error(e, e.stack);
+	}
+}
+
+if (cluster.isMaster && !argv.single && sessionAvailable) {
+	console.log(chalk.green.bold('Starting Sapling!'));
 
 	/* Create a new instance for each CPU available */
 	const cpus = os.cpus().length;
@@ -25,10 +47,10 @@ if (cluster.isMaster && !argv.single) {
 		cluster.fork();
 	}
 } else {
-	if(argv.single)
-		console.log(chalk.green.bold("Starting a single instance of Sapling!"));
+	if(argv.single || !sessionAvailable)
+		console.log(chalk.green.bold('Starting a single instance of Sapling!'));
 
 	/* Load a single instance */
-	const App = require("./app");
+	const App = require('./app');
 	const app = new App(__dirname);
 }
