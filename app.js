@@ -466,17 +466,17 @@ class App {
 		/* Load the permissions file */
 		/* TODO: Provide fallback in case the file is missing or mangled */
 		const permissionsPath = path.join(this.dir, "permissions.json");
+		this.permissions = {};
+		let perms = {};
 
 		try {
-			let perms = fs.readFileSync(permissionsPath);
-			this.permissions = JSON.parse(perms);
+			perms = JSON.parse(fs.readFileSync(permissionsPath));
 		} catch (e) {
 			console.warn(`Permissions at path: ${permissionsPath} not found.`);
-			this.permissions = {};
 		}
 
 		/* Loop over the urls in permissions */
-		Object.keys(this.permissions || {}).forEach(url => {
+		Object.keys(perms).forEach(url => {
 			/* Format expected: "GET /url/here" */
 			const parts = url.split(" ");
 
@@ -491,24 +491,48 @@ class App {
 			const route = parts[1];
 
 			/* The minimum role level required for this method+route combination */
-			let role = this.permissions[url];
+			let perm = perms[url];
 
-			if(typeof this.permissions[url] === 'object' && this.permissions[url] !== null) {
-				role = this.permissions[url].role;
+			if(typeof perms[url] === 'string') {
+				/* If it's a string, convert it to object */
+				perm = { role: [ perms[url] ], redirect: false };
+
+			} else if(Array.isArray(perms[url])) {
+				/* If it's an array, convert it to object */
+				perm = { role: perms[url], redirect: false };
+
+			} else if(typeof perms[url] === 'object' && perms[url] !== null) {
+				/* If it's an object, ensure it's proper */
+				if(!('role' in perms[url])) {
+					throw new SaplingError(`Permission setting for ${url} is missing a role`);
+				}
+				if(!(typeof perms[url].role === 'string' || Array.isArray(perms[url].role))) {
+					throw new SaplingError(`Permission setting for ${url} is malformed`);
+				}
+				if(typeof perms[url].role === 'string') {
+					perm = { role: [ perms[url].role ], redirect: perms[url].redirect };
+				}
+
+			} else {
+				/* If it's something else, we don't want it */
+				throw new SaplingError(`Permission setting for ${url} is malformed`);
 			}
+
+			/* Save to object */
+			this.permissions[url] = perm;
 			
-			/* default method is `all`. */
+			/* Default method is `all`. */
 			if (!["get", "post", "delete"].includes(method)) {
 				method = "all";
 			}
 
 			/* Create middleware for each particular method+route combination */
 			this.server[method](route, (req, res, next) => {
-				console.log("PERMISSION", method, route, role);
+				console.log("PERMISSION", method, route, perm);
 
 				/* If the current route is not allowed for the current user, display an error */
 				if (!this.user.isUserAllowed(req.permission, req.session.user)) {
-					if(typeof this.permissions[url] === 'object' && this.permissions[url].redirect) {
+					if(this.permissions[url].redirect) {
 						this.res.redirect(this.permissions[url].redirect);
 					} else {
 						new Response(this, req, res, new SaplingError("You do not have permission to complete this action."));
@@ -517,6 +541,8 @@ class App {
 			});
 			
 		});
+
+		console.log(this.permissions);
 	
 		if(next) next();
 	}
