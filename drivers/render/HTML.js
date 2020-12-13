@@ -38,7 +38,7 @@ module.exports = class HTML extends Interface {
 	/**
 	 * Register custom tags with the template engine
 	 */
-	registerHooks() {
+	registerTags() {
 		return true;
 	}
 };

@@ -78,7 +78,7 @@ class App {
 			},
 			callback => {
 				if (opts.loadViews !== false)
-					this.loadHook(callback);
+					this.loadCustomTags(callback);
 			},
 			callback => {
 				this.loadModules(callback);
@@ -581,14 +581,14 @@ class App {
 
 
 	/**
-	 * Setup hooks into the template parser to
+	 * Setup custom tags into the template parser to
 	 * return data from the storage engine.
 	 *
 	 * @param {function} view Chain callback
 	 */
-	loadHook(next) {
+	loadCustomTags(next) {
 		const self = this;
-		this.hooks = {
+		this.tags = {
 			get(block, next) {
 				//pause parsing and decode request
 				const expr = block.expr.split(" ");

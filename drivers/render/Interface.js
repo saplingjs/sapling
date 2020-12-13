@@ -33,10 +33,10 @@ class Interface {
 	/**
 	 * Register custom tags with the template engine
 	 * 
-	 * @param {object} hooks Object of functions
+	 * @param {object} tags Object of functions
 	 */
-	async registerHooks(hooks) {
-		throw new SaplingError("Method not implemented: registerHooks")
+	async registerTags(tags) {
+		throw new SaplingError("Method not implemented: registerTags")
 	}
 }
 
