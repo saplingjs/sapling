@@ -443,7 +443,7 @@ class App {
 						/* Listen on */
 						this.server[method](route, async (req, res) => {
 							/* Run a hook, if it exists */
-							await this.runHook(method, route, null, null, null, () => {
+							await this.runHook(method, route, req, res, null, () => {
 								new Response(this, req, res, null);
 							});
 						});
@@ -694,7 +694,7 @@ class App {
 		/* Create a handler for incoming requests */
 		const handler = async (req, res) => {
 			/* Run a hook, if it exists */
-			await this.runHook("get", route, null, null, null, () => {
+			await this.runHook("get", route, req, res, null, () => {
 				this.templating.renderView(
 					view, 
 					{}, 
