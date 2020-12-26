@@ -77,6 +77,10 @@ class App {
 					this.loadController(callback);
 			},
 			callback => {
+				if (opts.loadHooks !== false)
+					this.loadHooks(callback);
+			},
+			callback => {
 				if (opts.loadViews !== false)
 					this.loadCustomTags(callback);
 			},
@@ -116,6 +120,8 @@ class App {
 			"views": "views",
 			"autoRouting": true,
 			"routes": "routes.json",
+			"hooks": "hooks.json",
+			"hooksDir": "hooks",
 			"extension": "html",
 			"secret": this.utils.randString(),
 			"staticDir": "public",
@@ -397,11 +403,51 @@ class App {
 			}
 		}
 
+		/* Next stage of the setup */
+		next();
+	}
+
+
+	/**
+	 * Load the hooks JSON file.
+	 * 
+	 * @param {function} next Chain callback
+	 */
+	async loadHooks(next) {
+		/* Location of the hooks file */
+		const hooksPath = path.join(this.dir, this.config.hooks);
+
+		this.hooks = {};
+
+		/* Load the hooks file */
+		if(fs.existsSync(hooksPath)) {
+			/* If we have a hooks file, let's load it */
+			let file = fs.readFileSync(hooksPath);
+
+			/* Parse and merge the hooks, or throw an error if it's malformed */
+			try {
+				let hooks = JSON.parse(file.toString());
+
+				/* Set exported functions as object values */
+				Object.keys(hooks).forEach(hook => {
+					this.hooks[hook] = require(path.join(this.dir, this.config.hooksDir, hooks[hook]));
+
+					/* Add route to controller if it doesn't exist yet */
+					if(!(hook in this.controller))
+						this.controller[hook] = false;
+				});
+			} catch (e) {
+				console.error(`Hooks could not be loaded.  Make sure all hook files exist.`);
+			}
+		}
+
 		console.log("CONTROLLER", this.controller);
+		console.log("HOOKS", Object.keys(this.hooks));
 
 		/* Next stage of the setup */
 		next();
 	}
+
 
 	/**
 	 * Load the model structures and initialise
@@ -560,14 +606,22 @@ class App {
 		console.log("Loaded route ", `${route}`)
 		
 		/* Create a handler for incoming requests */
-		const self = this;
 		const handler = (req, res) => {
-			self.templating.renderView(
-				view, 
-				{}, 
-				req, 
-				res
-			);
+			/* Run a hook, if it exists */
+			const hookResult = route in this.hooks ? this.hooks[route](this, req, res) : true;
+
+			/* Render the view, if any specified */
+			if(view) {
+				this.templating.renderView(
+					view, 
+					{}, 
+					req, 
+					res
+				);
+			} else if(hookResult !== false) {
+				/* If no view, respond unless prevented */
+				new Response(this, req, res, null);
+			}
 		};
 
 		/* Listen on both GET and POST with the same handler */
@@ -720,25 +774,49 @@ class App {
 
 		/* Otherwise, send each type of query to be handled by Storage */
 		this.server.get("/data/*", async (req, res) => {
+			/* Get data */
 			const data = await this.storage.get(req, res);
-			if(data)
-				new Response(this, req, res, null, data);
-			else
-				new Response(this, req, res, new SaplingError("Something went wrong"));
+
+			/* Run a hook, if it exists */
+			const hookResult = route in this.hooks ? this.hooks[route](this, req, res, data) : true;
+
+			/* If hook didn't send false, send data */
+			if(hookResult !== false) {
+				if(data)
+					new Response(this, req, res, null, data);
+				else
+					new Response(this, req, res, new SaplingError("Something went wrong"));
+			}
 		});
 		this.server.post("/data/*", async (req, res) => {
+			/* Send data */
 			const data = await this.storage.post(req, res);
-			if(data)
-				new Response(this, req, res, null, data);
-			else
-				new Response(this, req, res, new SaplingError("Something went wrong"));
+
+			/* Run a hook, if it exists */
+			const hookResult = route in this.hooks ? this.hooks[route](this, req, res, data) : true;
+
+			/* If hook didn't send false, send data */
+			if(hookResult !== false) {
+				if(data)
+					new Response(this, req, res, null, data);
+				else
+					new Response(this, req, res, new SaplingError("Something went wrong"));
+			}
 		});
 		this.server.delete("/data/*", async (req, res) => {
+			/* Delete data */
 			const data = await this.storage.delete(req, res);
-			if(data)
-				new Response(this, req, res, null, data);
-			else
-				new Response(this, req, res, new SaplingError("Something went wrong"));
+
+			/* Run a hook, if it exists */
+			const hookResult = route in this.hooks ? this.hooks[route](this, req, res) : true;
+
+			/* If hook didn't send false, send data */
+			if(hookResult !== false) {
+				if(data)
+					new Response(this, req, res, null, data);
+				else
+					new Response(this, req, res, new SaplingError("Something went wrong"));
+			}
 		});
 
 		next();
