@@ -89,6 +89,11 @@ module.exports = async function(app, req, res) {
 
 	console.log("REGISTER", err, data);
 
-	/* Respond with the user object */
-	new Response(app, req, res, null, userData);
+	/* If we need to redirect, let's redirect */
+	if (req.query.redirect) {
+		res.redirect(req.query.redirect);
+	} else {
+		/* Respond with the user object */
+		new Response(app, req, res, null, userData);
+	}
 };

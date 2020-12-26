@@ -90,12 +90,17 @@ module.exports = async function(app, req, res) {
 		session: req.session
 	});
 
-	/* Clean the output */
-	if (userData) {
-		if(userData.password) delete userData.password;
-		if(userData._salt) delete userData._salt;
+	/* If we need to redirect, let's redirect */
+	if (req.query.redirect) {
+		res.redirect(req.query.redirect);
+	} else {
+		/* Clean the output */
+		if (userData) {
+			if(userData.password) delete userData.password;
+			if(userData._salt) delete userData._salt;
+		}
+		
+		/* Respond with the user object */
+		new Response(app, req, res, null, userData);
 	}
-	
-	/* Respond with the user object */
-	new Response(app, req, res, null, userData);
 };

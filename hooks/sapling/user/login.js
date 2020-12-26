@@ -61,10 +61,6 @@ module.exports = async function(app, req, res) {
 		/* Remove the sensitive stuff */
 		delete req.session.user.password;
 		delete req.session.user._salt;
-
-		/* Return the user object if there's no redirection */
-		if(!req.query.redirect)
-			new Response(app, req, res, null, req.session.user);
 	
 	} else {
 		/* Return an error if the password didn't match */
@@ -84,5 +80,8 @@ module.exports = async function(app, req, res) {
 	/* If we need to redirect, let's redirect */
 	if (req.query.redirect) {
 		res.redirect(req.query.redirect);
+	} else {
+		/* Otherwise, reply with the user object */
+		new Response(app, req, res, null, req.session.user);
 	}
 };

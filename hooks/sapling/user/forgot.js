@@ -57,6 +57,11 @@ module.exports = async function(app, req, res) {
 		html: this.app.notifications.forgotTemplateHTML(templateData)
 	});
 
-	/* Respond positively */
-	new Response(app, req, res);
+	/* If we need to redirect, let's redirect */
+	if (req.query.redirect) {
+		res.redirect(req.query.redirect);
+	} else {
+		/* Respond positively */
+		new Response(app, req, res);
+	}
 };
