@@ -850,7 +850,9 @@ class App {
 	 */
 	loadREST(next) {
 		/* Direct user creation to a special case endpoint */
-		this.server.post(/\/data\/users\/?$/, this.user.register);
+		this.server.post(/\/data\/users\/?$/, (req, res) => {
+			this.runHook("post", "/api/user/register", req, res);
+		});
 
 		/* Otherwise, send each type of query to be handled by Storage */
 		this.server.get("/data/*", async (req, res) => {
