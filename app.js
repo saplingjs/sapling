@@ -12,6 +12,7 @@ const fs = require("fs");
 const _ = require("underscore");
 const cron = require("cron").CronJob;
 const argv = require('yargs').argv;
+const routeMatcher = require('path-match')();
 
 /* Server dependencies */
 const express = require("express");
@@ -403,6 +404,8 @@ class App {
 			}
 		}
 
+		console.log("CONTROLLER", this.controller);
+
 		/* Next stage of the setup */
 		next();
 	}
@@ -430,22 +433,74 @@ class App {
 
 				/* Set exported functions as object values */
 				Object.keys(hooks).forEach(hook => {
-					this.hooks[hook] = require(path.join(this.dir, this.config.hooksDir, hooks[hook]));
+					let { method, route } = this.parseMethodRouteKey(hook);
 
-					/* Add route to controller if it doesn't exist yet */
-					if(!(hook in this.controller))
-						this.controller[hook] = false;
+					this.hooks[`${method.toUpperCase()} ${route}`] = require(path.join(this.dir, this.config.hooksDir, hooks[hook]));
+
+					/* Initialise hook if it doesn't exist in the controller */
+					/* TODO: make this condition neater */
+					if(!(route in this.controller) && !route.startsWith('/data') && !route.startsWith('data')) {
+						/* Listen on */
+						this.server[method](route, async (req, res) => {
+							/* Run a hook, if it exists */
+							const hookResult = await this.runHook(method, route);
+
+							/* If not prevented in the hook, respond */
+							if(hookResult !== false) {
+								new Response(this, req, res, null);
+							}
+						});
+
+						/* Save the route for later */
+						this.routeStack[method].push(route);
+					}
 				});
 			} catch (e) {
 				console.error(`Hooks could not be loaded.  Make sure all hook files exist.`);
 			}
 		}
 
-		console.log("CONTROLLER", this.controller);
 		console.log("HOOKS", Object.keys(this.hooks));
 
 		/* Next stage of the setup */
 		next();
+	}
+
+
+	/**
+	 * Run any registered hook that matches the given method
+	 * and route.  Returns null if no hook found, otherwise
+	 * returns what the hook returns.
+	 * 
+	 * @param {string} method Method of the route being tested
+	 * @param {string} route Route being tested
+	 * @param {string} req Request object
+	 * @param {string} res Response object
+	 * @param {string} data Data, if any
+	 */
+	async runHook(method, route, req, res, data) {
+		console.log("Finding hooks for ", method, route);
+
+		let returnValue = null;
+
+		/* Go through all hook definitions */
+		await Object.keys(this.hooks).forEach(async (hook) => {
+			/* Get hook definition route */
+			let { method: hookMethod, route: hookRoute } = this.parseMethodRouteKey(hook);
+
+			/* If the route and method match, run the hook */
+			if (routeMatcher(hookRoute)(route) !== false && hookMethod.toLowerCase() == method.toLowerCase()) {
+				/* Include Express stuff and data, if it exists */
+				if (!req) {
+					returnValue = await this.hooks[hook](this);
+				} else {
+					returnValue = await this.hooks[hook](this, req, res, data);
+				}
+			}
+		});
+
+		/* Return whatever was found */
+		return returnValue;
 	}
 
 
@@ -501,6 +556,49 @@ class App {
 		if(next) next();
 	}
 
+
+	/**
+	 * Parse a string with a method and route into their
+	 * constituent parts.
+	 * 
+	 * @param {string} key 
+	 */
+	parseMethodRouteKey(key) {
+		let obj = {
+			method: false,
+			route: false
+		}
+
+		/* Format expected: "GET /url/here" */
+		const parts = key.split(" ");
+
+		/* Behave differently based on the number of segments */
+		switch(parts.length) {
+			case 1:
+				/* Default to get */
+				obj.method = "get";
+				/* Assume the only part is the URL */
+				obj.route = parts[0];
+				break;
+
+			case 2:
+				/* First part is the method: get, post, delete */
+				obj.method = parts[0].toLowerCase();
+				/* Second part is the URL */
+				obj.route = parts[1];
+				break;
+
+			default:
+				break;
+		}
+
+		/* TODO: send an error if the method isn't an acceptable method */
+		/* TODO: send an error if the route isn't in a plausible format */
+
+		return obj;
+	}
+
+
 	/**
 	 * Load the permissions file, and implement the middleware
 	 * to validate the permission before continuing to the
@@ -524,17 +622,10 @@ class App {
 		/* Loop over the urls in permissions */
 		Object.keys(perms).forEach(url => {
 			/* Format expected: "GET /url/here" */
-			const parts = url.split(" ");
+			let { method, route } = this.parseMethodRouteKey(url);
 
-			/* If we have more than two bits, skip it */
-			if (parts.length < 2) {
-				return;
-			}
-
-			/* First part is the method: get, post, delete */
-			let method = parts[0].toLowerCase();
-			/* Second part is the URL */
-			const route = parts[1];
+			if(!route)
+				return false;
 
 			/* The minimum role level required for this method+route combination */
 			let perm = perms[url];
@@ -606,21 +697,18 @@ class App {
 		console.log("Loaded route ", `${route}`)
 		
 		/* Create a handler for incoming requests */
-		const handler = (req, res) => {
+		const handler = async (req, res) => {
 			/* Run a hook, if it exists */
-			const hookResult = route in this.hooks ? this.hooks[route](this, req, res) : true;
+			const hookResult = await this.runHook("get", route);
 
 			/* Render the view, if any specified */
-			if(view) {
+			if(hookResult !== false) {
 				this.templating.renderView(
 					view, 
 					{}, 
 					req, 
 					res
 				);
-			} else if(hookResult !== false) {
-				/* If no view, respond unless prevented */
-				new Response(this, req, res, null);
 			}
 		};
 
@@ -778,12 +866,12 @@ class App {
 			const data = await this.storage.get(req, res);
 
 			/* Run a hook, if it exists */
-			const hookResult = route in this.hooks ? this.hooks[route](this, req, res, data) : true;
+			const hookResult = await this.runHook("get", req.originalUrl, req, res, data);
 
 			/* If hook didn't send false, send data */
 			if(hookResult !== false) {
 				if(data)
-					new Response(this, req, res, null, data);
+					new Response(this, req, res, null, data || []);
 				else
 					new Response(this, req, res, new SaplingError("Something went wrong"));
 			}
@@ -793,12 +881,12 @@ class App {
 			const data = await this.storage.post(req, res);
 
 			/* Run a hook, if it exists */
-			const hookResult = route in this.hooks ? this.hooks[route](this, req, res, data) : true;
+			const hookResult = await this.runHook("post", req.originalUrl, req, res, data);
 
 			/* If hook didn't send false, send data */
 			if(hookResult !== false) {
 				if(data)
-					new Response(this, req, res, null, data);
+					new Response(this, req, res, null, data || []);
 				else
 					new Response(this, req, res, new SaplingError("Something went wrong"));
 			}
@@ -808,12 +896,12 @@ class App {
 			const data = await this.storage.delete(req, res);
 
 			/* Run a hook, if it exists */
-			const hookResult = route in this.hooks ? this.hooks[route](this, req, res) : true;
+			const hookResult = await this.runHook("delete", req.originalUrl, req, res);
 
 			/* If hook didn't send false, send data */
 			if(hookResult !== false) {
 				if(data)
-					new Response(this, req, res, null, data);
+					new Response(this, req, res, null, data || []);
 				else
 					new Response(this, req, res, new SaplingError("Something went wrong"));
 			}
