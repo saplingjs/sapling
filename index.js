@@ -1,11 +1,11 @@
-/*****************************
- *                           *
- *       S A P L I N G       *
- * ------------------------- *
- *   Faster-than-light web   *
- *   development framework   *
- *                           *
- *****************************/
+/******************************************
+ *                                        *
+ *             S A P L I N G              *
+ * -------------------------------------- *
+ *   A minimalist Node.js framework for   *
+ *   faster-than-light web development.   *
+ *                                        *
+ *****************************************/
 
 
 /* Require native clustering bits */
