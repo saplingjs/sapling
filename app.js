@@ -745,124 +745,44 @@ class App {
 	 *
 	 * @param {function} view Chain callback
 	 */
-	loadCustomTags(next) {
+	async loadCustomTags(next) {
 		const self = this;
-		this.tags = {
-			get(block, next) {
-				//pause parsing and decode request
-				const expr = block.expr.split(" ");
-				
-				const url = expr[0];
-				let role = expr[1];
-				// as = expr[2]
-				let key = expr[3];
-				
-				// if role has been left out, use current user or stranger
-				if (role == 'as') {
-					role = false;
-					key = expr[2];
-				}
-
+		await this.templating.renderer.registerTags({
+			
+			/**
+			 * Set a template variable with data from a given
+			 * data API URL.  The driver implementation must 
+			 * handle assigning the return value to a template
+			 * variable.
+			 * 
+			 * @param {string} url Data API URL
+			 * @param {string} role Optional user role, defaults to current user role
+			 */
+			async get(url, role) {
+				/* See if this url has a permission associated */
 				const baseurl = url.split("?")[0];
-				
-				// see if this url has a permission associated
 				const permission = self.user.getRolesForRoute("get", baseurl);
 
-				// if no role is provided, use current
+				/* If no role is provided, use current */
 				const session = role ? { user: { role } } : this.data.session;
 
+				/* Check permission */
 				const allowed = self.user.isUserAllowed(permission, session.user);
 				console.log("IS ALLOWED", session, allowed, permission)
 
-				// not allowed so give an empty array
+				/* Not allowed so give an empty array */
 				if (!allowed) {
-					this.saveDots(key, []);
-					return next();
+					return [];
 				}
 
-				//request the data then continue parsing
-				self.storage.get({
+				/* Request the data */
+				return await self.storage.get({
 					url, 
 					permission, 
 					session
-				}, (err, data) => {
-					if(err)
-						console.error(err);
-
-					this.saveDots(key, data);
-					next();
 				});
-			},
-
-			post(block, next) {
-				// pause parsing and decode request
-				const expr = block.expr.split(" ");
-				
-				const url = expr[0];
-				const body = expr[1];
-				let role = expr[2];
-				// as = expr[3]
-				let key = expr[4];
-
-				// role has been left out
-				if (role == 'as') {
-					role = false;
-					key = expr[3];
-				}
-
-				const baseurl = url.split("?")[0];
-				
-				// see if this url has a permission associated
-				const permission = self.user.getRolesForRoute("post", baseurl);
-				const session = role ? { user: { role } } : this.data.session;
-				const allowed = self.user.isUserAllowed(permission, session.user);
-
-				// not allowed so give an empty array
-				if (!allowed) {
-					return next();
-				}
-
-				// request the data then continue parsing
-				self.storage.post({
-					url: baseurl,
-					body: this.extractDots(body),
-					permission, 
-					session
-				}, (err, data) => {
-					if(err)
-						console.error(err);
-
-					if (key) {
-						this.saveDots(key, data);
-					}
-
-					next();
-				});
-			},
-
-			debug({rawExpr, end}, next) {
-				const value = this.extractDots(rawExpr);
-				this.pieces.push(`<pre>${JSON.stringify(value, null, '\t')}</pre>`);
-				this.start = end + 1;
-				next();
-			},
-
-			redirect({expr}, next) {
-				this.onredirect && this.onredirect.call(this, expr);
-				return false;
-			},
-
-			error({expr}, next) {
-				this.onerror && this.onerror.call(this, expr);
-				return false;
-			},
-
-			json({rawExpr}, next) {
-				const data = this.extractDots(rawExpr);
-				this.onjson && this.onjson.call(this, data);
-				return false;
 			}
-		};
+		});
 
 		next();
 	}

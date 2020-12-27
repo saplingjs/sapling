@@ -36,6 +36,18 @@ class Interface {
 	 * @param {object} tags Object of functions
 	 */
 	async registerTags(tags) {
+		/**
+		 * tags.get
+		 * 
+		 * Set a template variable with data from a given
+		 * data API URL.  The driver implementation must 
+		 * handle assigning the return value to a template
+		 * variable.
+		 * 
+		 * @param {string} url Data API URL
+		 * @param {string} role Optional user role, defaults to current user role
+		 */
+
 		throw new SaplingError("Method not implemented: registerTags")
 	}
 }
