@@ -9,6 +9,7 @@
 /* Dependencies */
 const _ = require("underscore");
 const Interface = require("./Interface");
+const Utils = require("../../lib/Utils");
 
 
 /**
@@ -84,6 +85,8 @@ module.exports = class Memory extends Interface {
 	async write(collection, data) {
 		if(!this.memory[collection])
 			this.memory[collection] = [];
+
+		data._id = new Utils().randString();
 
 		this.memory[collection].push(data);
 		return data;
