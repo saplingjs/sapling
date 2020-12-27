@@ -14,8 +14,49 @@ const SaplingError = require("../../../lib/SaplingError");
 /* Hook /api/user/login */
 module.exports = async function(app, req, res) {
 
+	/* Find all identifiable fields */
+	let identifiables = Object.keys(app.storage.schema.users).filter(field => app.storage.schema.users[field].identifiable);
+
+	/* Figure out which request value is used */
+	let identValue = false;
+	let identConditions = [];
+
+	if('_identifiable' in req.body) {
+		/* If present, use the general _identifiable post value */
+		identValue = req.body._identifiable;
+
+		/* Construct conditional selector, where every field marked as identifiable will be checked for the value */
+		for(let ident of identifiables) {
+			identConditions.push({ [ident]: identValue });
+		}
+	} else {
+		/* Otherwise just check for any other identifiables in the request */
+		for(let ident of identifiables) {
+			if(ident in req.body) {
+				/* Once found, set as the value and storage search condition */
+				identValue = req.body[ident];
+				identConditions = [ { [ident]: identValue } ];
+			}
+		}
+	}
+
+	/* If identValue wasn't assigned, reject request */
+	if (identValue === false) {
+		new Response(app, req, res, new SaplingError({
+			"status": "401",
+			"code": "1001",
+			"title": "Invalid Input",
+			"detail": "No email address or identifiable provided.",
+			"meta": {
+				"type": "identifiable",
+				"error": "required"
+			}
+		}));
+		return false;
+	}
+
 	/* Get the user from storage */
-	let data = await app.storage.db.read("users", { email: req.body.email }, {}, []);
+	let data = await app.storage.db.read("users", { '$or': identConditions }, {}, []);
 
 	/* If no user is found, throw error */
 	if (!data.length) { 
