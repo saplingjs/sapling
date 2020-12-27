@@ -117,15 +117,15 @@ class App {
 	async loadConfig(next) {
 		/* Default configuration values */
 		const defaultConfig = {
-			"models": "models",
-			"views": "views",
+			"staticDir": "public",
+			"modelsDir": "models",
+			"viewsDir": "views",
+			"hooksDir": "hooks",
 			"autoRouting": true,
 			"routes": "routes.json",
 			"hooks": "hooks.json",
-			"hooksDir": "hooks",
 			"extension": "html",
 			"secret": this.utils.randString(),
-			"staticDir": "public",
 			"cacheViews": true,
 			"showError": true,
 			"strict": false,
@@ -342,7 +342,7 @@ class App {
 
 		/* Generate a controller from the available views */
 		if(this.config.autoRouting === 'on' || this.config.autoRouting === true) {
-			const viewsPath = path.join(this.dir, this.config.views);
+			const viewsPath = path.join(this.dir, this.config.viewsDir);
 
 			if(fs.existsSync(viewsPath)) {
 				/* Load all views in the views directory */
@@ -366,7 +366,7 @@ class App {
 						continue;
 					
 					/* Filter out filesystem bits */
-					const view = views[i].replace(path.resolve(this.dir, this.config.views), '').replace(`.${this.config.extension}`, '');
+					const view = views[i].replace(path.resolve(this.dir, this.config.viewsDir), '').replace(`.${this.config.extension}`, '');
 					let route = view.replace('/index', '');
 
 					/* Make sure root index is a slash and not an empty key */
@@ -506,7 +506,7 @@ class App {
 	 * @param {function} next Chain callback
 	 */
 	loadModel(next) {
-		const modelPath = path.join(this.dir, this.config.models);
+		const modelPath = path.join(this.dir, this.config.modelsDir);
 		let structure = {};
 
 		if(fs.existsSync(modelPath)) {

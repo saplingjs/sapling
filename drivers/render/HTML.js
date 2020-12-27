@@ -31,7 +31,7 @@ module.exports = class HTML extends Interface {
 	 * @param {object} data Object of data to pass to the template
 	 */
 	async render(template, data) {
-		return fs.readFileSync(path.resolve(this.app.dir, this.app.config.views, template), "utf8");
+		return fs.readFileSync(path.resolve(this.app.dir, this.app.config.viewsDir, template), "utf8");
 	}
 
 
