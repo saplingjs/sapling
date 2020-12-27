@@ -32,7 +32,7 @@
             <div class="column">
                 <h3>Post an update</h3>
 
-                <form action="/data/updates" method="post">
+                <form action="/data/updates?redirect=/" method="post">
                     <label for="name">Your name</label>
                     <input type="text" name="name" id="name" />
 
@@ -41,9 +41,22 @@
 
                     <button type="submit">Post update</button>
                 </form>
+            </div>
+            <div class="column">
+                <h3>Previous updates</h3>
 
-                <hr>
+                {% get updates = '/data/updates', role = 'admin' %}
 
+                {% for update in updates %}
+                    <li><strong>{{ update.name }}</strong> <br/> {{ update.message }}</li>
+                {% endfor %}
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="columns">
+            <div class="column">
                 <h3>File uploads</h3>
 
                 <form action="/data/photos" method="post" enctype="multipart/form-data">
@@ -55,11 +68,12 @@
 
                     <button type="submit">Save photo</button>
                 </form>
-
-                <hr>
-
-                <h3>Previous updates</h3>
             </div>
+        </div>
+
+        <hr>
+
+        <div class="columns">
             <div class="column">
                 <h3>Create an account</h3>
 
@@ -75,9 +89,8 @@
 
                     <button type="submit">Create an account</button>
                 </form>
-
-                <hr>
-
+            </div>
+            <div class="column">
                 <h3>Log in</h3>
 
                 <form action="/api/user/login" method="post">
