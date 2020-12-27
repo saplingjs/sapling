@@ -748,7 +748,7 @@ class App {
 	async loadCustomTags(next) {
 		const self = this;
 		await this.templating.renderer.registerTags({
-			
+
 			/**
 			 * Set a template variable with data from a given
 			 * data API URL.  The driver implementation must 
@@ -778,7 +778,7 @@ class App {
 				/* Request the data */
 				return await self.storage.get({
 					url, 
-					permission, 
+					permission: { role: permission }, 
 					session
 				});
 			}
