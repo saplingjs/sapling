@@ -43,20 +43,6 @@
                 </form>
             </div>
             <div class="column">
-                <h3>Previous updates</h3>
-
-                {% get updates = '/data/updates', role = 'admin' %}
-
-                {% for update in updates %}
-                    <li><strong>{{ update.name }}</strong> <br/> {{ update.message }}</li>
-                {% endfor %}
-            </div>
-        </div>
-
-        <hr>
-
-        <div class="columns">
-            <div class="column">
                 <h3>File uploads</h3>
 
                 <form action="/data/photos" method="post" enctype="multipart/form-data">
@@ -64,7 +50,7 @@
                     <input type="file" name="photo" id="photo" />
 
                     <label for="caption">Give it a caption</label>
-                    <textarea name="caption" id="caption"></textarea>
+                    <input type="text" name="caption" id="caption" />
 
                     <button type="submit">Save photo</button>
                 </form>
