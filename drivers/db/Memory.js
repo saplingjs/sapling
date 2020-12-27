@@ -8,7 +8,6 @@
 
 /* Dependencies */
 const _ = require("underscore");
-const SaplingError = require("../../lib/SaplingError");
 const Interface = require("./Interface");
 
 
@@ -83,6 +82,9 @@ module.exports = class Memory extends Interface {
 	 * @param {object} data Data for the collection
 	 */
 	async write(collection, data) {
+		if(!this.memory[collection])
+			this.memory[collection] = [];
+
 		this.memory[collection].push(data);
 		return data;
 	}
