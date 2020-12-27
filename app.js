@@ -20,6 +20,7 @@ const session = require("express-session");
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const logger = require('morgan');
+const fileUpload = require('express-fileupload');
 
 /* Internal dependencies */
 const { Cluster, console } = require("./lib/Cluster");
@@ -246,6 +247,18 @@ class App {
 		/* Use the app secret from config, or generate one if needed */
 		let secret = this.config.secret || (this.config.secret = this.utils.randString());
 		server.use(cookieParser(secret));
+
+
+		/* Allow file uploads */
+		server.use(fileUpload({
+			useTempFiles: true
+		}));
+
+		/* Ensure the upload directory exists */
+		this.uploadDir = path.join(this.dir, this.config.upload.destination);
+		if (!fs.existsSync(this.uploadDir)){
+			fs.mkdirSync(this.uploadDir);
+		}
 
 
 		/* Persist sessions through reload */

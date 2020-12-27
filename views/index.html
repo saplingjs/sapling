@@ -44,6 +44,20 @@
 
                 <hr>
 
+                <h3>File uploads</h3>
+
+                <form action="/data/photos" method="post" enctype="multipart/form-data">
+                    <label for="photo">Upload a photo</label>
+                    <input type="file" name="photo" id="photo" />
+
+                    <label for="caption">Give it a caption</label>
+                    <textarea name="caption" id="caption"></textarea>
+
+                    <button type="submit">Save photo</button>
+                </form>
+
+                <hr>
+
                 <h3>Previous updates</h3>
             </div>
             <div class="column">
