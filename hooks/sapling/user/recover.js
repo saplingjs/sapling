@@ -6,6 +6,8 @@
 
 
 /* Dependencies */
+const Hash = require("../../../lib/Hash");
+
 const Response = require("../../../lib/Response");
 const SaplingError = require("../../../lib/SaplingError");
 
@@ -72,7 +74,7 @@ module.exports = async function(app, req, res) {
 
 	/* Hash and delete the new password */
 	/* TODO: Validate against password rules in the model */
-	const hash = Hash.hash(req.body.new_password);
+	const hash = (new Hash()).hash(req.body.new_password);
 	delete req.body.new_password;
 
 	/* Update the new password and clear the key */

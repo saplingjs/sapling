@@ -7,6 +7,8 @@
 
 
 /* Dependencies */
+const Hash = require("../../../lib/Hash");
+
 const Response = require("../../../lib/Response");
 const SaplingError = require("../../../lib/SaplingError");
 
@@ -51,7 +53,7 @@ module.exports = async function(app, req, res) {
 	});
 	
 	/* Hash the incoming password */
-	const password = await Hash.hash(req.body.password, user._salt);
+	const password = await (new Hash()).hash(req.body.password, user._salt);
 
 	/* If password is valid, update details */
 	if (user.password === password.toString("base64")) {
@@ -61,7 +63,7 @@ module.exports = async function(app, req, res) {
 		/* Handle password change */
 		if (req.body.new_password) {
 			/* Hash and delete the new password */
-			const hash = Hash.hash(req.body.new_password);
+			const hash = (new Hash()).hash(req.body.new_password);
 			delete req.body.new_password;
 
 			/* Add fields to request body */

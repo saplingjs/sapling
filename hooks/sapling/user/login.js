@@ -7,6 +7,8 @@
 
 
 /* Dependencies */
+const Hash = require("../../../lib/Hash");
+
 const Response = require("../../../lib/Response");
 const SaplingError = require("../../../lib/SaplingError");
 
@@ -92,7 +94,7 @@ module.exports = async function(app, req, res) {
 	const user = data[0];
 
 	/* Hash the incoming password */
-	const password = await Hash.hash(req.body.password || "", user._salt);
+	const password = await (new Hash()).hash(req.body.password || "", user._salt);
 
 	/* If the password matches */
 	if (user.password === password.toString("base64")) {

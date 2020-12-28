@@ -6,6 +6,8 @@
 
 
 /* Dependencies */
+const Hash = require("../../../lib/Hash");
+
 const Response = require("../../../lib/Response");
 
 
@@ -61,7 +63,7 @@ module.exports = async function(app, req, res) {
 	}
 	
 	/* Hash the password, and add it to the request */
-	const hash = await Hash.hash(req.body.password, user._salt);
+	const hash = await (new Hash()).hash(req.body.password);
 	req.body._salt = hash[0];
 	req.body.password = hash[1];
 
@@ -79,21 +81,22 @@ module.exports = async function(app, req, res) {
 		session: req.session,
 		permission: req.permission,
 		body: req.body
-	});
+	}, res);
 
-	/* Clean the output */
+	/* If we successfully saved it */
 	if (userData) {
+		/* Clean the output */
 		if(userData.password) delete userData.password;
 		if(userData._salt) delete userData._salt;
-	}
 
-	console.log("REGISTER", err, data);
-
-	/* If we need to redirect, let's redirect */
-	if (req.query.redirect) {
-		res.redirect(req.query.redirect);
-	} else {
-		/* Respond with the user object */
-		new Response(app, req, res, null, userData);
+		console.log("REGISTER", err, userData);
+	
+		/* If we need to redirect, let's redirect */
+		if (req.query.redirect) {
+			res.redirect(req.query.redirect);
+		} else {
+			/* Respond with the user object */
+			new Response(app, req, res, null, userData);
+		}
 	}
 };
