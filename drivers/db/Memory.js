@@ -57,15 +57,18 @@ module.exports = class Memory extends Interface {
 	 * @param {object} conditions The search query
 	 */
 	async read(collection, conditions) {
+		/* Fetch the collection, or provide an empty array if none exists */
 		let records = this.memory[collection] || [];
 
+		/* If there are any conditions */
 		if(Object.keys(conditions).length > 0) {
 			records = records.filter(record => {
 				let match = false;
 	
+				/* Go through each condition, and set a match if it matches */
 				Object.keys(conditions).forEach(field => {
-					match = (field !== '_id' && record[field].indexOf(conditions[field]) > -1) ||
-						(field === '_id' && record[field] == conditions[field]);
+					match = field in record && ((field !== '_id' && record[field].indexOf(conditions[field]) > -1) ||
+						(field === '_id' && record[field] == conditions[field]));
 				});
 	
 				return match;
