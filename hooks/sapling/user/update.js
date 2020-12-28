@@ -16,7 +16,7 @@ module.exports = async function(app, req, res) {
 
 	/* If the user isn't logged in */
 	if (!req.session || !req.session.user) {
-		new Response(this.app, req, res, new SaplingError({
+		new Response(app, req, res, new SaplingError({
 			"status": "401",
 			"code": "4002",
 			"title": "Unauthorized",
@@ -31,7 +31,7 @@ module.exports = async function(app, req, res) {
 
 	/* If password isn't provided */
 	if (!req.body.password) {
-		new Response(this.app, req, res, new SaplingError({
+		new Response(app, req, res, new SaplingError({
 			"status": "422",
 			"code": "1001",
 			"title": "Invalid Input",
@@ -45,7 +45,7 @@ module.exports = async function(app, req, res) {
 	}
 
 	/* Get the current user */
-	const user = await this.app.storage.get({
+	const user = await app.storage.get({
 		url: `/data/users/_id/${req.session.user._id}/?single=true`,
 		session: req.session
 	});
@@ -70,7 +70,7 @@ module.exports = async function(app, req, res) {
 		}
 	} else {
 		/* Throw error if password didn't match */
-		new Response(this.app, req, res, new SaplingError({
+		new Response(app, req, res, new SaplingError({
 			"status": "422",
 			"code": "1009",
 			"title": "Incorrect Password",
@@ -84,7 +84,7 @@ module.exports = async function(app, req, res) {
 	}
 
 	/* Send to the database */
-	let userData = await this.app.storage.post({
+	let userData = await app.storage.post({
 		url: `/data/users/_id/${user._id}`,
 		body: req.body,
 		session: req.session

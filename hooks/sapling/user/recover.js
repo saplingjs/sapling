@@ -15,7 +15,7 @@ module.exports = async function(app, req, res) {
 
 	/* If the auth key has not been provided, throw error */
 	if (!req.query.auth) {
-		new Response(this.app, req, res, new SaplingError({
+		new Response(app, req, res, new SaplingError({
 			"status": "422",
 			"code": "1001",
 			"title": "Invalid Input",
@@ -36,7 +36,7 @@ module.exports = async function(app, req, res) {
 
 	/* If the key has expired, show error */
 	if (isNaN(diff) || diff <= 0) {
-		new Response(this.app, req, res, new SaplingError({
+		new Response(app, req, res, new SaplingError({
 			"status": "401",
 			"code": "4003",
 			"title": "Authkey Expired",
@@ -50,14 +50,14 @@ module.exports = async function(app, req, res) {
 	}
 
 	/* Get users matching the key with admin privs */
-	const user = await this.app.storage.get({
+	const user = await app.storage.get({
 		url: `/data/users/authkey/${req.query.auth}/?single=true`,
 		session: App.adminSession
 	});
 
 	/* If there is no such user */
 	if (!user) {
-		new Response(this.app, req, res, new SaplingError({
+		new Response(app, req, res, new SaplingError({
 			"status": "401",
 			"code": "4004",
 			"title": "Authkey Invalid",
@@ -76,7 +76,7 @@ module.exports = async function(app, req, res) {
 	delete req.body.new_password;
 
 	/* Update the new password and clear the key */
-	let userData = await this.app.storage.post({
+	let userData = await app.storage.post({
 		url: `/data/users/_id/${user._id}`,
 		body: { password: hash[1], _salt: hash[0], authkey: "" },
 		session: App.adminSession

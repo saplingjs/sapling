@@ -17,7 +17,7 @@ module.exports = async function(app, req, res) {
 	
 	/* If a role is specified, check the current user is allowed to create it */
 	if (req.session.user) {
-		if (req.body.role && !this.app.storage.inheritRole(req.session.user.role, req.body.role)) {
+		if (req.body.role && !app.storage.inheritRole(req.session.user.role, req.body.role)) {
 			err.push({message: `Do not have permission to create the role \`${req.body.role}\`.`})
 		}
 	} else {
@@ -56,7 +56,7 @@ module.exports = async function(app, req, res) {
 	
 	/* Show the above errors, if any */
 	if (err.length) { 
-		new Response(this.app, req, res, new SaplingError(err));
+		new Response(app, req, res, new SaplingError(err));
 		return false;
 	}
 	
@@ -74,7 +74,7 @@ module.exports = async function(app, req, res) {
 		delete req.body.password_confirm;
 
 	/* Save to the database */
-	let userData = await this.app.storage.post({
+	let userData = await app.storage.post({
 		url: "/data/users",
 		session: req.session,
 		permission: req.permission,
