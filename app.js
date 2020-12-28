@@ -719,13 +719,19 @@ class App {
 		/* Create a handler for incoming requests */
 		const handler = async (req, res) => {
 			/* Run a hook, if it exists */
-			await this.runHook("get", route, req, res, null, () => {
-				this.templating.renderView(
+			await this.runHook("get", route, req, res, null, async () => {
+				let html = await this.templating.renderView(
 					view, 
 					{}, 
 					req, 
 					res
 				);
+
+				if(html instanceof SaplingError) {
+					new Response(this.app, req, res, html);
+				} else {
+					new Response(this.app, req, res, null, html);
+				}
 			});
 		};
 

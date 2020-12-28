@@ -14,15 +14,16 @@ class Interface {
 	/**
 	 * Load parent app
 	 */
-	constructor(App) {
+	constructor(App, viewsPath) {
 		this.app = App;
+		this.viewsPath = viewsPath;
 	}
 
 
 	/**
 	 * Render a template file
 	 * 
-	 * @param {string} template Path of the template file being rendered, relative to views/
+	 * @param {string} template Path of the template file being rendered, relative to root
 	 * @param {object} data Object of data to pass to the template
 	 */
 	async render(template, data) {
