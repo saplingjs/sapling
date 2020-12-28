@@ -33,6 +33,7 @@
     "express-fileupload": "^1.2.0",
     "express-session": "1.17.1",
     "filenamify": "^4.2.0",
+    "front-matter": "^4.0.2",
     "image-size": "^0.9.3",
     "isobject": "^4.0.0",
     "moment": "2.29.1",
