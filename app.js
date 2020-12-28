@@ -732,9 +732,9 @@ class App {
 				);
 
 				if(html instanceof SaplingError) {
-					new Response(this.app, req, res, html);
+					new Response(this, req, res, html);
 				} else {
-					new Response(this.app, req, res, null, html);
+					new Response(this, req, res, null, html);
 				}
 			});
 		};
