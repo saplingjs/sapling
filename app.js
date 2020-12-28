@@ -99,6 +99,11 @@ class App {
 				if (opts.loadREST !== false)
 					this.loadREST(callback);
 			},
+			callback => {
+				this.server.use((req, res) => {
+					new Response(this, req, res, null, false);
+				});
+			},
 		], (err, results) => {
 			if(err) {
 				console.error("Error starting Sapling");
@@ -127,7 +132,6 @@ class App {
 			"hooks": "hooks.json",
 			"extension": "html",
 			"secret": this.utils.randString(),
-			"cacheViews": true,
 			"showError": true,
 			"strict": false,
 			"production": "auto",

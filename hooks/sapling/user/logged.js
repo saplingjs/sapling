@@ -37,7 +37,7 @@ module.exports = async function(app, req, res) {
 			new Response(app, req, res, null, req.session.user);
 		});
 	} else {
-		/* If no session, return false */
-		new Response(app, req, res, null, false);
+		/* If no session, return empty object */
+		new Response(app, req, res, null, {});
 	}
 };
