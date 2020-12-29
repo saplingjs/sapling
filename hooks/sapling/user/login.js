@@ -64,7 +64,7 @@ module.exports = async function (app, request, response) {
 	}
 
 	/* If no user is found, throw error */
-	if (!data.length) {
+	if (data.length === 0) {
 		new Response(app, request, response, new SaplingError({
 			status: '401',
 			code: '4001',

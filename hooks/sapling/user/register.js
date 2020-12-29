@@ -54,7 +54,7 @@ module.exports = async function (app, request, response) {
 	}
 
 	/* Show the above errors, if any */
-	if (err.length) {
+	if (err.length > 0) {
 		new Response(app, request, response, new SaplingError(err));
 		return false;
 	}

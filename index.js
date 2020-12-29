@@ -53,5 +53,5 @@ if (cluster.isMaster && !argv.single && sessionAvailable) {
 
 	/* Load a single instance */
 	const App = require('./app');
-	const app = new App(__dirname);
+	new App(__dirname);
 }

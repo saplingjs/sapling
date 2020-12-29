@@ -31,7 +31,7 @@ module.exports = async function (next) {
 			const file = files[i].toString();
 			const table = file.split('.')[0];
 
-			if (table == '') {
+			if (table === '') {
 				files.splice(i--, 1);
 				continue;
 			}

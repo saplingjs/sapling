@@ -15,10 +15,10 @@ const Utils = require('../../../lib/Utils');
 module.exports = async function (app, request, response) {
 	if (request.params.model) {
 		/* Fetch the given model */
-		const schema = new Utils().deepClone(app.storage.schema[request.params.model] || []);
+		const schema = new Utils().deepClone(app.storage.schema[request.params.model] || []);
 
 		/* If no model, respond with an error */
-		if (schema.length == 0) {
+		if (schema.length === 0) {
 			new Response(app, request, response, new SaplingError('No such model'));
 			return false;
 		}

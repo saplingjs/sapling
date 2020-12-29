@@ -36,7 +36,7 @@ module.exports = async function (app, request, response) {
 	const diff = key - Date.now();
 
 	/* If the key has expired, show error */
-	if (isNaN(diff) || diff <= 0) {
+	if (Number.isNaN(diff) || diff <= 0) {
 		new Response(app, request, response, new SaplingError({
 			status: '401',
 			code: '4003',

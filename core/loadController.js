@@ -43,7 +43,7 @@ module.exports = async function (next) {
 					return re.test(item);
 				});
 
-				if (protectedSegments.length) {
+				if (protectedSegments.length > 0) {
 					continue;
 				}
 

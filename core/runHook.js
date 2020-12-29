@@ -30,7 +30,7 @@ module.exports = async function (method, route, request, response, data, next) {
 		const { method: hookMethod, route: hookRoute } = this.parseMethodRouteKey(hook);
 
 		/* If the route and method match, run the hook */
-		if (routeMatcher(hookRoute)(route) !== false && hookMethod.toLowerCase() == method.toLowerCase()) {
+		if (routeMatcher(hookRoute)(route) !== false && hookMethod.toLowerCase() === method.toLowerCase()) {
 			await this.hooks[hook](this, request, response, data, next);
 			found = true;
 			break;
