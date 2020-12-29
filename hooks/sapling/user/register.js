@@ -63,7 +63,7 @@ module.exports = async function(app, req, res) {
 	}
 	
 	/* Hash the password, and add it to the request */
-	const hash = await (new Hash()).hash(req.body.password);
+	const hash = await new Hash().hash(req.body.password);
 	req.body._salt = hash[0];
 	req.body.password = hash[1];
 
