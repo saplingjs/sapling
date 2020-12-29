@@ -22,12 +22,7 @@ module.exports = async function (route, view) {
 	const handler = async (request, response) => {
 		/* Run a hook, if it exists */
 		await this.runHook('get', route, request, response, null, async () => {
-			const html = await this.templating.renderView(
-				view,
-				{},
-				request,
-				response
-			);
+			const html = await this.templating.renderView(view, {}, request);
 
 			if (html instanceof SaplingError) {
 				new Response(this, request, response, html);

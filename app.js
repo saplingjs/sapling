@@ -92,7 +92,7 @@ class App {
 				});
 				callback();
 			}
-		], (err, results) => {
+		], (err) => {
 			if (err) {
 				console.error('Error starting Sapling');
 				console.error(err);

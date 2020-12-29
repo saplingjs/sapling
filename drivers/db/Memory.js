@@ -34,9 +34,8 @@ module.exports = class Memory extends Interface {
 	 * Create a collection in the database where one doesn't yet exist
 	 *
 	 * @param {string} collection Name for the collection being created
-	 * @param {array} fields Model object
 	 */
-	async createCollection(collection, fields) {
+	async createCollection(collection) {
 		this.memory[collection] = [];
 	}
 
@@ -67,7 +66,7 @@ module.exports = class Memory extends Interface {
 				/* Go through each condition, and set a match if it matches */
 				Object.keys(conditions).forEach(field => {
 					match = field in record && ((field !== '_id' && record[field].includes(conditions[field])) ||
-						(field === '_id' && record[field] == conditions[field]));
+						(field === '_id' && record[field] === conditions[field]));
 				});
 
 				return match;
@@ -114,7 +113,7 @@ module.exports = class Memory extends Interface {
 
 				Object.keys(conditions).forEach(field => {
 					match = (field !== '_id' && record[field].includes(conditions[field])) ||
-						(field === '_id' && record[field] == conditions[field]);
+						(field === '_id' && record[field] === conditions[field]);
 				});
 
 				if (match && this.memory[collection]) {
@@ -143,7 +142,7 @@ module.exports = class Memory extends Interface {
 
 				Object.keys(conditions).forEach(field => {
 					match = (field !== '_id' && record[field].includes(conditions[field])) ||
-						(field === '_id' && record[field] == conditions[field]);
+						(field === '_id' && record[field] === conditions[field]);
 				});
 
 				if (match && this.memory[collection]) {

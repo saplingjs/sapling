@@ -57,6 +57,12 @@
   "xo": {
     "parser": "babel-eslint",
     "rules": {
+      "max-params": [
+        "warn",
+        {
+          "max": 6
+        }
+      ],
       "no-multiple-empty-lines": [
         "error",
         {
