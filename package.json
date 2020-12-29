@@ -60,6 +60,7 @@
           "max": 2
         }
       ],
+      "no-new": "off",
       "no-return-await": "off",
       "object-curly-spacing": ["error", "always"],
       "unicorn/filename-case": [
