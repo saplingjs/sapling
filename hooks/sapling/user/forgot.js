@@ -24,7 +24,7 @@ module.exports = async function (app, request, response) {
 		/* Only allow sending authkey once every 2 hours */
 		/* TODO: Revisit whether this is actually necessary */
 		if (authkey) {
-			let currentKey = Number.parseInt(authkey.slice(0, Math.max(0, authkey.length - 11)), 16);
+			const currentKey = Number.parseInt(authkey.slice(0, Math.max(0, authkey.length - 11)), 16);
 			const diff = currentKey - Date.now();
 
 			if (diff > 0) {

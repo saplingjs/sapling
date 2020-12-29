@@ -100,7 +100,6 @@ class App {
 
 	/* Load remaining methods */
 	parseMethodRouteKey = require('./core/parseMethodRouteKey')
-	reload = require('./core/reload')
 	runHook = require('./core/runHook')
 
 }
