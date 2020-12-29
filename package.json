@@ -55,6 +55,10 @@
     "xo": "^0.36.1"
   },
   "xo": {
+    "ignores": [
+      "drivers/db/Interface.js",
+      "drivers/render/Interface.js"
+    ],
     "parser": "babel-eslint",
     "rules": {
       "max-params": [
