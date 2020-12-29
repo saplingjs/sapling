@@ -8,6 +8,7 @@
 
 /* Dependencies */
 const Response = require('../../../lib/Response');
+const SaplingError = require('../../../lib/SaplingError');
 
 
 /* Hook /api/user/forgot */

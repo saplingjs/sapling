@@ -9,6 +9,7 @@
 const Hash = require('../../../lib/Hash');
 
 const Response = require('../../../lib/Response');
+const SaplingError = require('../../../lib/SaplingError');
 
 
 /* Hook /api/user/register */

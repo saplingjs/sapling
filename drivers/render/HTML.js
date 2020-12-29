@@ -13,7 +13,6 @@ const _ = require('underscore');
 const Interface = require('./Interface');
 
 const SaplingError = require('../../lib/SaplingError');
-const { console } = require('../../lib/Cluster');
 
 
 module.exports = class HTML extends Interface {
