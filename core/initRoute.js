@@ -11,28 +11,28 @@ const SaplingError = require('../lib/SaplingError');
 /**
  * Initialise the given route; load and render the view,
  * create the appropriate listeners.
- * 
+ *
  * @param {string} route Name of the route to be loaded
  * @param {function} view Chain callback
  */
 module.exports = async function initRoute(route, view) {
-	console.log("Loaded route ", `${route}`)
-	
+	console.log('Loaded route', `${route}`);
+
 	/* Create a handler for incoming requests */
-	const handler = async (req, res) => {
+	const handler = async (request, res) => {
 		/* Run a hook, if it exists */
-		await this.runHook("get", route, req, res, null, async () => {
-			let html = await this.templating.renderView(
-				view, 
-				{}, 
-				req, 
+		await this.runHook('get', route, request, res, null, async () => {
+			const html = await this.templating.renderView(
+				view,
+				{},
+				request,
 				res
 			);
 
-			if(html instanceof SaplingError) {
-				new Response(this, req, res, html);
+			if (html instanceof SaplingError) {
+				new Response(this, request, res, html);
 			} else {
-				new Response(this, req, res, null, html);
+				new Response(this, request, res, null, html);
 			}
 		});
 	};

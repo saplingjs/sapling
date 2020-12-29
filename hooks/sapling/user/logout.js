@@ -1,26 +1,24 @@
 /**
  * User Logout
- * 
+ *
  * Log out the current user.
  */
 
 
 /* Dependencies */
-const Response = require("../../../lib/Response");
+const Response = require('../../../lib/Response');
 
 
 /* Hook /api/user/logout */
-module.exports = async function(app, req, res) {
-
+module.exports = async function (app, request, res) {
 	/* Destroy the session */
-	req.session.destroy();
-	req.session = null;
+	request.session.destroy();
+	request.session = null;
 
 	/* Redirect if needed, respond otherwise */
-	if (req.query.redirect) {
-		res.redirect(req.query.redirect);
+	if (request.query.redirect) {
+		res.redirect(request.query.redirect);
 	} else {
-		new Response(app, req, res);
+		new Response(app, request, res);
 	}
-
 };

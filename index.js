@@ -20,19 +20,19 @@ const fs = require('fs');
 const configPath = path.join(__dirname, 'config.json');
 let sessionAvailable = false;
 
-if(fs.existsSync(configPath)) {
+if (fs.existsSync(configPath)) {
 	/* If we have a config file, let's load it */
-	let file = fs.readFileSync(configPath);
+	const file = fs.readFileSync(configPath);
 
 	/* Parse config, or throw an error if it's malformed */
 	try {
 		const c = JSON.parse(file.toString());
-		if('session' in c && 'driver' in c.session) {
+		if ('session' in c && 'driver' in c.session) {
 			sessionAvailable = true;
 		}
-	} catch (e) {
+	} catch (error) {
 		console.error('Error loading config');
-		console.error(e, e.stack);
+		console.error(error, error.stack);
 	}
 }
 
@@ -43,12 +43,13 @@ if (cluster.isMaster && !argv.single && sessionAvailable) {
 	const cpus = os.cpus().length;
 
 	console.log(`Utilising ${cpus} CPUs`);
-	for (let i = 0; i<cpus; i++) {
+	for (let i = 0; i < cpus; i++) {
 		cluster.fork();
 	}
 } else {
-	if(argv.single || !sessionAvailable)
+	if (argv.single || !sessionAvailable) {
 		console.log(chalk.green.bold('Starting a single instance of Sapling!'));
+	}
 
 	/* Load a single instance */
 	const App = require('./app');

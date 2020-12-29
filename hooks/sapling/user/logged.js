@@ -1,39 +1,38 @@
 /**
  * User Logged In Status
- * 
+ *
  * Fetch whether the user is currently logged in or not.  Returns false
  * if the user isn't logged in, or the user object if they are.
  */
 
 
 /* Dependencies */
-const _ = require("underscore");
+const _ = require('underscore');
 
-const Response = require("../../../lib/Response");
+const Response = require('../../../lib/Response');
 
 
 /* Hook /api/user/logged */
-module.exports = async function(app, req, res) {
-
+module.exports = async function (app, request, res) {
 	/* If session exists */
-	if (req.session && req.session.user) {
+	if (request.session && request.session.user) {
 		/* Get the user from storage */
-		let user = await app.storage.get({
-			url: `/data/users/_id/${req.session.user._id}/?single=true`,
-			session: req.session
+		const user = await app.storage.get({
+			url: `/data/users/_id/${request.session.user._id}/?single=true`,
+			session: request.session
 		});
 
 		/* Set the user session */
-		req.session.user = _.extend({}, user);
+		request.session.user = _.extend({}, user);
 
 		/* Remove sensitive fields */
-		delete req.session.user.password;
-		delete req.session.user._salt;
+		delete request.session.user.password;
+		delete request.session.user._salt;
 
 		/* Respond with the user object */
-		new Response(app, req, res, null, req.session.user);
+		new Response(app, request, res, null, request.session.user);
 	} else {
 		/* If no session, return empty object */
-		new Response(app, req, res, null, {});
+		new Response(app, request, res, null, {});
 	}
 };
