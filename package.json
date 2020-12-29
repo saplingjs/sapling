@@ -46,6 +46,7 @@
     "yargs": "^16.2.0"
   },
   "scripts": {
+    "test-fix": "xo --fix",
     "test": "xo"
   },
   "devDependencies": {
