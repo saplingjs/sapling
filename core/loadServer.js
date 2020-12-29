@@ -67,8 +67,8 @@ module.exports = function ({ reload, listen }, next) {
 		if ('type' in this.config.sessionStore && this.config.sessionStore.type !== null) {
 			/* TODO: Potentially find a way to support additional setup code */
 			/* i.e. connect-redis ^4.0.0 requires an external Redis client */
-			const store = require(this.config.sessionStore.type)(session);
-			sessionConfig.store = new store(this.config.sessionStore.options);
+			const Store = require(this.config.sessionStore.type)(session);
+			sessionConfig.store = new Store(this.config.sessionStore.options);
 		}
 
 		/* Create session handler */

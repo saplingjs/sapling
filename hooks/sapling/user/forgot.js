@@ -24,8 +24,8 @@ module.exports = async function (app, request, response) {
 		/* Only allow sending authkey once every 2 hours */
 		/* TODO: Revisit whether this is actually necessary */
 		if (authkey) {
-			var key = Number.parseInt(authkey.slice(0, Math.max(0, authkey.length - 11)), 16);
-			const diff = key - Date.now();
+			let currentKey = Number.parseInt(authkey.slice(0, Math.max(0, authkey.length - 11)), 16);
+			const diff = currentKey - Date.now();
 
 			if (diff > 0) {
 				const hours = diff / 60 / 60 / 1000;
@@ -34,7 +34,7 @@ module.exports = async function (app, request, response) {
 		}
 
 		/* Make sure key is > Date.now() */
-		var key = (Date.now() + 2 * 60 * 60 * 1000).toString(16);
+		let key = (Date.now() + (2 * 60 * 60 * 1000)).toString(16);
 		key += app.utils.randString();
 
 		/* Save key for later */

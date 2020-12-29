@@ -27,7 +27,7 @@ module.exports = async function (next) {
 		/* Run hooks, then send data */
 		await this.runHook('get', request.originalUrl, request, response, data, (app, request, response, data) => {
 			if (data) {
-				new Response(this, request, response, null, data || []);
+				new Response(this, request, response, null, data || []);
 			} else {
 				new Response(this, request, response, new SaplingError('Something went wrong'));
 			}
@@ -48,7 +48,7 @@ module.exports = async function (next) {
 	});
 	this.server.delete('/data/*', async (request, response) => {
 		/* Delete data */
-		const data = await this.storage.delete(request, response);
+		await this.storage.delete(request, response);
 
 		/* Run hooks, then send data */
 		await this.runHook('delete', request.originalUrl, request, response, null, (app, request, response, data) => {

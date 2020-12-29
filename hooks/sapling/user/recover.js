@@ -53,7 +53,7 @@ module.exports = async function (app, request, response) {
 	/* Get users matching the key with admin privs */
 	const user = await app.storage.get({
 		url: `/data/users/_authkey/${request.query.auth}/?single=true`,
-		session: App.adminSession
+		session: app.adminSession
 	});
 
 	/* If there is no such user */
@@ -80,7 +80,7 @@ module.exports = async function (app, request, response) {
 	const userData = await app.storage.post({
 		url: `/data/users/_id/${user._id}`,
 		body: { password: hash[1], _salt: hash[0], _authkey: '' },
-		session: App.adminSession
+		session: app.adminSession
 	});
 
 	/* If we need to redirect, let's redirect */
