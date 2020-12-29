@@ -93,7 +93,7 @@ module.exports = class Memory extends Interface {
 
 		this.memory[collection].push(data);
 
-		return JSON.parse(JSON.stringify(data));
+		return JSON.parse(JSON.stringify([data]));
 	}
 
 

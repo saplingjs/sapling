@@ -64,12 +64,15 @@ module.exports = async function(app, req, res) {
 		if (req.body.new_password) {
 			/* Hash and delete the new password */
 			const hash = (new Hash()).hash(req.body.new_password);
-			delete req.body.new_password;
 
 			/* Add fields to request body */
 			req.body._salt = hash[0];
 			req.body.password = hash[1];
 		}
+
+		/* Delete new password field */
+		delete req.body.new_password;
+
 	} else {
 		/* Throw error if password didn't match */
 		new Response(app, req, res, new SaplingError({
@@ -97,9 +100,9 @@ module.exports = async function(app, req, res) {
 		res.redirect(req.query.redirect);
 	} else {
 		/* Clean the output */
-		if (userData) {
-			if(userData.password) delete userData.password;
-			if(userData._salt) delete userData._salt;
+		for(let record of userData) {
+			delete record.password;
+			delete record._salt;
 		}
 		
 		/* Respond with the user object */

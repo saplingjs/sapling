@@ -68,12 +68,9 @@ module.exports = async function(app, req, res) {
 	req.body.password = hash[1];
 
 	/* Remove all possible confirmation fields */
-	if(req.body.password2 !== undefined)
-		delete req.body.password2;
-	if(req.body.confirm_password !== undefined)
-		delete req.body.confirm_password;
-	if(req.body.password_confirm !== undefined)
-		delete req.body.password_confirm;
+	delete req.body.password2;
+	delete req.body.confirm_password;
+	delete req.body.password_confirm;
 
 	/* Save to the database */
 	let userData = await app.storage.post({
@@ -86,8 +83,10 @@ module.exports = async function(app, req, res) {
 	/* If we successfully saved it */
 	if (userData) {
 		/* Clean the output */
-		if(userData.password) delete userData.password;
-		if(userData._salt) delete userData._salt;
+		for(let record of userData) {
+			delete record.password;
+			delete record._salt;
+		}
 
 		console.log("REGISTER", err, userData);
 	
