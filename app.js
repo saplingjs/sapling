@@ -467,7 +467,6 @@ class App {
 					this.hooks[`${method.toUpperCase()} ${route}`] = require(path.join(this.dir, this.config.hooksDir, hooks[hook]));
 
 					/* Initialise hook if it doesn't exist in the controller */
-					/* TODO: make this condition neater */
 					if(!(route in this.controller) && !route.startsWith('/data') && !route.startsWith('data')) {
 						/* Listen on */
 						this.server[method](route, async (req, res) => {
@@ -616,8 +615,10 @@ class App {
 				break;
 		}
 
-		/* TODO: send an error if the method isn't an acceptable method */
-		/* TODO: send an error if the route isn't in a plausible format */
+		/* Send an error if the method isn't an acceptable method */
+		if(!["get", "post", "delete"].includes(obj.method)) {
+			console.error(new SaplingError(`Problem parsing '${key}': ${obj.method} is not a valid method`));
+		}
 
 		return obj;
 	}
@@ -632,7 +633,6 @@ class App {
 	 */
 	loadPermissions(next) {
 		/* Load the permissions file */
-		/* TODO: Provide fallback in case the file is missing or mangled */
 		const permissionsPath = path.join(this.dir, "permissions.json");
 		this.permissions = {};
 		let perms = {};
