@@ -18,7 +18,7 @@ const SaplingError = require('../lib/SaplingError');
  *
  * @param {function} next Chain callback
  */
-module.exports = async function loadConfig(next) {
+module.exports = async function (next) {
 	/* Default configuration values */
 	const defaultConfig = {
 		staticDir: 'public',

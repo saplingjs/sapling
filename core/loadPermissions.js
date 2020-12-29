@@ -19,7 +19,7 @@ const SaplingError = require('../lib/SaplingError');
  *
  * @param {function} next Chain callback
  */
-module.exports = async function loadPermissions(next) {
+module.exports = async function (next) {
 	/* Load the permissions file */
 	const permissionsPath = path.join(this.dir, 'permissions.json');
 	this.permissions = {};

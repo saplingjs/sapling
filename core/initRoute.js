@@ -15,7 +15,7 @@ const SaplingError = require('../lib/SaplingError');
  * @param {string} route Name of the route to be loaded
  * @param {function} view Chain callback
  */
-module.exports = async function initRoute(route, view) {
+module.exports = async function (route, view) {
 	console.log('Loaded route', `${route}`);
 
 	/* Create a handler for incoming requests */

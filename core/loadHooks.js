@@ -16,7 +16,7 @@ const Response = require('../lib/Response');
  *
  * @param {function} next Chain callback
  */
-module.exports = async function loadHooks(next) {
+module.exports = async function (next) {
 	/* Location of the hooks file */
 	const hooksPath = path.join(this.dir, this.config.hooks);
 

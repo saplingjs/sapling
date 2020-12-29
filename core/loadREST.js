@@ -13,7 +13,7 @@ const SaplingError = require('../lib/SaplingError');
  *
  * @param {function} next Chain callback
  */
-module.exports = async function loadREST(next) {
+module.exports = async function (next) {
 	/* Direct user creation to a special case endpoint */
 	this.server.post(/\/data\/users\/?$/, (request, response) => {
 		this.runHook('post', '/api/user/register', request, response);

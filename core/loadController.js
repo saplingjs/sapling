@@ -16,7 +16,7 @@ const Templating = require('../lib/Templating');
  *
  * @param {function} next Chain callback
  */
-module.exports = async function loadController(next) {
+module.exports = async function (next) {
 	/* Load templating engine */
 	this.templating = new Templating(this);
 

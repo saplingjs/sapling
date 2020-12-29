@@ -1,7 +1,7 @@
 /**
  * Reload the whole server (get new views, config, etc)
  */
-module.exports = function reload() {
+module.exports = function () {
 	console.log('\n\n**** RESTARTING ****\n\n');
 
 	/* Don't attempt to listen on the same port again */

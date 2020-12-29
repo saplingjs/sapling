@@ -19,7 +19,7 @@ const routeMatcher = require('path-match')();
  * @param {string} data Data, if any
  * @param {function} next Callback for after the hook
  */
-module.exports = async function runHook(method, route, request, response, data, next) {
+module.exports = async function (method, route, request, response, data, next) {
 	console.log('Finding hooks for', method, route);
 
 	let found = false;

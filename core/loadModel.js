@@ -18,7 +18,7 @@ const Storage = require('../lib/Storage');
  *
  * @param {function} next Chain callback
  */
-module.exports = async function loadModel(next) {
+module.exports = async function (next) {
 	const modelPath = path.join(this.dir, this.config.modelsDir);
 	const structure = {};
 

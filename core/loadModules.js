@@ -13,7 +13,7 @@ const User = require('../lib/User');
  *
  * @param {function} next Chain callback
  */
-module.exports = async function loadModules(next) {
+module.exports = async function (next) {
 	this.user = new User(this);
 
 	if (this.config.mail) {

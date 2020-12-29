@@ -13,7 +13,7 @@ const SaplingError = require('../lib/SaplingError');
  *
  * @param {string} key
  */
-module.exports = function parseMethodRouteKey(key) {
+module.exports = function (key) {
 	const object = {
 		method: false,
 		route: false

@@ -22,7 +22,7 @@ const fileUpload = require('express-fileupload');
  * @param {object} opts Options for reload and listen
  * @param {function} next Chain callback
  */
-module.exports = function loadServer({ reload, listen }, next) {
+module.exports = function ({ reload, listen }, next) {
 	let server;
 	const self = this;
 

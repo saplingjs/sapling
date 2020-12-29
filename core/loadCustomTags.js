@@ -9,7 +9,7 @@
  *
  * @param {function} next Chain callback
  */
-module.exports = async function loadCustomTags(next) {
+module.exports = async function (next) {
 	const self = this;
 	await this.templating.renderer.registerTags({
 
