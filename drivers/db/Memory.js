@@ -58,7 +58,7 @@ module.exports = class Memory extends Interface {
 	 */
 	async read(collection, conditions) {
 		/* Fetch the collection, or provide an empty array if none exists */
-		let records = this.memory[collection] || [];
+		let records = JSON.parse(JSON.stringify(this.memory[collection])) || [];
 
 		/* If there are any conditions */
 		if(Object.keys(conditions).length > 0) {
@@ -92,7 +92,8 @@ module.exports = class Memory extends Interface {
 		data._id = new Utils().randString();
 
 		this.memory[collection].push(data);
-		return data;
+
+		return JSON.parse(JSON.stringify(data));
 	}
 
 
@@ -123,7 +124,7 @@ module.exports = class Memory extends Interface {
 			});
 		}
 
-		return newRecords;
+		return JSON.parse(JSON.stringify(newRecords));
 	}
 
 
