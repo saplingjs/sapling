@@ -44,5 +44,29 @@
     "underscore": "1.12.0",
     "unused-filename": "^2.1.0",
     "yargs": "^16.2.0"
+  },
+  "scripts": {
+    "test": "xo"
+  },
+  "devDependencies": {
+    "xo": "^0.36.1"
+  },
+  "xo": {
+    "rules": {
+      "no-multiple-empty-lines": [
+        "error",
+        {
+          "max": 2
+        }
+      ],
+      "object-curly-spacing": ["error", "always"],
+      "padded-blocks": [
+        "error",
+        "always",
+        {
+          "allowSingleLineBlocks": true
+        }
+      ]
+    }
   }
 }
