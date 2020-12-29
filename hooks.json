@@ -5,5 +5,6 @@
     "POST /api/user/register": "sapling/user/register.js",
     "POST /api/user/update": "sapling/user/update.js",
     "POST /api/user/forgot": "sapling/user/forgot.js",
-    "POST /api/user/recover": "sapling/user/recover.js"
+    "POST /api/user/recover": "sapling/user/recover.js",
+    "GET /api/model/:model": "sapling/model/retrieve.js"
 }

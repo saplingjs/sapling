@@ -58,7 +58,7 @@ module.exports = class Memory extends Interface {
 	 */
 	async read(collection, conditions) {
 		/* Fetch the collection, or provide an empty array if none exists */
-		let records = JSON.parse(JSON.stringify(this.memory[collection])) || [];
+		let records = new Utils().deepClone(this.memory[collection]) || [];
 
 		/* If there are any conditions */
 		if(Object.keys(conditions).length > 0) {
@@ -93,7 +93,7 @@ module.exports = class Memory extends Interface {
 
 		this.memory[collection].push(data);
 
-		return JSON.parse(JSON.stringify([data]));
+		return new Utils().deepClone([data]);
 	}
 
 
@@ -124,7 +124,7 @@ module.exports = class Memory extends Interface {
 			});
 		}
 
-		return JSON.parse(JSON.stringify(newRecords));
+		return new Utils().deepClone(newRecords);
 	}
 
 
