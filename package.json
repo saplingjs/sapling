@@ -62,13 +62,6 @@
       ],
       "no-return-await": "off",
       "object-curly-spacing": ["error", "always"],
-      "padded-blocks": [
-        "error",
-        "always",
-        {
-          "allowSingleLineBlocks": true
-        }
-      ],
       "unicorn/filename-case": [
         "error",
         {
