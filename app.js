@@ -78,7 +78,7 @@ class App {
 				}
 	
 				if (opts.loadREST !== false)
-					require('./core/loadREST').call(this, callback);
+					require('./core/loadRest').call(this, callback);
 			},
 			callback => {
 				this.server.use((request, response) => {
