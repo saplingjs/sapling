@@ -7,8 +7,9 @@
 
 
 /* Dependencies */
-const Hash = require("../../../lib/Hash");
+const _ = require("underscore");
 
+const Hash = require("../../../lib/Hash");
 const Response = require("../../../lib/Response");
 const SaplingError = require("../../../lib/SaplingError");
 
@@ -57,8 +58,11 @@ module.exports = async function(app, req, res) {
 		return false;
 	}
 
-	/* Get the user from storage */
-	let data = await app.storage.db.read("users", { '$or': identConditions }, {}, []);
+	/* Get the user from storage for each identifiable */
+	let data = [];
+	for(let condition of identConditions) {
+		data = data.concat(await app.storage.db.read("users", condition, { limit: 1 }, []));
+	}
 
 	/* If no user is found, throw error */
 	if (!data.length) { 

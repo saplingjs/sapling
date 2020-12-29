@@ -68,11 +68,11 @@ module.exports = async function(app, req, res) {
 	req.body.password = hash[1];
 
 	/* Remove all possible confirmation fields */
-	if(req.body.password2)
+	if(req.body.password2 !== undefined)
 		delete req.body.password2;
-	if(req.body.confirm_password)
+	if(req.body.confirm_password !== undefined)
 		delete req.body.confirm_password;
-	if(req.body.password_confirm)
+	if(req.body.password_confirm !== undefined)
 		delete req.body.password_confirm;
 
 	/* Save to the database */
