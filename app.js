@@ -10,7 +10,6 @@ const async = require("async");
 
 /* Internal dependencies */
 const { console } = require("./lib/Cluster");
-const SaplingError = require("./lib/SaplingError");
 const Response = require("./lib/Response");
 const Utils = require("./lib/Utils");
 
