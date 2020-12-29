@@ -50,9 +50,12 @@
     "test": "xo"
   },
   "devDependencies": {
+    "@babel/core": "^7.12.10",
+    "@babel/eslint-parser": "^7.12.1",
     "xo": "^0.36.1"
   },
   "xo": {
+    "parser": "babel-eslint",
     "rules": {
       "no-multiple-empty-lines": [
         "error",
@@ -62,7 +65,10 @@
       ],
       "no-new": "off",
       "no-return-await": "off",
-      "object-curly-spacing": ["error", "always"],
+      "object-curly-spacing": [
+        "error",
+        "always"
+      ],
       "unicorn/filename-case": [
         "error",
         {
