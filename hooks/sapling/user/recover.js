@@ -53,7 +53,7 @@ module.exports = async function(app, req, res) {
 
 	/* Get users matching the key with admin privs */
 	const user = await app.storage.get({
-		url: `/data/users/authkey/${req.query.auth}/?single=true`,
+		url: `/data/users/_authkey/${req.query.auth}/?single=true`,
 		session: App.adminSession
 	});
 
@@ -80,7 +80,7 @@ module.exports = async function(app, req, res) {
 	/* Update the new password and clear the key */
 	let userData = await app.storage.post({
 		url: `/data/users/_id/${user._id}`,
-		body: { password: hash[1], _salt: hash[0], authkey: "" },
+		body: { password: hash[1], _salt: hash[0], _authkey: "" },
 		session: App.adminSession
 	});
 

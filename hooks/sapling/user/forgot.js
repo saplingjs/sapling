@@ -14,7 +14,7 @@ const Response = require("../../../lib/Response");
 module.exports = async function(app, req, res) {
 
 	/* Get authkey and identifiable from database */
-	const { authkey, email } = await app.storage.get({
+	const { _authkey: authkey, email } = await app.storage.get({
 		url: `/data/users/email/${req.body.email}/?single=true`,
 		session: app.adminSession
 	});
@@ -40,7 +40,7 @@ module.exports = async function(app, req, res) {
 		/* Save key for later */
 		await app.storage.post({
 			url: `/data/users/email/${req.body.email}`,
-			body: {authkey: key},
+			body: { _authkey: key },
 			session: app.adminSession
 		});
 	
