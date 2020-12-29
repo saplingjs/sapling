@@ -8,6 +8,7 @@ const fs = require('fs');
 const path = require('path');
 
 const { console } = require('../lib/Cluster');
+const Response = require('../lib/Response');
 const SaplingError = require('../lib/SaplingError');
 
 
