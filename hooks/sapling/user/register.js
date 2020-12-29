@@ -12,7 +12,7 @@ const Response = require('../../../lib/Response');
 
 
 /* Hook /api/user/register */
-module.exports = async function (app, request, res) {
+module.exports = async function (app, request, response) {
 	/* Error collection */
 	const err = [];
 
@@ -55,7 +55,7 @@ module.exports = async function (app, request, res) {
 
 	/* Show the above errors, if any */
 	if (err.length) {
-		new Response(app, request, res, new SaplingError(err));
+		new Response(app, request, response, new SaplingError(err));
 		return false;
 	}
 
@@ -75,7 +75,7 @@ module.exports = async function (app, request, res) {
 		session: request.session,
 		permission: request.permission,
 		body: request.body
-	}, res);
+	}, response);
 
 	/* If we successfully saved it */
 	if (userData) {
@@ -89,10 +89,10 @@ module.exports = async function (app, request, res) {
 
 		/* If we need to redirect, let's redirect */
 		if (request.query.redirect) {
-			res.redirect(request.query.redirect);
+			response.redirect(request.query.redirect);
 		} else {
 			/* Respond with the user object */
-			new Response(app, request, res, null, userData);
+			new Response(app, request, response, null, userData);
 		}
 	}
 };

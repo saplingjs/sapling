@@ -11,7 +11,7 @@ const Response = require('../../../lib/Response');
 
 
 /* Hook /api/user/forgot */
-module.exports = async function (app, request, res) {
+module.exports = async function (app, request, response) {
 	/* Get authkey and identifiable from database */
 	const { _authkey: authkey, email } = await app.storage.get({
 		url: `/data/users/email/${request.body.email}/?single=true`,
@@ -28,7 +28,7 @@ module.exports = async function (app, request, res) {
 
 			if (diff > 0) {
 				const hours = diff / 60 / 60 / 1000;
-				new Response(app, request, res, new SaplingError(`Must wait ${hours.toFixed(1)} hours before sending another recovery email.`));
+				new Response(app, request, response, new SaplingError(`Must wait ${hours.toFixed(1)} hours before sending another recovery email.`));
 			}
 		}
 
@@ -57,9 +57,9 @@ module.exports = async function (app, request, res) {
 	/* Respond the same way whether or not we did anything */
 	/* If we need to redirect, let's redirect */
 	if (request.query.redirect) {
-		res.redirect(request.query.redirect);
+		response.redirect(request.query.redirect);
 	} else {
 		/* Respond positively */
-		new Response(app, request, res);
+		new Response(app, request, response);
 	}
 };

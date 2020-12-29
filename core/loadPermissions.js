@@ -76,7 +76,7 @@ module.exports = async function loadPermissions(next) {
 		}
 
 		/* Create middleware for each particular method+route combination */
-		this.server[method](route, (request, res, next) => {
+		this.server[method](route, (request, response, next) => {
 			console.log('PERMISSION', method, route, perm);
 
 			/* Save for later */
@@ -85,9 +85,9 @@ module.exports = async function loadPermissions(next) {
 			/* If the current route is not allowed for the current user, display an error */
 			if (!this.user.isUserAllowed(request.permission.role, request.session.user)) {
 				if (request.permission.redirect) {
-					res.redirect(request.permission.redirect);
+					response.redirect(request.permission.redirect);
 				} else {
-					new Response(this, request, res, new SaplingError('You do not have permission to complete this action.'));
+					new Response(this, request, response, new SaplingError('You do not have permission to complete this action.'));
 				}
 			} else {
 				next();

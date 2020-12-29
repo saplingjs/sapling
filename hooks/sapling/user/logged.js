@@ -13,7 +13,7 @@ const Response = require('../../../lib/Response');
 
 
 /* Hook /api/user/logged */
-module.exports = async function (app, request, res) {
+module.exports = async function (app, request, response) {
 	/* If session exists */
 	if (request.session && request.session.user) {
 		/* Get the user from storage */
@@ -30,9 +30,9 @@ module.exports = async function (app, request, res) {
 		delete request.session.user._salt;
 
 		/* Respond with the user object */
-		new Response(app, request, res, null, request.session.user);
+		new Response(app, request, response, null, request.session.user);
 	} else {
 		/* If no session, return empty object */
-		new Response(app, request, res, null, {});
+		new Response(app, request, response, null, {});
 	}
 };

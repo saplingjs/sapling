@@ -101,29 +101,29 @@ module.exports = function loadServer({ reload, listen }, next) {
 	server.use(logger(Cluster.logger));
 
 	/* Enable the /data data interface */
-	server.use('/data/', ({ method }, res, n) => {
+	server.use('/data/', ({ method }, response, n) => {
 		/* Send CORS headers if explicitly enabled in config */
 		if (self.config.cors === true) {
-			res.header('Access-Control-Allow-Origin', '*');
-			res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-			res.header('Access-Control-Allow-Headers', 'Content-Type');
+			response.header('Access-Control-Allow-Origin', '*');
+			response.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+			response.header('Access-Control-Allow-Headers', 'Content-Type');
 		}
 
 		/* Handle preflight requests */
 		if (method === 'OPTIONS') {
-			return res.sendStatus(200);
+			return response.sendStatus(200);
 		}
 
 		n();
 	});
 
 	/* Define the /api interface */
-	server.use('/api/', (request, res, n) => {
+	server.use('/api/', (request, response, n) => {
 		/* Send CORS headers if explicitly enabled in config */
 		if (self.config.cors) {
-			res.header('Access-Control-Allow-Origin', '*');
-			res.header('Access-Control-Allow-Methods', 'GET,POST');
-			res.header('Access-Control-Allow-Headers', 'Content-Type');
+			response.header('Access-Control-Allow-Origin', '*');
+			response.header('Access-Control-Allow-Methods', 'GET,POST');
+			response.header('Access-Control-Allow-Headers', 'Content-Type');
 		}
 
 		n();

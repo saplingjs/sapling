@@ -15,47 +15,47 @@ const SaplingError = require('../lib/SaplingError');
  */
 module.exports = async function loadREST(next) {
 	/* Direct user creation to a special case endpoint */
-	this.server.post(/\/data\/users\/?$/, (request, res) => {
-		this.runHook('post', '/api/user/register', request, res);
+	this.server.post(/\/data\/users\/?$/, (request, response) => {
+		this.runHook('post', '/api/user/register', request, response);
 	});
 
 	/* Otherwise, send each type of query to be handled by Storage */
-	this.server.get('/data/*', async (request, res) => {
+	this.server.get('/data/*', async (request, response) => {
 		/* Get data */
-		const data = await this.storage.get(request, res);
+		const data = await this.storage.get(request, response);
 
 		/* Run hooks, then send data */
-		await this.runHook('get', request.originalUrl, request, res, data, (app, request, res, data) => {
+		await this.runHook('get', request.originalUrl, request, response, data, (app, request, response, data) => {
 			if (data) {
-				new Response(this, request, res, null, data || []);
+				new Response(this, request, response, null, data || []);
 			} else {
-				new Response(this, request, res, new SaplingError('Something went wrong'));
+				new Response(this, request, response, new SaplingError('Something went wrong'));
 			}
 		});
 	});
-	this.server.post('/data/*', async (request, res) => {
+	this.server.post('/data/*', async (request, response) => {
 		/* Send data */
-		const data = await this.storage.post(request, res);
+		const data = await this.storage.post(request, response);
 
 		/* Run hooks, then send data */
-		await this.runHook('post', request.originalUrl, request, res, data, (app, request, res, data) => {
+		await this.runHook('post', request.originalUrl, request, response, data, (app, request, response, data) => {
 			if (data) {
-				new Response(this, request, res, null, data || []);
+				new Response(this, request, response, null, data || []);
 			} else {
-				new Response(this, request, res, new SaplingError('Something went wrong'));
+				new Response(this, request, response, new SaplingError('Something went wrong'));
 			}
 		});
 	});
-	this.server.delete('/data/*', async (request, res) => {
+	this.server.delete('/data/*', async (request, response) => {
 		/* Delete data */
-		const data = await this.storage.delete(request, res);
+		const data = await this.storage.delete(request, response);
 
 		/* Run hooks, then send data */
-		await this.runHook('delete', request.originalUrl, request, res, null, (app, request, res, data) => {
+		await this.runHook('delete', request.originalUrl, request, response, null, (app, request, response, data) => {
 			if (data) {
-				new Response(this, request, res, null, data || []);
+				new Response(this, request, response, null, data || []);
 			} else {
-				new Response(this, request, res, new SaplingError('Something went wrong'));
+				new Response(this, request, response, new SaplingError('Something went wrong'));
 			}
 		});
 	});

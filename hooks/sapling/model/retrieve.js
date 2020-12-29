@@ -12,14 +12,14 @@ const Utils = require('../../../lib/Utils');
 
 
 /* Hook /api/model/:model */
-module.exports = async function (app, request, res) {
+module.exports = async function (app, request, response) {
 	if (request.params.model) {
 		/* Fetch the given model */
 		const schema = new Utils().deepClone(app.storage.schema[request.params.model] || []);
 
 		/* If no model, respond with an error */
 		if (schema.length == 0) {
-			new Response(app, request, res, new SaplingError('No such model'));
+			new Response(app, request, response, new SaplingError('No such model'));
 			return false;
 		}
 
@@ -31,8 +31,8 @@ module.exports = async function (app, request, res) {
 		}
 
 		/* Send it out */
-		new Response(app, request, res, null, schema);
+		new Response(app, request, response, null, schema);
 	} else {
-		new Response(app, request, res, new SaplingError('No model specified'));
+		new Response(app, request, response, new SaplingError('No model specified'));
 	}
 };

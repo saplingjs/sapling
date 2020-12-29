@@ -19,20 +19,20 @@ module.exports = async function initRoute(route, view) {
 	console.log('Loaded route', `${route}`);
 
 	/* Create a handler for incoming requests */
-	const handler = async (request, res) => {
+	const handler = async (request, response) => {
 		/* Run a hook, if it exists */
-		await this.runHook('get', route, request, res, null, async () => {
+		await this.runHook('get', route, request, response, null, async () => {
 			const html = await this.templating.renderView(
 				view,
 				{},
 				request,
-				res
+				response
 			);
 
 			if (html instanceof SaplingError) {
-				new Response(this, request, res, html);
+				new Response(this, request, response, html);
 			} else {
-				new Response(this, request, res, null, html);
+				new Response(this, request, response, null, html);
 			}
 		});
 	};

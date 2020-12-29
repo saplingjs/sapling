@@ -15,7 +15,7 @@ const SaplingError = require('../../../lib/SaplingError');
 
 
 /* Hook /api/user/login */
-module.exports = async function (app, request, res) {
+module.exports = async function (app, request, response) {
 	/* Find all identifiable fields */
 	const identifiables = Object.keys(app.storage.schema.users).filter(field => app.storage.schema.users[field].identifiable);
 
@@ -44,7 +44,7 @@ module.exports = async function (app, request, res) {
 
 	/* If identValue wasn't assigned, reject request */
 	if (identValue === false) {
-		new Response(app, request, res, new SaplingError({
+		new Response(app, request, response, new SaplingError({
 			status: '401',
 			code: '1001',
 			title: 'Invalid Input',
@@ -65,7 +65,7 @@ module.exports = async function (app, request, res) {
 
 	/* If no user is found, throw error */
 	if (!data.length) {
-		new Response(app, request, res, new SaplingError({
+		new Response(app, request, response, new SaplingError({
 			status: '401',
 			code: '4001',
 			title: 'Invalid User or Password',
@@ -80,7 +80,7 @@ module.exports = async function (app, request, res) {
 
 	/* If no password was provided, throw error */
 	if (!request.body.password) {
-		new Response(app, request, res, new SaplingError({
+		new Response(app, request, response, new SaplingError({
 			status: '422',
 			code: '1001',
 			title: 'Invalid Input',
@@ -109,7 +109,7 @@ module.exports = async function (app, request, res) {
 		delete request.session.user._salt;
 	} else {
 		/* Return an error if the password didn't match */
-		new Response(app, request, res, new SaplingError({
+		new Response(app, request, response, new SaplingError({
 			status: '401',
 			code: '4001',
 			title: 'Invalid User or Password',
@@ -124,9 +124,9 @@ module.exports = async function (app, request, res) {
 
 	/* If we need to redirect, let's redirect */
 	if (request.query.redirect) {
-		res.redirect(request.query.redirect);
+		response.redirect(request.query.redirect);
 	} else {
 		/* Otherwise, reply with the user object */
-		new Response(app, request, res, null, request.session.user);
+		new Response(app, request, response, null, request.session.user);
 	}
 };

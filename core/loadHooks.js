@@ -40,10 +40,10 @@ module.exports = async function loadHooks(next) {
 				/* Initialise hook if it doesn't exist in the controller */
 				if (!(route in this.controller) && !route.startsWith('/data') && !route.startsWith('data')) {
 					/* Listen on */
-					this.server[method](route, async (request, res) => {
+					this.server[method](route, async (request, response) => {
 						/* Run a hook, if it exists */
-						await this.runHook(method, route, request, res, null, () => {
-							new Response(this, request, res, null);
+						await this.runHook(method, route, request, response, null, () => {
+							new Response(this, request, response, null);
 						});
 					});
 

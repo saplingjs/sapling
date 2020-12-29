@@ -14,12 +14,12 @@ const routeMatcher = require('path-match')();
  *
  * @param {string} method Method of the route being tested
  * @param {string} route Route being tested
- * @param {string} req Request object
- * @param {string} res Response object
+ * @param {string} request Request object
+ * @param {string} response Response object
  * @param {string} data Data, if any
  * @param {function} next Callback for after the hook
  */
-module.exports = async function runHook(method, route, request, res, data, next) {
+module.exports = async function runHook(method, route, request, response, data, next) {
 	console.log('Finding hooks for', method, route);
 
 	let found = false;
@@ -31,7 +31,7 @@ module.exports = async function runHook(method, route, request, res, data, next)
 
 		/* If the route and method match, run the hook */
 		if (routeMatcher(hookRoute)(route) !== false && hookMethod.toLowerCase() == method.toLowerCase()) {
-			await this.hooks[hook](this, request, res, data, next);
+			await this.hooks[hook](this, request, response, data, next);
 			found = true;
 			break;
 		}
@@ -39,6 +39,6 @@ module.exports = async function runHook(method, route, request, res, data, next)
 
 	/* Return whatever was found */
 	if (!found) {
-		next(this, request, res, data);
+		next(this, request, response, data);
 	}
 };

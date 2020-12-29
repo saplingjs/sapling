@@ -10,15 +10,15 @@ const Response = require('../../../lib/Response');
 
 
 /* Hook /api/user/logout */
-module.exports = async function (app, request, res) {
+module.exports = async function (app, request, response) {
 	/* Destroy the session */
 	request.session.destroy();
 	request.session = null;
 
 	/* Redirect if needed, respond otherwise */
 	if (request.query.redirect) {
-		res.redirect(request.query.redirect);
+		response.redirect(request.query.redirect);
 	} else {
-		new Response(app, request, res);
+		new Response(app, request, response);
 	}
 };

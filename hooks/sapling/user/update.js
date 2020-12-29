@@ -14,10 +14,10 @@ const SaplingError = require('../../../lib/SaplingError');
 
 
 /* Hook /api/user/update */
-module.exports = async function (app, request, res) {
+module.exports = async function (app, request, response) {
 	/* If the user isn't logged in */
 	if (!request.session || !request.session.user) {
-		new Response(app, request, res, new SaplingError({
+		new Response(app, request, response, new SaplingError({
 			status: '401',
 			code: '4002',
 			title: 'Unauthorized',
@@ -32,7 +32,7 @@ module.exports = async function (app, request, res) {
 
 	/* If password isn't provided */
 	if (!request.body.password) {
-		new Response(app, request, res, new SaplingError({
+		new Response(app, request, response, new SaplingError({
 			status: '422',
 			code: '1001',
 			title: 'Invalid Input',
@@ -73,7 +73,7 @@ module.exports = async function (app, request, res) {
 		delete request.body.new_password;
 	} else {
 		/* Throw error if password didn't match */
-		new Response(app, request, res, new SaplingError({
+		new Response(app, request, response, new SaplingError({
 			status: '422',
 			code: '1009',
 			title: 'Incorrect Password',
@@ -95,7 +95,7 @@ module.exports = async function (app, request, res) {
 
 	/* If we need to redirect, let's redirect */
 	if (request.query.redirect) {
-		res.redirect(request.query.redirect);
+		response.redirect(request.query.redirect);
 	} else {
 		/* Clean the output */
 		for (const record of userData) {
@@ -104,6 +104,6 @@ module.exports = async function (app, request, res) {
 		}
 
 		/* Respond with the user object */
-		new Response(app, request, res, null, userData);
+		new Response(app, request, response, null, userData);
 	}
 };

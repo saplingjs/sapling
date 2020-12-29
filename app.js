@@ -81,8 +81,8 @@ class App {
 					require('./core/loadREST').call(this, callback);
 			},
 			callback => {
-				this.server.use((req, res) => {
-					new Response(this, req, res, null, false);
+				this.server.use((request, response) => {
+					new Response(this, request, response, null, false);
 				});
 				callback();
 			},

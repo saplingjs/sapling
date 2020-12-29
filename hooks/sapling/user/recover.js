@@ -13,10 +13,10 @@ const SaplingError = require('../../../lib/SaplingError');
 
 
 /* Hook /api/user/recover */
-module.exports = async function (app, request, res) {
+module.exports = async function (app, request, response) {
 	/* If the auth key has not been provided, throw error */
 	if (!request.query.auth) {
-		new Response(app, request, res, new SaplingError({
+		new Response(app, request, response, new SaplingError({
 			status: '422',
 			code: '1001',
 			title: 'Invalid Input',
@@ -37,7 +37,7 @@ module.exports = async function (app, request, res) {
 
 	/* If the key has expired, show error */
 	if (isNaN(diff) || diff <= 0) {
-		new Response(app, request, res, new SaplingError({
+		new Response(app, request, response, new SaplingError({
 			status: '401',
 			code: '4003',
 			title: 'Authkey Expired',
@@ -58,7 +58,7 @@ module.exports = async function (app, request, res) {
 
 	/* If there is no such user */
 	if (!user) {
-		new Response(app, request, res, new SaplingError({
+		new Response(app, request, response, new SaplingError({
 			status: '401',
 			code: '4004',
 			title: 'Authkey Invalid',
@@ -85,7 +85,7 @@ module.exports = async function (app, request, res) {
 
 	/* If we need to redirect, let's redirect */
 	if (request.query.redirect) {
-		res.redirect(request.query.redirect);
+		response.redirect(request.query.redirect);
 	} else {
 		/* Clean the output */
 		if (userData) {
@@ -99,6 +99,6 @@ module.exports = async function (app, request, res) {
 		}
 
 		/* Respond with the user object */
-		new Response(app, request, res, null, userData);
+		new Response(app, request, response, null, userData);
 	}
 };
