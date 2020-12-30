@@ -73,6 +73,7 @@
           "max": 2
         }
       ],
+      "no-await-in-loop": "off",
       "no-new": "off",
       "no-return-await": "off",
       "object-curly-spacing": [

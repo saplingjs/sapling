@@ -83,7 +83,7 @@ module.exports = async function (next) {
 			request.permission = perm;
 
 			/* If the current route is not allowed for the current user, display an error */
-			if (!this.user.isUserAllowed(request.permission.role, request.session.user)) {
+			if (this.user.isUserAllowed(request.permission.role, request.session.user) === false) {
 				if (request.permission.redirect) {
 					response.redirect(request.permission.redirect);
 				} else {

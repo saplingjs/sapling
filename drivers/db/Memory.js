@@ -56,7 +56,7 @@ module.exports = class Memory extends Interface {
 	 */
 	async read(collection, conditions) {
 		/* Fetch the collection, or provide an empty array if none exists */
-		let records = new Utils().deepClone(this.memory[collection]) || [];
+		let records = new Utils().deepClone(this.memory[collection] || []);
 
 		/* If there are any conditions */
 		if (Object.keys(conditions).length > 0) {
