@@ -78,7 +78,9 @@ class App {
 			callback => {
 				if (options.loadViews !== false) {
 					for (const route in this.controller) {
-						require('./core/initRoute').call(this, route, this.controller[route]);
+						if ({}.hasOwnProperty.call(this.controller, route)) {
+							require('./core/initRoute').call(this, route, this.controller[route]);
+						}
 					}
 				}
 
@@ -92,7 +94,7 @@ class App {
 				});
 				callback();
 			}
-		], (err) => {
+		], err => {
 			if (err) {
 				console.error('Error starting Sapling');
 				console.error(err);
