@@ -65,8 +65,6 @@ module.exports = function ({ reload, listen }, next) {
 
 		/* If we've defined a type, load it */
 		if ('type' in this.config.sessionStore && this.config.sessionStore.type !== null) {
-			/* TODO: Potentially find a way to support additional setup code */
-			/* i.e. connect-redis ^4.0.0 requires an external Redis client */
 			const Store = require(this.config.sessionStore.type)(session);
 			sessionConfig.store = new Store(this.config.sessionStore.options);
 		}
@@ -79,7 +77,6 @@ module.exports = function ({ reload, listen }, next) {
 
 
 	/* Handle the directory for our static resources */
-	/* TODO: Make into a recursive function to reduce duplicated code */
 	if (this.config.staticDir !== false) {
 		/* If it's a string, surface it */
 		if (typeof this.config.staticDir === 'string') {

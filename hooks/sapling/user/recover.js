@@ -72,7 +72,6 @@ module.exports = async function (app, request, response) {
 	}
 
 	/* Hash and delete the new password */
-	/* TODO: Validate against password rules in the model */
 	const hash = new Hash().hash(request.body.new_password);
 	delete request.body.new_password;
 
