@@ -2,6 +2,8 @@
  * Load modules
  */
 
+'use strict';
+
 
 /* Dependencies */
 const Notifications = require('../lib/Notifications');

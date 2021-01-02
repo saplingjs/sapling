@@ -2,6 +2,8 @@
  * Load server
  */
 
+'use strict';
+
 
 /* Dependencies */
 const fs = require('fs');

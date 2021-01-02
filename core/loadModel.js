@@ -2,6 +2,8 @@
  * Load model
  */
 
+'use strict';
+
 
 /* Dependencies */
 const fs = require('fs');

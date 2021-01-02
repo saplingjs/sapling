@@ -2,6 +2,8 @@
  * Load permissions
  */
 
+'use strict';
+
 
 /* Dependencies */
 const fs = require('fs');

@@ -5,6 +5,8 @@
  * or a success message or redirection on success.
  */
 
+'use strict';
+
 
 /* Dependencies */
 const _ = require('underscore');

@@ -5,6 +5,8 @@
  * its given.
  */
 
+'use strict';
+
 
 /* Dependencies */
 const fs = require('fs');
@@ -15,6 +17,9 @@ const Interface = require('./Interface');
 const SaplingError = require('../../lib/SaplingError');
 
 
+/**
+ * The HTML class
+ */
 module.exports = class HTML extends Interface {
 	/**
 	 * Initialise HTML

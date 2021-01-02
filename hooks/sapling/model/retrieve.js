@@ -4,6 +4,8 @@
  * Fetch the details of the given model
  */
 
+'use strict';
+
 
 /* Dependencies */
 const Response = require('../../../lib/Response');

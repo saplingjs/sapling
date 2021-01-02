@@ -2,6 +2,8 @@
  * Load configuration
  */
 
+'use strict';
+
 
 /* Dependencies */
 const argv = require('yargs').argv;

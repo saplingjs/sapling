@@ -5,6 +5,8 @@
  * object in app memory, and gets wiped when the server dies.
  */
 
+'use strict';
+
 
 /* Dependencies */
 const _ = require('underscore');

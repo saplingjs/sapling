@@ -6,8 +6,16 @@
  * in whatever way makes sense for the particular database technology.
  */
 
+'use strict';
+
+
+/* Dependencies */
 const SaplingError = require('../../lib/SaplingError');
 
+
+/**
+ * The Interface class
+ */
 module.exports = class Interface {
 	/**
 	 * The connection object that should be populated by the connect() method

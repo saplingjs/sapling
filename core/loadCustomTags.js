@@ -2,6 +2,8 @@
  * Load custom tags
  */
 
+'use strict';
+
 
 /**
  * Setup custom tags into the template parser to

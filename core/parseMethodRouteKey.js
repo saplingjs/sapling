@@ -1,6 +1,8 @@
 /**
- * Run hook
+ * Parse method-route key
  */
+
+'use strict';
 
 
 /* Dependencies */

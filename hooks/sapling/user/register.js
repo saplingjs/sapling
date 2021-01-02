@@ -4,6 +4,8 @@
  * Create a new user.
  */
 
+'use strict';
+
 
 /* Dependencies */
 const Hash = require('../../../lib/Hash');

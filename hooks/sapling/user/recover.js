@@ -4,6 +4,8 @@
  * Handle recovering a user account.
  */
 
+'use strict';
+
 
 /* Dependencies */
 const Hash = require('../../../lib/Hash');

@@ -2,6 +2,8 @@
  * Run hook
  */
 
+'use strict';
+
 
 /* Dependencies */
 const routeMatcher = require('path-match')();

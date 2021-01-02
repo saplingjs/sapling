@@ -7,6 +7,8 @@
  *                                        *
  *****************************************/
 
+'use strict';
+
 
 /* Require native clustering bits */
 const cluster = require('cluster');

@@ -4,6 +4,8 @@
  * Initialises a Sapling instance and handles incoming requests
  */
 
+'use strict';
+
 
 /* System dependencies */
 const async = require('async');

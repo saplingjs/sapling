@@ -5,6 +5,8 @@
  * if the user isn't logged in, or the user object if they are.
  */
 
+'use strict';
+
 
 /* Dependencies */
 const _ = require('underscore');

@@ -2,6 +2,8 @@
  * Load controller
  */
 
+'use strict';
+
 
 /* Dependencies */
 const fs = require('fs');

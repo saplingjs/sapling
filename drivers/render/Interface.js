@@ -7,9 +7,17 @@
  * database technology.
  */
 
+'use strict';
+
+
+/* Dependencies */
 const SaplingError = require('../../lib/SaplingError');
 
-class Interface {
+
+/**
+ * The Interface class
+ */
+module.exports = class Interface {
 	/**
 	 * Load parent app
 	 */
@@ -51,5 +59,3 @@ class Interface {
 		throw new SaplingError('Method not implemented: registerTags');
 	}
 }
-
-module.exports = Interface;

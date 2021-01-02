@@ -2,6 +2,8 @@
  * Load hooks
  */
 
+'use strict';
+
 
 /* Dependencies */
 const fs = require('fs');

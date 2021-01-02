@@ -4,6 +4,8 @@
  * Log out the current user.
  */
 
+'use strict';
+
 
 /* Dependencies */
 const Response = require('../../../lib/Response');
