@@ -23,7 +23,7 @@ const SaplingError = require('../lib/SaplingError');
 module.exports = async function (next) {
 	/* Default configuration values */
 	const defaultConfig = {
-		staticDir: 'public',
+		publicDir: 'public',
 		modelsDir: 'models',
 		viewsDir: 'views',
 		hooksDir: 'hooks',

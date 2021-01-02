@@ -79,20 +79,17 @@ module.exports = function ({ reload, listen }, next) {
 
 
 	/* Handle the directory for our static resources */
-	if (this.config.staticDir !== false) {
-		/* If it's a string, surface it */
-		if (typeof this.config.staticDir === 'string') {
-			const staticDirDir = path.join(this.dir, this.config.staticDir);
-			server.use(`/${this.config.staticDir}`, express.static(staticDirDir, { maxAge: 1 }));
+	if ('publicDir' in this.config) {
+		/* If it's a string, coerce into an array */
+		if (Array.isArray(this.config.publicDir) === false) {
+			this.config.publicDir = [ this.config.publicDir ];
 		}
 
-		/* If it's an array, loop through it */
-		if (typeof this.config.staticDir === 'object') {
-			this.config.staticDir.forEach(staticDir => {
-				const staticDirDir = path.join(self.dir, staticDir);
-				server.use(`/${staticDir}`, express.static(staticDirDir, { maxAge: 1 }));
-			});
-		}
+		/* Loop through it */
+		this.config.publicDir.forEach(publicDir => {
+			const publicDirPath = path.join(self.dir, publicDir);
+			server.use(`/${publicDir}`, express.static(publicDirPath, { maxAge: 1 }));
+		});
 	}
 
 	server.use(bodyParser.urlencoded({ extended: true }));
