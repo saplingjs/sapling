@@ -30,7 +30,7 @@
     "cookie-parser": "1.4.5",
     "cron": "^1.7.1",
     "express": "4.17.1",
-    "express-fileupload": "^1.2.0",
+    "express-fileupload": "^1.2.1",
     "express-session": "1.17.1",
     "filenamify": "^4.2.0",
     "front-matter": "^4.0.2",
