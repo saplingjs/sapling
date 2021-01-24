@@ -42,7 +42,18 @@ module.exports = async function (next) {
 
 			/* Read the model JSON into the structure */
 			try {
-				structure[table] = JSON.parse(model.toString());
+				/* Attempt to parse the JSON */
+				let parsedModel = JSON.parse(model.toString());
+
+				/* Convert string-based definitions into their object-based normals */
+				for (let rule of Object.keys(parsedModel)) {
+					if (typeof parsedModel[rule] === 'string') {
+						parsedModel[rule] = { type: parsedModel[rule] };
+					}
+				}
+
+				/* Save */
+				structure[table] = parsedModel;
 			} catch {
 				console.error(new SaplingError('Error parsing model `%s`', table));
 			}
