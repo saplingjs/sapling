@@ -52,7 +52,7 @@
   "devDependencies": {
     "@babel/core": "^7.12.17",
     "@babel/eslint-parser": "^7.12.16",
-    "xo": "^0.37.1"
+    "xo": "^0.38.1"
   },
   "xo": {
     "ignores": [
