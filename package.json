@@ -52,6 +52,8 @@
   "devDependencies": {
     "@babel/core": "^7.13.1",
     "@babel/eslint-parser": "^7.13.4",
+    "eslint": "^7.20.0",
+    "webpack": "^5.24.2",
     "xo": "^0.38.1"
   },
   "xo": {
