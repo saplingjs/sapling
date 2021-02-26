@@ -66,10 +66,10 @@ module.exports = class Memory extends Interface {
 				let match = false;
 
 				/* Go through each condition, and set a match if it matches */
-				Object.keys(conditions).forEach(field => {
+				for (const field of Object.keys(conditions)) {
 					match = field in record && ((field !== '_id' && record[field].includes(conditions[field])) ||
 						(field === '_id' && record[field] === conditions[field]));
-				});
+				}
 
 				return match;
 			});
@@ -110,19 +110,19 @@ module.exports = class Memory extends Interface {
 		const newRecords = [];
 
 		if (Object.keys(conditions).length > 0) {
-			records.forEach((record, index) => {
+			for (const [index, record] of records.entries()) {
 				let match = false;
 
-				Object.keys(conditions).forEach(field => {
+				for (const field of Object.keys(conditions)) {
 					match = (field !== '_id' && record[field].includes(conditions[field])) ||
 						(field === '_id' && record[field] === conditions[field]);
-				});
+				}
 
 				if (match && this.memory[collection]) {
 					this.memory[collection][index] = _.extend(this.memory[collection][index], data);
 					newRecords.push(this.memory[collection][index]);
 				}
-			});
+			}
 		}
 
 		return new Utils().deepClone(newRecords);
@@ -139,18 +139,18 @@ module.exports = class Memory extends Interface {
 		const records = this.memory[collection] || [];
 
 		if (Object.keys(conditions).length > 0) {
-			records.forEach((record, index) => {
+			for (const [index, record] of records.entries()) {
 				let match = false;
 
-				Object.keys(conditions).forEach(field => {
+				for (const field of Object.keys(conditions)) {
 					match = (field !== '_id' && record[field].includes(conditions[field])) ||
 						(field === '_id' && record[field] === conditions[field]);
-				});
+				}
 
 				if (match && this.memory[collection]) {
 					this.memory[collection].splice(index, 1);
 				}
-			});
+			}
 		} else {
 			this.memory[collection] = [];
 		}

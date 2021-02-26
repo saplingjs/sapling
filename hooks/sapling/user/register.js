@@ -17,20 +17,20 @@ const SaplingError = require('../../../lib/SaplingError');
 /* Hook /api/user/register */
 module.exports = async function (app, request, response) {
 	/* Error collection */
-	const err = [];
+	const errors = [];
 
 	/* If a role is specified, check the current user is allowed to create it */
 	if (request.session.user) {
 		if (request.body.role && !app.storage.inheritRole(request.session.user.role, request.body.role)) {
-			err.push({ message: `Do not have permission to create the role \`${request.body.role}\`.` });
+			errors.push({ message: `Do not have permission to create the role \`${request.body.role}\`.` });
 		}
 	} else if (request.body.role) {
-		err.push({ message: `Do not have permission to create the role \`${request.body.role}\`.` });
+		errors.push({ message: `Do not have permission to create the role \`${request.body.role}\`.` });
 	}
 
 	/* If no email is given */
 	if (!request.body.email) {
-		err.push({
+		errors.push({
 			status: '422',
 			code: '1001',
 			title: 'Invalid Input',
@@ -44,7 +44,7 @@ module.exports = async function (app, request, response) {
 
 	/* If no password is given */
 	if (!request.body.password) {
-		err.push({
+		errors.push({
 			status: '422',
 			code: '1001',
 			title: 'Invalid Input',
@@ -57,8 +57,8 @@ module.exports = async function (app, request, response) {
 	}
 
 	/* Show the above errors, if any */
-	if (err.length > 0) {
-		new Response(app, request, response, new SaplingError(err));
+	if (errors.length > 0) {
+		new Response(app, request, response, new SaplingError(errors));
 		return false;
 	}
 
@@ -88,7 +88,7 @@ module.exports = async function (app, request, response) {
 			delete record._salt;
 		}
 
-		console.log('REGISTER', err, userData);
+		console.log('REGISTER', errors, userData);
 
 		/* If we need to redirect, let's redirect */
 		if (request.query.redirect) {

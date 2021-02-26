@@ -12,7 +12,6 @@
  * @param {function} next Chain callback
  */
 module.exports = async function (next) {
-	const self = this;
 	await this.templating.renderer.registerTags({
 
 		/**
@@ -27,13 +26,13 @@ module.exports = async function (next) {
 		async get(url, role) {
 			/* See if this url has a permission associated */
 			const baseurl = url.split('?')[0];
-			const permission = self.user.getRolesForRoute('get', baseurl);
+			const permission = this.user.getRolesForRoute('get', baseurl);
 
 			/* If no role is provided, use current */
 			const session = role ? { user: { role } } : this.data.session;
 
 			/* Check permission */
-			const allowed = self.user.isUserAllowed(permission, session.user);
+			const allowed = this.user.isUserAllowed(permission, session.user);
 			console.log('IS ALLOWED', session, allowed, permission);
 
 			/* Not allowed so give an empty array */
@@ -42,7 +41,7 @@ module.exports = async function (next) {
 			}
 
 			/* Request the data */
-			return await self.storage.get({
+			return await this.storage.get({
 				url,
 				permission: { role: permission },
 				session

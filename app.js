@@ -96,11 +96,11 @@ class App {
 				});
 				callback();
 			}
-		], err => {
-			if (err) {
+		], error => {
+			if (error) {
 				console.error('Error starting Sapling');
-				console.error(err);
-				console.error(err.stack);
+				console.error(error);
+				console.error(error.stack);
 				return false;
 			}
 

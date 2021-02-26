@@ -26,7 +26,6 @@ const fileUpload = require('express-fileupload');
  */
 module.exports = function ({ reload, listen }, next) {
 	let server;
-	const self = this;
 
 	if (reload && this.server) {
 		this.routeStack = { get: [], post: [], delete: [] };
@@ -82,14 +81,14 @@ module.exports = function ({ reload, listen }, next) {
 	if ('publicDir' in this.config) {
 		/* If it's a string, coerce into an array */
 		if (Array.isArray(this.config.publicDir) === false) {
-			this.config.publicDir = [ this.config.publicDir ];
+			this.config.publicDir = [this.config.publicDir];
 		}
 
 		/* Loop through it */
-		this.config.publicDir.forEach(publicDir => {
-			const publicDirPath = path.join(self.dir, publicDir);
+		for (const publicDir of this.config.publicDir) {
+			const publicDirPath = path.join(this.dir, publicDir);
 			server.use(`/${publicDir}`, express.static(publicDirPath, { maxAge: 1 }));
-		});
+		}
 	}
 
 	server.use(bodyParser.urlencoded({ extended: true }));
@@ -99,7 +98,7 @@ module.exports = function ({ reload, listen }, next) {
 	/* Enable the /data data interface */
 	server.use('/data/', ({ method }, response, n) => {
 		/* Send CORS headers if explicitly enabled in config */
-		if (self.config.cors === true) {
+		if (this.config.cors === true) {
 			response.header('Access-Control-Allow-Origin', '*');
 			response.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
 			response.header('Access-Control-Allow-Headers', 'Content-Type');
@@ -116,7 +115,7 @@ module.exports = function ({ reload, listen }, next) {
 	/* Define the /api interface */
 	server.use('/api/', (request, response, n) => {
 		/* Send CORS headers if explicitly enabled in config */
-		if (self.config.cors) {
+		if (this.config.cors) {
 			response.header('Access-Control-Allow-Origin', '*');
 			response.header('Access-Control-Allow-Methods', 'GET,POST');
 			response.header('Access-Control-Allow-Headers', 'Content-Type');

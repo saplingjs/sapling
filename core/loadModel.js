@@ -43,10 +43,10 @@ module.exports = async function (next) {
 			/* Read the model JSON into the structure */
 			try {
 				/* Attempt to parse the JSON */
-				let parsedModel = JSON.parse(model.toString());
+				const parsedModel = JSON.parse(model.toString());
 
 				/* Convert string-based definitions into their object-based normals */
-				for (let rule of Object.keys(parsedModel)) {
+				for (const rule of Object.keys(parsedModel)) {
 					if (typeof parsedModel[rule] === 'string') {
 						parsedModel[rule] = { type: parsedModel[rule] };
 					}

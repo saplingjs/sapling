@@ -34,7 +34,7 @@ module.exports = async function (next) {
 	}
 
 	/* Loop over the urls in permissions */
-	Object.keys(perms).forEach(url => {
+	for (const url of Object.keys(perms)) {
 		/* Format expected: "GET /url/here" */
 		let { method, route } = this.parseMethodRouteKey(url);
 
@@ -95,7 +95,7 @@ module.exports = async function (next) {
 				next();
 			}
 		});
-	});
+	}
 
 	if (next) {
 		next();

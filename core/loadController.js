@@ -79,9 +79,9 @@ module.exports = async function (next) {
 			const routes = JSON.parse(file.toString());
 
 			/* Remove file extension */
-			Object.keys(routes).forEach(route => {
+			for (const route of Object.keys(routes)) {
 				routes[route] = routes[route].split('.').slice(0, -1).join('.');
-			});
+			}
 
 			/* Merge routes if autorouting, replace routes if not */
 			if (this.config.autoRouting === 'on' || this.config.autoRouting === true) {
