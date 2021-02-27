@@ -9,6 +9,8 @@
 const fs = require('fs');
 const path = require('path');
 const { Cluster } = require('../lib/Cluster');
+const Response = require('../lib/Response');
+const SaplingError = require('../lib/SaplingError');
 
 const express = require('express');
 const session = require('express-session');
@@ -17,6 +19,7 @@ const bodyParser = require('body-parser');
 const logger = require('morgan');
 const fileUpload = require('express-fileupload');
 const compression = require('compression');
+const csrf = require('csurf');
 
 
 /**
@@ -96,9 +99,24 @@ module.exports = function ({ reload, listen }, next) {
 		}
 	}
 
+
 	server.use(bodyParser.urlencoded({ extended: true }));
 	server.use(bodyParser.json());
 	server.use(logger(Cluster.logger));
+
+
+	/* Use CSRF protection if enabled or in strict mode */
+	if (this.config.csrf || this.config.strict) {
+		server.use(csrf({ cookie: false }));
+
+		server.use((error, request, response, next) => {
+			if (error.code !== 'EBADCSRFTOKEN') {
+				return next(error);
+			}
+
+			new Response(this, request, response, new SaplingError('Invalid CSRF token'));
+		});
+	}
 
 	/* Enable the /data data interface */
 	server.use('/data/', ({ method }, response, n) => {
