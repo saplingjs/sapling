@@ -16,6 +16,7 @@ const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const logger = require('morgan');
 const fileUpload = require('express-fileupload');
+const compression = require('compression');
 
 
 /**
@@ -37,10 +38,14 @@ module.exports = function ({ reload, listen }, next) {
 	}
 
 
+	/* Compress if requested */
+	if (this.config.compression) {
+		server.use(compression());
+	}
+
 	/* Use the app secret from config, or generate one if needed */
 	const secret = this.config.secret || (this.config.secret = this.utils.randString());
 	server.use(cookieParser(secret));
-
 
 	/* Allow file uploads */
 	server.use(fileUpload({

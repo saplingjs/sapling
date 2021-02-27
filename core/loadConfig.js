@@ -95,7 +95,13 @@ module.exports = async function (next) {
 		this.config.cors = !this.config.production;
 	}
 
+	/* Figure out automatic compression */
+	if (!('compression' in this.config)) {
+		this.config.compression = this.config.production;
+	}
+
 	console.log('Production mode is', this.config.production);
+	console.log('Compression is', this.config.compression);
 	console.log('CORS is', this.config.cors);
 
 	/* Set other config based on production */
