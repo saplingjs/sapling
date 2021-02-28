@@ -1,4 +1,5 @@
 const test = require('ava');
+
 const loadConfig = require('../../core/loadConfig');
 const Utils = require('../../lib/Utils');
 

@@ -7,6 +7,7 @@
 
 /* Dependencies */
 const Notifications = require('../lib/Notifications');
+const Uploads = require('../lib/Uploads');
 const User = require('../lib/User');
 
 
@@ -20,6 +21,10 @@ module.exports = async function (next) {
 
 	if (this.config.mail) {
 		this.notifications = new Notifications(this);
+	}
+
+	if (this.config.upload) {
+		this.uploads = new Uploads(this);
 	}
 
 	if (next) {

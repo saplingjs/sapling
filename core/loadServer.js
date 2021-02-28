@@ -6,7 +6,6 @@
 
 
 /* Dependencies */
-const fs = require('fs');
 const path = require('path');
 const { Cluster } = require('../lib/Cluster');
 const Response = require('../lib/Response');
@@ -17,7 +16,6 @@ const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const logger = require('morgan');
-const fileUpload = require('express-fileupload');
 const compression = require('compression');
 const csrf = require('csurf');
 
@@ -49,17 +47,6 @@ module.exports = function ({ reload, listen }, next) {
 	/* Use the app secret from config, or generate one if needed */
 	const secret = this.config.secret || (this.config.secret = this.utils.randString());
 	server.use(cookieParser(secret));
-
-	/* Allow file uploads */
-	server.use(fileUpload({
-		useTempFiles: true
-	}));
-
-	/* Ensure the upload directory exists */
-	this.uploadDir = path.join(this.dir, this.config.upload.destination);
-	if (!fs.existsSync(this.uploadDir)) {
-		fs.mkdirSync(this.uploadDir);
-	}
 
 
 	/* Persist sessions through reload */
