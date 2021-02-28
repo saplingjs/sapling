@@ -96,6 +96,7 @@ module.exports = async function (next) {
 
 	console.log('CONTROLLER', this.controller);
 
-	/* Next stage of the setup */
-	next();
+	if (next) {
+		next();
+	}
 };

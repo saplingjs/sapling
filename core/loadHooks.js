@@ -60,6 +60,7 @@ module.exports = async function (next) {
 
 	console.log('HOOKS', Object.keys(this.hooks));
 
-	/* Next stage of the setup */
-	next();
+	if (next) {
+		next();
+	}
 };

@@ -154,5 +154,8 @@ module.exports = function ({ reload, listen }, next) {
 	}
 
 	this.server = server;
-	next();
+
+	if (next) {
+		next();
+	}
 };

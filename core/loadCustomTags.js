@@ -49,5 +49,7 @@ module.exports = async function (next) {
 		}
 	});
 
-	next();
+	if (next) {
+		next();
+	}
 };

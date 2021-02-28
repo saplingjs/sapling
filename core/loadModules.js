@@ -22,5 +22,7 @@ module.exports = async function (next) {
 		this.notifications = new Notifications(this);
 	}
 
-	next();
+	if (next) {
+		next();
+	}
 };
