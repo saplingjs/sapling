@@ -69,7 +69,8 @@
     "ignores": [
       "drivers/db/Interface.js",
       "drivers/render/Interface.js",
-      "node_modules/**/*.*"
+      "node_modules/**/*.*",
+      "test/**/*.*"
     ],
     "parser": "babel-eslint",
     "rules": {
