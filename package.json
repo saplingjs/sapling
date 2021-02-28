@@ -49,8 +49,9 @@
   },
   "scripts": {
     "precommit": "lint-staged",
-    "test-fix": "xo --fix && ava",
-    "test": "xo && ava"
+    "lint-fix": "xo --fix",
+    "lint": "xo",
+    "test": "ava"
   },
   "devDependencies": {
     "@babel/core": "^7.13.1",
@@ -108,7 +109,7 @@
   },
   "lint-staged": {
     "*.js": [
-      "npm run test"
+      "npm run lint"
     ]
   }
 }
