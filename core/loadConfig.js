@@ -11,6 +11,7 @@ const fs = require('fs');
 const path = require('path');
 const _ = require('underscore');
 
+const { console } = require('../lib/Cluster');
 const SaplingError = require('../lib/SaplingError');
 
 
@@ -65,7 +66,7 @@ module.exports = async function (next) {
 	Object.assign(this.config, defaultConfig);
 
 	/* Location of the configuration */
-	const configPath = path.join(this.dir, 'config.json');
+	const configPath = path.join(this.dir, this.configFile || 'config.json');
 
 	/* Load the configuration */
 	if (fs.existsSync(configPath)) {
@@ -135,5 +136,7 @@ module.exports = async function (next) {
 	/* Set the app name */
 	this.name = this.config.name;
 
-	next();
+	if (next) {
+		next();
+	}
 };
