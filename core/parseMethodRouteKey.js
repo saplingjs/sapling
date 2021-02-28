@@ -41,12 +41,15 @@ module.exports = function (key) {
 			break;
 
 		default:
-			break;
+			throw new SaplingError(`Problem parsing '${key}': too many segments`);
 	}
+
+	/* Remove any trailing slashes */
+	object.route = object.route.replace(/\/+$/, '');
 
 	/* Send an error if the method isn't an acceptable method */
 	if (!['get', 'post', 'delete'].includes(object.method)) {
-		console.error(new SaplingError(`Problem parsing '${key}': ${object.method} is not a valid method`));
+		throw new SaplingError(`Problem parsing '${key}': ${object.method} is not a valid method`);
 	}
 
 	return object;
