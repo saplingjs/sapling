@@ -1,5 +1,5 @@
 const test = require('ava');
-const path = require('path');
+const _ = require('underscore');
 
 const Storage = require('../../lib/Storage');
 
@@ -7,13 +7,7 @@ const User = require('../../lib/User');
 
 
 test.before(t => {
-	t.context.app = {
-		dir: path.join(__dirname, '../../'),
-		config: {
-			render: {
-				driver: 'html'
-			}
-		},
+	t.context.app = _.defaults({
 		storage: new Storage({}, {
 			name: 'test',
 			schema: {},
@@ -36,24 +30,9 @@ test.before(t => {
 			'get /edit': { role: ['member', 'admin'] },
 			'get /admin': { role: 'admin' }
 		}
-	};
+	}, require('../_utils/app'));
 
-	t.context.response = () => {
-		const response = {};
-		response.redirect = () => {
-			return response;
-		};
-		response.status = () => {
-			return response;
-		};
-		response.send = () => {
-			return response;
-		};
-		response.json = () => {
-			return response;
-		};
-		return response;
-	};
+	t.context.response = require('../_utils/response');
 
 	t.context.user = new User(t.context.app);
 });

@@ -104,6 +104,12 @@
       ]
     }
   },
+  "ava": {
+    "files": [
+      "test/**/*",
+      "!test/_utils"
+    ]
+  },
   "husky": {
     "hooks": {
       "pre-commit": "lint-staged"

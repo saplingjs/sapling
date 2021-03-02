@@ -12,14 +12,7 @@ const noAjax = t => {
 
 
 test.beforeEach(t => {
-	t.context.app = {
-		dir: path.join(__dirname, '../../'),
-		config: {
-			render: {
-				driver: "html"
-			}
-		}
-	};
+	t.context.app = require('../_utils/app');
 
 	t.context.request = {
 		xhr: true,

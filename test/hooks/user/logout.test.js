@@ -1,5 +1,4 @@
 const test = require('ava');
-const path = require('path');
 
 const Response = require('../../../lib/Response');
 
@@ -7,14 +6,7 @@ const logout = require('../../../hooks/sapling/user/logout');
 
 
 test.beforeEach(t => {
-	t.context.app = {
-		dir: path.join(__dirname, '../../'),
-		config: {
-			render: {
-				driver: 'html'
-			}
-		}
-	};
+	t.context.app = require('../../_utils/app');
 
 	t.context.request = {
 		session: {
@@ -23,22 +15,7 @@ test.beforeEach(t => {
 		query: {}
 	};
 
-	t.context.response = () => {
-		const response = {};
-		response.redirect = () => {
-			return response;
-		};
-		response.status = () => {
-			return response;
-		};
-		response.send = () => {
-			return response;
-		};
-		response.json = () => {
-			return response;
-		};
-		return response;
-	};
+	t.context.response = require('../../_utils/response');
 });
 
 
