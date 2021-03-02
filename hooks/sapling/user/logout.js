@@ -21,6 +21,6 @@ module.exports = async function (app, request, response) {
 	if (request.query.redirect) {
 		response.redirect(request.query.redirect);
 	} else {
-		new Response(app, request, response);
+		return new Response(app, request, response);
 	}
 };
