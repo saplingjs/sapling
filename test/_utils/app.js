@@ -7,14 +7,23 @@ module.exports = () => {
 		config: {
 			render: {
 				driver: 'html'
-			}
+			},
+			viewsDir: 'views/',
+			extension: 'html'
 		},
 		opts: {
 			port: 3000
 		},
 		server: {
+			get: () => true,
+			post: () => true,
 			use: () => true
-		}
+		},
+		routeStack: {
+			get: [],
+			post: []
+		},
+		hooks: {}
 	};
 
 	app.utils = new Utils(app);

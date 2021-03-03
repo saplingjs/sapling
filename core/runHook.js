@@ -8,6 +8,8 @@
 /* Dependencies */
 const routeMatcher = require('path-match')();
 
+const { console } = require('../lib/Cluster');
+
 
 /**
  * Run any registered hook that matches the given method
@@ -41,6 +43,6 @@ module.exports = async function (method, route, request, response, data, next) {
 
 	/* Return whatever was found */
 	if (!found) {
-		next(this, request, response, data);
+		return next(this, request, response, data);
 	}
 };

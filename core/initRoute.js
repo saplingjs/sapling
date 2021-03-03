@@ -6,6 +6,7 @@
 
 
 /* Dependencies */
+const { console } = require('../lib/Cluster');
 const Response = require('../lib/Response');
 const SaplingError = require('../lib/SaplingError');
 
@@ -23,14 +24,10 @@ module.exports = async function (route, view) {
 	/* Create a handler for incoming requests */
 	const handler = async (request, response) => {
 		/* Run a hook, if it exists */
-		await this.runHook('get', route, request, response, null, async () => {
+		return await this.runHook('get', route, request, response, null, async () => {
 			const html = await this.templating.renderView(view, {}, request);
 
-			if (html instanceof SaplingError) {
-				new Response(this, request, response, html);
-			} else {
-				new Response(this, request, response, null, html);
-			}
+			return html instanceof SaplingError ? new Response(this, request, response, html) : new Response(this, request, response, null, html);
 		});
 	};
 

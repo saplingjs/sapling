@@ -14,16 +14,7 @@ const noAjax = t => {
 test.beforeEach(t => {
 	t.context.app = require('../_utils/app')();
 
-	t.context.request = {
-		xhr: true,
-		method: 'GET',
-		url: '',
-		originalUrl: '',
-		query: {
-			redirect: false
-		},
-		headers: {}
-	}
+	t.context.request = require('../_utils/request')();
 
 	t.context.response = () => {
 		const response = {};

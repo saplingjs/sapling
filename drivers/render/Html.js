@@ -43,7 +43,7 @@ module.exports = class HTML extends Interface {
 		try {
 			html = fs.readFileSync(path.resolve(this.viewsPath, template), 'utf8');
 		} catch (error) {
-			new SaplingError(error);
+			return new SaplingError(error);
 		}
 
 		/* Do some rudimentary var replacement */
