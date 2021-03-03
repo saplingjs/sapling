@@ -11,6 +11,9 @@ module.exports = () => {
 		},
 		opts: {
 			port: 3000
+		},
+		server: {
+			use: () => true
 		}
 	};
 
