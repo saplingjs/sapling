@@ -107,7 +107,8 @@
   "ava": {
     "files": [
       "test/**/*",
-      "!test/_utils"
+      "!test/_utils",
+      "!test/_data"
     ]
   },
   "husky": {

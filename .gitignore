@@ -4,3 +4,4 @@ env
 tmp
 .nyc_output
 coverage
+.DS_Store
