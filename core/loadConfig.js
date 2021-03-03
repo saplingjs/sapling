@@ -78,8 +78,7 @@ module.exports = async function (next) {
 			const c = JSON.parse(file.toString());
 			_.extend(this.config, c);
 		} catch (error) {
-			console.error('Error loading config');
-			console.error(error, error.stack);
+			throw new SaplingError('Error loading config', error);
 		}
 	} else {
 		/* If not, let's add a fallback */
@@ -108,7 +107,7 @@ module.exports = async function (next) {
 	/* Set other config based on production */
 	if (this.config.production === true || this.config.production === 'on') {
 		/* Check if there's a separate production config */
-		const prodConfigPath = path.join(this.dir, `config.${process.env.NODE_ENV}.json`);
+		const prodConfigPath = path.join(this.dir, (this.configFile && this.configFile.replace('.json', `.${process.env.NODE_ENV}.json`)) || `config.${process.env.NODE_ENV}.json`);
 
 		if (fs.existsSync(prodConfigPath)) {
 			/* If we have a config file, let's load it */
@@ -122,7 +121,7 @@ module.exports = async function (next) {
 				const pc = JSON.parse(file.toString());
 				_.extend(this.config, pc);
 			} catch (error) {
-				console.error(new SaplingError('Error loading production config', error));
+				throw new SaplingError('Error loading production config', error);
 			}
 		}
 
