@@ -6,7 +6,7 @@ const logout = require('../../../hooks/sapling/user/logout');
 
 
 test.beforeEach(t => {
-	t.context.app = require('../../_utils/app');
+	t.context.app = require('../../_utils/app')();
 
 	t.context.request = {
 		session: {

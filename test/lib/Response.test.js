@@ -12,7 +12,7 @@ const noAjax = t => {
 
 
 test.beforeEach(t => {
-	t.context.app = require('../_utils/app');
+	t.context.app = require('../_utils/app')();
 
 	t.context.request = {
 		xhr: true,

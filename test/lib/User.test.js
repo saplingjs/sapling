@@ -30,7 +30,7 @@ test.before(t => {
 			'get /edit': { role: ['member', 'admin'] },
 			'get /admin': { role: 'admin' }
 		}
-	}, require('../_utils/app'));
+	}, require('../_utils/app')());
 
 	t.context.response = require('../_utils/response');
 
