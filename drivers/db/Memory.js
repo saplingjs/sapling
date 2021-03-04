@@ -67,8 +67,11 @@ module.exports = class Memory extends Interface {
 
 				/* Go through each condition, and set a match if it matches */
 				for (const field of Object.keys(conditions)) {
-					match = field in record && ((field !== '_id' && record[field].includes(conditions[field])) ||
-						(field === '_id' && record[field] === conditions[field]));
+					match = field in record && (
+						(field !== '_id' && typeof record[field] === 'number' && record[field] === conditions[field]) ||
+						(field !== '_id' && typeof record[field] !== 'number' && record[field].includes(conditions[field])) ||
+						(field === '_id' && record[field] === conditions[field])
+					);
 				}
 
 				return match;
@@ -114,8 +117,11 @@ module.exports = class Memory extends Interface {
 				let match = false;
 
 				for (const field of Object.keys(conditions)) {
-					match = (field !== '_id' && record[field].includes(conditions[field])) ||
-						(field === '_id' && record[field] === conditions[field]);
+					match = field in record && (
+						(field !== '_id' && typeof record[field] === 'number' && record[field] === conditions[field]) ||
+						(field !== '_id' && typeof record[field] !== 'number' && record[field].includes(conditions[field])) ||
+						(field === '_id' && record[field] === conditions[field])
+					);
 				}
 
 				if (match && this.memory[collection]) {
@@ -143,8 +149,11 @@ module.exports = class Memory extends Interface {
 				let match = false;
 
 				for (const field of Object.keys(conditions)) {
-					match = (field !== '_id' && record[field].includes(conditions[field])) ||
-						(field === '_id' && record[field] === conditions[field]);
+					match = field in record && (
+						(field !== '_id' && typeof record[field] === 'number' && record[field] === conditions[field]) ||
+						(field !== '_id' && typeof record[field] !== 'number' && record[field].includes(conditions[field])) ||
+						(field === '_id' && record[field] === conditions[field])
+					);
 				}
 
 				if (match && this.memory[collection]) {
