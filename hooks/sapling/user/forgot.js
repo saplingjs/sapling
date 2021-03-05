@@ -9,7 +9,7 @@
 
 
 /* Dependencies */
-const { console } = require('./Cluster');
+const { console } = require('../../../lib/Cluster');
 const Response = require('../../../lib/Response');
 
 
