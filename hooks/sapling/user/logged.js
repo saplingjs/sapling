@@ -32,9 +32,9 @@ module.exports = async function (app, request, response) {
 		delete request.session.user._salt;
 
 		/* Respond with the user object */
-		new Response(app, request, response, null, request.session.user);
-	} else {
-		/* If no session, return empty object */
-		new Response(app, request, response, null, {});
+		return new Response(app, request, response, null, request.session.user);
 	}
+
+	/* If no session, return empty object */
+	return new Response(app, request, response, null, {});
 };
