@@ -21,8 +21,7 @@ module.exports = async function (app, request, response) {
 
 		/* If no model, respond with an error */
 		if (schema.length === 0) {
-			new Response(app, request, response, new SaplingError('No such model'));
-			return false;
+			return new Response(app, request, response, new SaplingError('No such model'));
 		}
 
 		/* Remove any internal/private model values (begin with _) */
@@ -33,8 +32,8 @@ module.exports = async function (app, request, response) {
 		}
 
 		/* Send it out */
-		new Response(app, request, response, null, schema);
-	} else {
-		new Response(app, request, response, new SaplingError('No model specified'));
+		return new Response(app, request, response, null, schema);
 	}
+
+	return new Response(app, request, response, new SaplingError('No model specified'));
 };
