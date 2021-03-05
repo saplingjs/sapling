@@ -66,6 +66,9 @@
     "webpack": "^5.24.3",
     "xo": "^0.38.2"
   },
+  "resolutions": {
+    "maildev/socket.io": "^2.4.0"
+  },
   "xo": {
     "ignores": [
       "drivers/db/Interface.js",
