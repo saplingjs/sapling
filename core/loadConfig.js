@@ -47,11 +47,12 @@ module.exports = async function (next) {
 			options: {}
 		},
 		mail: {
-			type: 'SMTP',
-			service: 'Gmail',
+			host: '',
+			port: 465,
+			secure: true,
 			auth: {
 				user: process.env.MAIL_USER,
-				password: process.env.MAIL_PASS
+				pass: process.env.MAIL_PASS
 			}
 		},
 		upload: {

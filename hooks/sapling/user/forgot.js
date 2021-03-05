@@ -9,6 +9,7 @@
 
 
 /* Dependencies */
+const { console } = require('./Cluster');
 const Response = require('../../../lib/Response');
 
 
@@ -41,7 +42,11 @@ module.exports = async function (app, request, response) {
 		};
 
 		/* Send authkey via email */
-		await app.notifications.sendNotification('lostpass', templateData, email);
+		try {
+			await app.notifications.sendNotification('lostpass', templateData, email);
+		} catch (error) {
+			console.error(error);
+		}
 	}
 
 	/* Respond the same way whether or not we did anything */
