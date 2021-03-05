@@ -7,11 +7,17 @@ const Notifications = require('../../lib/Notifications');
 
 
 const setup = (t, host, port) => {
-	t.context.app.config.mail.host = host;
-	t.context.app.config.mail.port = port;
-	t.context.app.config.mail.secure = false;
-	t.context.app.config.mail.tls = {
-		rejectUnauthorized: false
+	t.context.app.config.mail = {
+		host: host,
+		port: port,
+		secure: false,
+		auth: {
+			user: 'john',
+			pass: 'abc123'
+		},
+		tls: {
+			rejectUnauthorized: false
+		}
 	};
 
 	t.context.notifications = new Notifications(t.context.app);

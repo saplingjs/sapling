@@ -8,15 +8,6 @@ module.exports = () => {
 			render: {
 				driver: 'html'
 			},
-			mail: {
-				host: 'smtp.example.com',
-				port: 465,
-				secure: true,
-				auth: {
-					user: 'john',
-					pass: 'abc123'
-				}
-			},
 			viewsDir: 'views/',
 			extension: 'html'
 		},
