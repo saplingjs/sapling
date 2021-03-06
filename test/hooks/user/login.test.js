@@ -245,7 +245,7 @@ test.serial('redirects when specified', async t => {
 		t.is(destination, t.context.request.query.redirect);
 	};
 
-	const response = await login(t.context.app, t.context.request, t.context.response);
+	await login(t.context.app, t.context.request, t.context.response);
 });
 
 test.serial('does not redirect with failed login', async t => {

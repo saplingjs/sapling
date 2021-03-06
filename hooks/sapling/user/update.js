@@ -19,7 +19,7 @@ const SaplingError = require('../../../lib/SaplingError');
 module.exports = async function (app, request, response) {
 	/* If the user isn't logged in */
 	if (!request.session || !request.session.user) {
-		new Response(app, request, response, new SaplingError({
+		return new Response(app, request, response, new SaplingError({
 			status: '401',
 			code: '4002',
 			title: 'Unauthorized',
@@ -29,12 +29,11 @@ module.exports = async function (app, request, response) {
 				error: 'unauthorized'
 			}
 		}));
-		return false;
 	}
 
 	/* If password isn't provided */
 	if (!request.body.password) {
-		new Response(app, request, response, new SaplingError({
+		return new Response(app, request, response, new SaplingError({
 			status: '422',
 			code: '1001',
 			title: 'Invalid Input',
@@ -44,7 +43,6 @@ module.exports = async function (app, request, response) {
 				rule: 'required'
 			}
 		}));
-		return false;
 	}
 
 	/* Get the current user */
@@ -64,7 +62,7 @@ module.exports = async function (app, request, response) {
 		/* Handle password change */
 		if (request.body.new_password) {
 			/* Hash and delete the new password */
-			const hash = new Hash().hash(request.body.new_password);
+			const hash = await new Hash().hash(request.body.new_password);
 
 			/* Add fields to request body */
 			request.body._salt = hash[0];
@@ -75,7 +73,7 @@ module.exports = async function (app, request, response) {
 		delete request.body.new_password;
 	} else {
 		/* Throw error if password didn't match */
-		new Response(app, request, response, new SaplingError({
+		return new Response(app, request, response, new SaplingError({
 			status: '422',
 			code: '1009',
 			title: 'Incorrect Password',
@@ -85,7 +83,6 @@ module.exports = async function (app, request, response) {
 				rule: 'match'
 			}
 		}));
-		return false;
 	}
 
 	/* Send to the database */
@@ -106,6 +103,6 @@ module.exports = async function (app, request, response) {
 		}
 
 		/* Respond with the user object */
-		new Response(app, request, response, null, userData);
+		return new Response(app, request, response, null, userData);
 	}
 };
