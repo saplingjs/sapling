@@ -11,10 +11,18 @@
 /* Dependencies */
 const { console } = require('../../../lib/Cluster');
 const Response = require('../../../lib/Response');
+const SaplingError = require('../../../lib/SaplingError');
+const Validation = require('../../../lib/Validation');
 
 
 /* Hook /api/user/forgot */
 module.exports = async function (app, request, response) {
+	/* Check email for format */
+	const errors = new Validation().validate(request.body.email, 'email', { email: true, required: true });
+	if (errors.length > 0) {
+		return new Response(app, request, response, new SaplingError(errors));
+	}
+
 	/* Get authkey and identifiable from database */
 	const { email } = await app.storage.get({
 		url: `/data/users/email/${request.body.email}/?single=true`,
@@ -45,7 +53,7 @@ module.exports = async function (app, request, response) {
 		try {
 			await app.notifications.sendNotification('lostpass', templateData, email);
 		} catch (error) {
-			console.error(error);
+			console.error(new SaplingError(error));
 		}
 	}
 
@@ -55,6 +63,6 @@ module.exports = async function (app, request, response) {
 		response.redirect(request.query.redirect);
 	} else {
 		/* Respond positively */
-		new Response(app, request, response);
+		return new Response(app, request, response);
 	}
 };
