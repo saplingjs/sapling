@@ -25,7 +25,9 @@ const setup = (t, host, port) => {
 
 
 test.before(t => {
-	t.context.maildev = new MailDev();
+	t.context.maildev = new MailDev({
+		silent: true
+	});
 	t.context.maildev.listen();
 
 	t.context.templateData = {
