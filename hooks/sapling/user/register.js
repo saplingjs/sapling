@@ -8,8 +8,8 @@
 
 
 /* Dependencies */
+const { console } = require('../../../lib/Cluster');
 const Hash = require('../../../lib/Hash');
-
 const Response = require('../../../lib/Response');
 const SaplingError = require('../../../lib/SaplingError');
 

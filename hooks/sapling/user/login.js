@@ -46,17 +46,16 @@ module.exports = async function (app, request, response) {
 
 	/* If identValue wasn't assigned, reject request */
 	if (identValue === false) {
-		new Response(app, request, response, new SaplingError({
+		return new Response(app, request, response, new SaplingError({
 			status: '401',
 			code: '1001',
 			title: 'Invalid Input',
 			detail: 'No email address or identifiable provided.',
 			meta: {
-				type: 'identifiable',
-				error: 'required'
+				key: 'identifiable',
+				rule: 'required'
 			}
 		}));
-		return false;
 	}
 
 	/* Get the user from storage for each identifiable */
@@ -67,7 +66,7 @@ module.exports = async function (app, request, response) {
 
 	/* If no user is found, throw error */
 	if (data.length === 0) {
-		new Response(app, request, response, new SaplingError({
+		return new Response(app, request, response, new SaplingError({
 			status: '401',
 			code: '4001',
 			title: 'Invalid User or Password',
@@ -77,12 +76,11 @@ module.exports = async function (app, request, response) {
 				error: 'invalid'
 			}
 		}));
-		return false;
 	}
 
 	/* If no password was provided, throw error */
 	if (!request.body.password) {
-		new Response(app, request, response, new SaplingError({
+		return new Response(app, request, response, new SaplingError({
 			status: '422',
 			code: '1001',
 			title: 'Invalid Input',
@@ -92,14 +90,13 @@ module.exports = async function (app, request, response) {
 				rule: 'required'
 			}
 		}));
-		return false;
 	}
 
 	/* Select first result */
 	const user = data[0];
 
 	/* Hash the incoming password */
-	const password = await new Hash().hash(request.body.password || '', user._salt);
+	const password = await new Hash().hash(request.body.password, user._salt);
 
 	/* If the password matches */
 	if (user.password === password.toString('base64')) {
@@ -111,7 +108,7 @@ module.exports = async function (app, request, response) {
 		delete request.session.user._salt;
 	} else {
 		/* Return an error if the password didn't match */
-		new Response(app, request, response, new SaplingError({
+		return new Response(app, request, response, new SaplingError({
 			status: '401',
 			code: '4001',
 			title: 'Invalid User or Password',
@@ -121,7 +118,6 @@ module.exports = async function (app, request, response) {
 				error: 'invalid'
 			}
 		}));
-		return false;
 	}
 
 	/* If we need to redirect, let's redirect */
@@ -129,6 +125,6 @@ module.exports = async function (app, request, response) {
 		response.redirect(request.query.redirect);
 	} else {
 		/* Otherwise, reply with the user object */
-		new Response(app, request, response, null, request.session.user);
+		return new Response(app, request, response, null, request.session.user);
 	}
 };

@@ -7,7 +7,6 @@ const Storage = require('../../../lib/Storage');
 const User = require('../../../lib/User');
 
 const forgot = require('../../../hooks/sapling/user/forgot');
-const { template } = require('underscore');
 
 
 test.beforeEach(t => {
