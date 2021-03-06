@@ -58,8 +58,7 @@ module.exports = async function (app, request, response) {
 
 	/* Show the above errors, if any */
 	if (errors.length > 0) {
-		new Response(app, request, response, new SaplingError(errors));
-		return false;
+		return new Response(app, request, response, new SaplingError(errors));
 	}
 
 	/* Hash the password, and add it to the request */
@@ -95,7 +94,7 @@ module.exports = async function (app, request, response) {
 			response.redirect(request.query.redirect);
 		} else {
 			/* Respond with the user object */
-			new Response(app, request, response, null, userData);
+			return new Response(app, request, response, null, userData);
 		}
 	}
 };
