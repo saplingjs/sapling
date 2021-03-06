@@ -1,0 +1,11 @@
+{
+	"title": {
+		"type": "string",
+		"required": true,
+		"maxlen": 140
+	},
+	"viewCount": {
+		"type": "number",
+		"default": 0
+	}
+}

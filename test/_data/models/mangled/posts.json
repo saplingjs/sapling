@@ -1,0 +1,7 @@
+{
+	"title": {
+		"type": "string",
+		"required": true,
+		"maxlen": 140
+	},
+	"viewCo

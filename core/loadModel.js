@@ -55,7 +55,7 @@ module.exports = async function (next) {
 				/* Save */
 				structure[table] = parsedModel;
 			} catch {
-				console.error(new SaplingError('Error parsing model `%s`', table));
+				throw new SaplingError('Error parsing model `%s`', table);
 			}
 		}
 
