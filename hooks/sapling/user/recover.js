@@ -17,8 +17,8 @@ const SaplingError = require('../../../lib/SaplingError');
 /* Hook /api/user/recover */
 module.exports = async function (app, request, response) {
 	/* If the auth key has not been provided, throw error */
-	if (!request.query.auth) {
-		new Response(app, request, response, new SaplingError({
+	if (!request.body.auth) {
+		return new Response(app, request, response, new SaplingError({
 			status: '422',
 			code: '1001',
 			title: 'Invalid Input',
@@ -28,18 +28,17 @@ module.exports = async function (app, request, response) {
 				rule: 'required'
 			}
 		}));
-		return false;
 	}
 
 	/* Check key time */
-	let key = request.query.auth;
+	let key = request.body.auth;
 	key = Number.parseInt(key.slice(0, Math.max(0, key.length - 11)), 16);
 
 	const diff = key - Date.now();
 
 	/* If the key has expired, show error */
 	if (Number.isNaN(diff) || diff <= 0) {
-		new Response(app, request, response, new SaplingError({
+		return new Response(app, request, response, new SaplingError({
 			status: '401',
 			code: '4003',
 			title: 'Authkey Expired',
@@ -49,18 +48,17 @@ module.exports = async function (app, request, response) {
 				error: 'expired'
 			}
 		}));
-		return false;
 	}
 
 	/* Get users matching the key with admin privs */
 	const user = await app.storage.get({
-		url: `/data/users/_authkey/${request.query.auth}/?single=true`,
+		url: `/data/users/_authkey/${request.body.auth}/?single=true`,
 		session: app.adminSession
 	});
 
 	/* If there is no such user */
-	if (!user) {
-		new Response(app, request, response, new SaplingError({
+	if (user.length === 0) {
+		return new Response(app, request, response, new SaplingError({
 			status: '401',
 			code: '4004',
 			title: 'Authkey Invalid',
@@ -70,11 +68,10 @@ module.exports = async function (app, request, response) {
 				error: 'invalid'
 			}
 		}));
-		return false;
 	}
 
 	/* Hash and delete the new password */
-	const hash = new Hash().hash(request.body.new_password);
+	const hash = await new Hash().hash(request.body.new_password);
 	delete request.body.new_password;
 
 	/* Update the new password and clear the key */
@@ -89,17 +86,17 @@ module.exports = async function (app, request, response) {
 		response.redirect(request.query.redirect);
 	} else {
 		/* Clean the output */
-		if (userData) {
-			if (userData.password) {
-				delete userData.password;
+		if (userData.length > 0) {
+			if ('password' in userData[0]) {
+				delete userData[0].password;
 			}
 
-			if (userData._salt) {
-				delete userData._salt;
+			if ('_salt' in userData[0]) {
+				delete userData[0]._salt;
 			}
 		}
 
 		/* Respond with the user object */
-		new Response(app, request, response, null, userData);
+		return new Response(app, request, response, null, userData);
 	}
 };
