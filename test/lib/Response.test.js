@@ -70,8 +70,12 @@ test('returns the proper HTML string for a boolean value', t => {
 	t.is((new Response(t.context.app, t.context.request)).convertArrayToTables(false), '<table><tbody><tr><th>Return value</th><td>false</td></tr></tbody></table>');
 });
 
-test('returns empty HTML for bad data', t => {
-	t.is((new Response(t.context.app, t.context.request)).convertArrayToTables(42), '');
+test('returns the proper HTML string for a string value', t => {
+	t.is((new Response(t.context.app, t.context.request)).convertArrayToTables('John'), '<table><tbody><tr><td>John</td></tr></tbody></table>');
+});
+
+test('returns the proper HTML string for a number value', t => {
+	t.is((new Response(t.context.app, t.context.request)).convertArrayToTables(42), '<table><tbody><tr><td>42</td></tr></tbody></table>');
 });
 
 
