@@ -9,6 +9,7 @@
 const fs = require('fs');
 const path = require('path');
 
+const { console } = require('../lib/Cluster');
 const SaplingError = require('../lib/SaplingError');
 const Storage = require('../lib/Storage');
 
@@ -22,13 +23,14 @@ const Storage = require('../lib/Storage');
 module.exports = async function (next) {
 	const modelPath = path.join(this.dir, this.config.modelsDir);
 	const structure = {};
-
-	if (!fs.existsSync(modelPath)) {
-		throw new SaplingError(`Models directory \`${modelPath}\` does not exist`);
-	}
+	let files = {};
 
 	/* Load all models in the model directory */
-	const files = fs.readdirSync(modelPath);
+	if (fs.existsSync(modelPath)) {
+		files = fs.readdirSync(modelPath);
+	} else {
+		console.warn(`Models directory \`${modelPath}\` does not exist`);
+	}
 
 	/* Go through each model */
 	for (let i = 0; i < files.length; ++i) {

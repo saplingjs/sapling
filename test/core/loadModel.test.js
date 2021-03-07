@@ -77,19 +77,19 @@ test('does not load dot files', async t => {
 	t.false('dotfile' in t.context.app.structure);
 });
 
-test('throws error about a non-existant model path', async t => {
+test('warns about a non-existant model path', async t => {
 	t.plan(2);
 
 	t.context.app.config.modelsDir = 'test/_data/models/nonexistant';
-	const modelPath = path.join(t.context.app.dir, t.context.app.config.modelsDir);
 
-	const error = await t.throwsAsync(async () => {
+	console.warn = (workerId, message) => {
+		const modelPath = path.join(t.context.app.dir, t.context.app.config.modelsDir);
+		t.is(message, `Models directory \`${modelPath}\` does not exist`);
+	}
+
+	await t.notThrowsAsync(async () => {
 		await loadModel.call(t.context.app);
-	}, {
-		instanceOf: SaplingError
 	});
-
-	t.is(error.message, `Models directory \`${modelPath}\` does not exist`);
 });
 
 test.cb('executes callback', t => {
