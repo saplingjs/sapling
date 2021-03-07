@@ -129,13 +129,13 @@ test('does not print access log during tests', t => {
 	process.env.NODE_ENV = 'test';
 
 	const date = new Date().toISOString();
-	t.is(Cluster.logger({
+	t.is(typeof Cluster.logger({
 		date: () => date,
 		method: () => 'GET',
 		url: () => '/',
 		status: () => 304,
 		'response-time': () => 5.767
-	}, {}, {}), false);
+	}, {}, {}), 'undefined');
 });
 
 test('does not print wakeup message during tests', t => {

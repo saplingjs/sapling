@@ -39,7 +39,7 @@ test('loads custom tags', async t => {
 	await loadCustomTags.call(t.context.app);
 });
 
-test('calls callback when provided', async t => {
+test('calls callback when specified', async t => {
 	await loadCustomTags.call(t.context.app, () => {
 		t.pass();
 	});
