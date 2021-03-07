@@ -111,8 +111,8 @@ class App {
 	}
 
 	/* Load remaining methods */
-	parseMethodRouteKey = require('./core/parseMethodRouteKey')
-	runHook = require('./core/runHook')
+	parseMethodRouteKey = require('./core/parseMethodRouteKey');
+	runHook = require('./core/runHook');
 }
 
 module.exports = App;

@@ -53,7 +53,7 @@ module.exports = async function (next) {
 		await this.storage.delete(request, response);
 
 		/* Run hooks, then send data */
-		await this.runHook('delete', request.originalUrl, request, response, null, (app, request, response, data) => {
+		await this.runHook('delete', request.originalUrl, request, response, [], (app, request, response, data) => {
 			if (data) {
 				new Response(this, request, response, null, data || []);
 			} else {
