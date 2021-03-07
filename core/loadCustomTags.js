@@ -29,11 +29,10 @@ module.exports = async function (next) {
 			const permission = this.user.getRolesForRoute('get', baseurl);
 
 			/* If no role is provided, use current */
-			const session = role ? { user: { role } } : this.data.session;
+			const session = role ? { user: { role } } : ((this.data && this.data.session) || {});
 
 			/* Check permission */
-			const allowed = this.user.isUserAllowed(permission, session.user);
-			console.log('IS ALLOWED', session, allowed, permission);
+			const allowed = this.user.isUserAllowed(permission, session.user || {});
 
 			/* Not allowed so give an empty array */
 			if (!allowed) {
