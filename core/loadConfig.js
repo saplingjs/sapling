@@ -47,9 +47,9 @@ module.exports = async function (next) {
 			options: {}
 		},
 		mail: {
-			host: '',
-			port: 465,
-			secure: true,
+			host: process.env.MAIL_HOST || '',
+			port: process.env.MAIL_PORT || 465,
+			secure: this.utils.trueBoolean(process.env.MAIL_TLS) || true,
 			auth: {
 				user: process.env.MAIL_USER,
 				pass: process.env.MAIL_PASS

@@ -54,6 +54,32 @@ test('deep clones an object', t => {
 	t.not(original, clone);
 });
 
+test('converts values to true boolean', t => {
+	t.true(t.context.utils.trueBoolean(true));
+	t.true(t.context.utils.trueBoolean('true'));
+	t.true(t.context.utils.trueBoolean('yes'));
+	t.true(t.context.utils.trueBoolean('on'));
+	t.true(t.context.utils.trueBoolean('TRUE'));
+	t.true(t.context.utils.trueBoolean(1));
+	t.true(t.context.utils.trueBoolean(() => true));
+	t.true(t.context.utils.trueBoolean({ success: true }));
+	t.true(t.context.utils.trueBoolean([1,2,3]));
+
+	t.false(t.context.utils.trueBoolean(false));
+	t.false(t.context.utils.trueBoolean('false'));
+	t.false(t.context.utils.trueBoolean('no'));
+	t.false(t.context.utils.trueBoolean('off'));
+	t.false(t.context.utils.trueBoolean('FALSE'));
+	t.false(t.context.utils.trueBoolean('something else'));
+	t.false(t.context.utils.trueBoolean(0));
+	t.false(t.context.utils.trueBoolean(() => false));
+	t.false(t.context.utils.trueBoolean([]));
+	t.false(t.context.utils.trueBoolean(Symbol("foobar")));
+
+	t.falsy(t.context.utils.trueBoolean(undefined));
+	t.falsy(t.context.utils.trueBoolean(null));
+});
+
 
 test.after(t => {
 	fs.chmodSync(path.join(__dirname, '../_data/inaccessible'), 0o755);
