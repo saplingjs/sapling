@@ -6,7 +6,7 @@ const Storage = require('../../lib/Storage');
 const User = require('../../lib/User');
 
 
-test.before(t => {
+test.beforeEach(t => {
 	t.context.app = _.defaults({
 		storage: new Storage({}, {
 			name: 'test',
@@ -94,6 +94,42 @@ test('checks member is allowed for an array of levels', t => {
 
 test('checks member is not allowed for an array of levels', t => {
 	t.false(t.context.user.isUserAllowed(['admin'], { role: 'member' }));
+});
+
+
+/* isRoleAllowed */
+
+test('checks admin is allowed for all', t => {
+	t.true(t.context.user.isRoleAllowed.call(t.context, 'admin', 'admin'));
+	t.true(t.context.user.isRoleAllowed.call(t.context, 'admin', 'member'));
+	t.true(t.context.user.isRoleAllowed.call(t.context, 'admin', ['admin', 'member']));
+});
+
+test('checks member is allowed for member', t => {
+	t.false(t.context.user.isRoleAllowed.call(t.context, 'member', 'admin'));
+	t.true(t.context.user.isRoleAllowed.call(t.context, 'member', 'member'));
+	t.true(t.context.user.isRoleAllowed.call(t.context, 'member', ['admin', 'member']));
+});
+
+test('checks anyone is allowed for anyone', t => {
+	t.true(t.context.user.isRoleAllowed.call(t.context, 'member', 'anyone'));
+	t.true(t.context.user.isRoleAllowed.call(t.context, 'admin', 'anyone'));
+	t.true(t.context.user.isRoleAllowed.call(t.context, 'member', ['anyone']));
+	t.true(t.context.user.isRoleAllowed.call(t.context, 'anonymous', 'anyone'));
+});
+
+test('checks unknown is not allowed for member', t => {
+	t.false(t.context.user.isRoleAllowed.call(t.context, 'foobar', 'member'));
+	t.false(t.context.user.isRoleAllowed.call(t.context, 'quux', ['admin', 'member']));
+});
+
+test('checks custom is allowed for custom', t => {
+	t.context.app.storage.schema.users.role.values = ['admin', 'moderator', 'member'];
+	t.true(t.context.user.isRoleAllowed.call(t.context, 'moderator', 'member'));
+	t.false(t.context.user.isRoleAllowed.call(t.context, 'moderator', 'admin'));
+	t.true(t.context.user.isRoleAllowed.call(t.context, 'moderator', ['moderator', 'member']));
+	t.true(t.context.user.isRoleAllowed.call(t.context, 'moderator', ['moderator', 'admin']));
+	t.false(t.context.user.isRoleAllowed.call(t.context, 'moderator', ['admin']));
 });
 
 

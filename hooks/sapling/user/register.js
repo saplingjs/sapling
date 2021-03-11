@@ -21,7 +21,7 @@ module.exports = async function (app, request, response) {
 
 	/* If a role is specified, check the current user is allowed to create it */
 	if (request.session.user) {
-		if (request.body.role && !app.storage.inheritRole(request.session.user.role, request.body.role)) {
+		if (request.body.role && !app.user.isRoleAllowed(request.session.user.role, request.body.role)) {
 			errors.push({ message: `Do not have permission to create the role \`${request.body.role}\`.` });
 		}
 	} else if (request.body.role) {
