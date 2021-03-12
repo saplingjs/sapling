@@ -8,6 +8,8 @@
 
 
 /* Dependencies */
+const _ = require('underscore');
+
 const { console } = require('../../../lib/Cluster');
 const Hash = require('../../../lib/Hash');
 const Response = require('../../../lib/Response');
@@ -56,9 +58,14 @@ module.exports = async function (app, request, response) {
 		});
 	}
 
+	/* Validate for format */
+	/* Doing this here because by the time we do it Storage, the password's been hashed */
+	const validation = app.storage.validateData(_.extend(request, { collection: 'users' }), response);
+
 	/* Show the above errors, if any */
-	if (errors.length > 0) {
-		return new Response(app, request, response, new SaplingError(errors));
+	const combinedErrors = [...errors, ...validation];
+	if (combinedErrors.length > 0) {
+		return new Response(app, request, response, new SaplingError(combinedErrors));
 	}
 
 	/* Hash the password, and add it to the request */

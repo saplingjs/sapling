@@ -126,6 +126,41 @@ test('responds with an error if invalid authkey provided', async t => {
 	t.is(updatedUser[0].password, user[0].password);
 });
 
+test('responds with an error if no password provided', async t => {
+	const user = await requestReset(t);
+
+	t.context.request.body.auth = user[0]._authkey;
+
+	const response = await recover(t.context.app, t.context.request, t.context.response);
+
+	t.true(response instanceof Response);
+	t.true(response.error instanceof SaplingError);
+
+	t.is(response.error.json.errors[0].meta.key, 'password');
+	t.is(response.error.json.errors[0].meta.rule, 'required');
+
+	const updatedUser = await t.context.app.storage.db.read('users', { _id: user[0]._id });
+	t.is(updatedUser[0].password, user[0].password);
+});
+
+test('responds with an error if insufficient password provided', async t => {
+	const user = await requestReset(t);
+
+	t.context.request.body.new_password = 'h';
+	t.context.request.body.auth = user[0]._authkey;
+
+	const response = await recover(t.context.app, t.context.request, t.context.response);
+
+	t.true(response instanceof Response);
+	t.true(response.error instanceof SaplingError);
+
+	t.is(response.error.json.errors[0].meta.key, 'password');
+	t.is(response.error.json.errors[0].meta.rule, 'minlen');
+
+	const updatedUser = await t.context.app.storage.db.read('users', { _id: user[0]._id });
+	t.is(updatedUser[0].password, user[0].password);
+});
+
 test('redirects when specified', async t => {
 	t.plan(3);
 

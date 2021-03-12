@@ -55,7 +55,7 @@ test('runs all validation methods', t => {
 	t.context.validator.validate('hunter12', 'password', { minlen: 3, maxlen: 64 });
 	t.is(t.context.validator.errors.length, 0);
 
-	t.context.validator.validate(32, 'age', { minlen: 16, maxlen: 99 });
+	t.context.validator.validate(32, 'age', { min: 16, max: 99 });
 	t.is(t.context.validator.errors.length, 0);
 
 	t.context.validator.validate('john@example.com', 'email', { email: true });

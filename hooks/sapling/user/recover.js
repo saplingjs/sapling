@@ -17,6 +17,31 @@ const SaplingError = require('../../../lib/SaplingError');
 /* Hook /api/user/recover */
 module.exports = async function (app, request, response) {
 	/* If the auth key has not been provided, throw error */
+	if (!request.body.new_password) {
+		return new Response(app, request, response, new SaplingError({
+			status: '422',
+			code: '1001',
+			title: 'Invalid Input',
+			detail: 'You must provide a value for key `new_password`',
+			meta: {
+				key: 'password',
+				rule: 'required'
+			}
+		}));
+	}
+
+	/* If the new password does not match rules, throw error  */
+	const validation = app.storage.validateData({
+		body: { password: request.body.new_password },
+		collection: 'users',
+		type: 'filter'
+	}, response);
+
+	if (validation.length > 0) {
+		return new Response(app, request, response, new SaplingError(validation));
+	}
+
+	/* If the auth key has not been provided, throw error */
 	if (!request.body.auth) {
 		return new Response(app, request, response, new SaplingError({
 			status: '422',
