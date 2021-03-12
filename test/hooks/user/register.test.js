@@ -123,6 +123,21 @@ test.serial('responds with an error when no email is provided', async t => {
 	t.is(t.context.app.storage.db.memory.users.length, 0);
 });
 
+test.serial('responds with an error when insufficient email is provided', async t => {
+	t.context.request.body.email = 'john@exam';
+	t.context.request.body.password = 'password';
+
+	const response = await register(t.context.app, t.context.request, t.context.response);
+
+	t.true(response instanceof Response);
+	t.true(response.error instanceof SaplingError);
+
+	t.is(response.error.json.errors[0].meta.key, 'email');
+	t.is(response.error.json.errors[0].meta.rule, 'email');
+
+	t.is(t.context.app.storage.db.memory.users.length, 0);
+});
+
 test.serial('responds with an error when no password is provided', async t => {
 	t.context.request.body.email = 'john@example.com';
 
@@ -133,6 +148,21 @@ test.serial('responds with an error when no password is provided', async t => {
 
 	t.is(response.error.json.errors[0].meta.key, 'password');
 	t.is(response.error.json.errors[0].meta.rule, 'required');
+
+	t.is(t.context.app.storage.db.memory.users.length, 0);
+});
+
+test.serial('responds with an error when insufficient password is provided', async t => {
+	t.context.request.body.email = 'john@example.com';
+	t.context.request.body.password = '1';
+
+	const response = await register(t.context.app, t.context.request, t.context.response);
+
+	t.true(response instanceof Response);
+	t.true(response.error instanceof SaplingError);
+
+	t.is(response.error.json.errors[0].meta.key, 'password');
+	t.is(response.error.json.errors[0].meta.rule, 'minlen');
 
 	t.is(t.context.app.storage.db.memory.users.length, 0);
 });
@@ -184,6 +214,11 @@ test.serial('does not save when custom field does not validate', async t => {
 
 	const response = await register(t.context.app, t.context.request, t.context.response);
 
-	t.is(typeof response, 'undefined');
+	t.true(response instanceof Response);
+	t.falsy(response.content);
+	t.true(response.error instanceof SaplingError);
+
+	t.is(response.error.json.errors[0].meta.key, 'username');
+	t.is(response.error.json.errors[0].meta.rule, 'maxlen');
 	t.is(t.context.app.storage.db.memory.users.length, 0);
 });

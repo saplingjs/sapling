@@ -79,22 +79,24 @@ module.exports = async function (app, request, response) {
 		body: request.body
 	}, response);
 
-	/* If we successfully saved it */
-	if (userData) {
-		/* Clean the output */
-		for (const record of userData) {
-			delete record.password;
-			delete record._salt;
-		}
+	/* If post() already gave a response */
+	if (userData instanceof Response) {
+		return userData;
+	}
 
-		console.log('REGISTER', errors, userData);
+	/* Clean the output */
+	for (const record of userData) {
+		delete record.password;
+		delete record._salt;
+	}
 
-		/* If we need to redirect, let's redirect */
-		if (request.query.redirect) {
-			response.redirect(request.query.redirect);
-		} else {
-			/* Respond with the user object */
-			return new Response(app, request, response, null, userData);
-		}
+	console.log('REGISTER', errors, userData);
+
+	/* If we need to redirect, let's redirect */
+	if (request.query.redirect) {
+		response.redirect(request.query.redirect);
+	} else {
+		/* Respond with the user object */
+		return new Response(app, request, response, null, userData);
 	}
 };
