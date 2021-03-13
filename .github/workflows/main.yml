@@ -25,3 +25,5 @@ jobs:
 
       - name: Run linter
         run: npm run lint
+      
+      - uses: codecov/codecov-action@v1
