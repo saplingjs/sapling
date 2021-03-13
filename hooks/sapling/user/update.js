@@ -45,6 +45,19 @@ module.exports = async function (app, request, response) {
 		}));
 	}
 
+	/* If the new password has been provided, validate it */
+	if (request.body.new_password) {
+		const validation = app.storage.validateData({
+			body: { password: request.body.new_password },
+			collection: 'users',
+			type: 'filter'
+		}, response);
+
+		if (validation.length > 0) {
+			return new Response(app, request, response, new SaplingError(validation));
+		}
+	}
+
 	/* Get the current user */
 	const user = await app.storage.get({
 		url: `/data/users/_id/${request.session.user._id}/?single=true`,

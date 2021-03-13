@@ -142,6 +142,28 @@ test('responds with an error if wrong password provided', async t => {
 	t.is(updatedUser[0].lastname, 'Public');
 });
 
+test('responds with an error if new password is insufficient', async t => {
+	const user = await createUser(t);
+	t.context.request.session.user = { _id: user[0]._id, role: 'member' };
+
+	t.context.request.body.new_password = 'h';
+	t.context.request.body.password = 'password';
+
+	const oldSalt = user._salt;
+
+	const response = await update(t.context.app, t.context.request, t.context.response);
+
+	t.true(response instanceof Response);
+	t.true(response.error instanceof SaplingError);
+
+	t.is(response.error.json.errors[0].meta.key, 'password');
+	t.is(response.error.json.errors[0].meta.rule, 'minlen');
+
+	const updatedUser = await t.context.app.storage.db.read('users', { _id: user[0]._id });
+	t.is(updatedUser[0].password, await new Hash().hash('password', updatedUser[0]._salt));
+	t.not(updatedUser[0]._salt, oldSalt);
+});
+
 test('redirects when specified', async t => {
 	const user = await createUser(t);
 	t.context.request.session.user = { _id: user[0]._id, role: 'member' };

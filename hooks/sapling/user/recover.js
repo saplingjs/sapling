@@ -16,7 +16,7 @@ const SaplingError = require('../../../lib/SaplingError');
 
 /* Hook /api/user/recover */
 module.exports = async function (app, request, response) {
-	/* If the auth key has not been provided, throw error */
+	/* If the new password has not been provided, throw error */
 	if (!request.body.new_password) {
 		return new Response(app, request, response, new SaplingError({
 			status: '422',
