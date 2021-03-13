@@ -3,5 +3,6 @@ npm-debug.log
 env
 tmp
 .nyc_output
+coverage.lcov
 coverage
 .DS_Store

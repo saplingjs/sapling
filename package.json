@@ -50,6 +50,7 @@
     "precommit": "lint-staged",
     "lint-fix": "xo --fix",
     "lint": "xo",
+    "report-coverage": "nyc report --reporter=text-lcov > coverage.lcov && codecov",
     "test": "nyc ava"
   },
   "devDependencies": {
