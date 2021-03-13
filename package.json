@@ -51,7 +51,8 @@
     "lint-fix": "xo --fix",
     "lint": "xo",
     "test": "nyc ava",
-    "test:report": "nyc --reporter=lcov npm test && npx codecov"
+    "test:report": "nyc --reporter=lcov npm test",
+    "test:send": "npx codecov"
   },
   "devDependencies": {
     "@babel/core": "^7.13.10",

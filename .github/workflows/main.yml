@@ -22,6 +22,9 @@ jobs:
 
       - name: Run linter
         run: npm run lint
-      
-      - name: Report coverage
+
+      - name: Run test
         run: npm run test:report
+
+      - name: Report coverage
+        run: npm run test:send
