@@ -108,6 +108,48 @@ test.serial('reads a record by numerical value', async t => {
 	t.is(results[0].baz, 2);
 });
 
+test.serial('reads a record by a preceding wildcard', async t => {
+	await t.context.memory.write('fifth', { name: 'New Hampshire' });
+	await t.context.memory.write('fifth', { name: 'New York' });
+	await t.context.memory.write('fifth', { name: 'North Yorkshire' });
+	await t.context.memory.write('fifth', { name: 'Hamptons' });
+	await t.context.memory.write('fifth', { name: 'Mumbai' });
+
+	const results = await t.context.memory.read('fifth', { name: '*shire' });
+
+	t.true(Array.isArray(results));
+	t.is(results.length, 2);
+	t.is(results[0].name, 'New Hampshire');
+	t.is(results[1].name, 'North Yorkshire');
+});
+
+test.serial('reads a record by a middle wildcard', async t => {
+	const results = await t.context.memory.read('fifth', { name: 'n*shire' });
+
+	t.true(Array.isArray(results));
+	t.is(results.length, 2);
+	t.is(results[0].name, 'New Hampshire');
+	t.is(results[1].name, 'North Yorkshire');
+});
+
+test.serial('reads a record by a tailing wildcard', async t => {
+	const results = await t.context.memory.read('fifth', { name: 'new*' });
+
+	t.true(Array.isArray(results));
+	t.is(results.length, 2);
+	t.is(results[0].name, 'New Hampshire');
+	t.is(results[1].name, 'New York');
+});
+
+test.serial('reads a record by multiple wildcards', async t => {
+	const results = await t.context.memory.read('fifth', { name: '*amp*' });
+
+	t.true(Array.isArray(results));
+	t.is(results.length, 2);
+	t.is(results[0].name, 'New Hampshire');
+	t.is(results[1].name, 'Hamptons');
+});
+
 test.serial('reads nothing in a non-existent collection', async t => {
 	const results = await t.context.memory.read('fourth', {});
 

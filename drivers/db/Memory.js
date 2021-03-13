@@ -63,18 +63,7 @@ module.exports = class Memory extends Interface {
 		/* If there are any conditions */
 		if (Object.keys(conditions).length > 0) {
 			records = records.filter(record => {
-				let match = false;
-
-				/* Go through each condition, and set a match if it matches */
-				for (const field of Object.keys(conditions)) {
-					match = field in record && (
-						(field !== '_id' && typeof record[field] === 'number' && record[field] === conditions[field]) ||
-						(field !== '_id' && typeof record[field] !== 'number' && record[field].includes(conditions[field])) ||
-						(field === '_id' && record[field] === conditions[field])
-					);
-				}
-
-				return match;
+				return this.isMatch(record, conditions);
 			});
 		}
 
@@ -114,17 +103,7 @@ module.exports = class Memory extends Interface {
 
 		if (Object.keys(conditions).length > 0) {
 			for (const [index, record] of records.entries()) {
-				let match = false;
-
-				for (const field of Object.keys(conditions)) {
-					match = field in record && (
-						(field !== '_id' && typeof record[field] === 'number' && record[field] === conditions[field]) ||
-						(field !== '_id' && typeof record[field] !== 'number' && record[field].includes(conditions[field])) ||
-						(field === '_id' && record[field] === conditions[field])
-					);
-				}
-
-				if (match && this.memory[collection]) {
+				if (this.isMatch(record, conditions) && this.memory[collection]) {
 					this.memory[collection][index] = _.extend(this.memory[collection][index], data);
 					newRecords.push(this.memory[collection][index]);
 				}
@@ -146,17 +125,7 @@ module.exports = class Memory extends Interface {
 
 		if (Object.keys(conditions).length > 0) {
 			for (const [index, record] of records.entries()) {
-				let match = false;
-
-				for (const field of Object.keys(conditions)) {
-					match = field in record && (
-						(field !== '_id' && typeof record[field] === 'number' && record[field] === conditions[field]) ||
-						(field !== '_id' && typeof record[field] !== 'number' && record[field].includes(conditions[field])) ||
-						(field === '_id' && record[field] === conditions[field])
-					);
-				}
-
-				if (match && this.memory[collection]) {
+				if (this.isMatch(record, conditions) && this.memory[collection]) {
 					this.memory[collection].splice(index, 1);
 				}
 			}
@@ -165,5 +134,40 @@ module.exports = class Memory extends Interface {
 		}
 
 		return [{ success: true }];
+	}
+
+
+	/**
+	 * Check if a given record is a match for the given conditions
+	 *
+	 * @param {object} record Record from the data store
+	 * @param {object} conditions Filter conditions object
+	 */
+	isMatch(record, conditions) {
+		let match = false;
+
+		/* Loop over all the conditions */
+		for (const field of Object.keys(conditions)) {
+			/* If the record doesn't contain the given field, move on */
+			if (!(field in record)) {
+				continue;
+			}
+
+			/* If it's an ID, do an exact match always */
+			if (field === '_id' && record[field] === conditions[field]) {
+				match = true;
+				break;
+			}
+
+			/* If we have wildcards, build a regex */
+			if (String(conditions[field]).includes('*')) {
+				match = String(record[field]).match(new RegExp(`^${conditions[field].split('*').join('(.*)')}$`, 'gmi')) !== null;
+			} else {
+				/* Otherwise do a direct match */
+				match = typeof record[field] === 'number' ? record[field] === conditions[field] : record[field].includes(conditions[field]);
+			}
+		}
+
+		return match;
 	}
 };
