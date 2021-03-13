@@ -221,9 +221,12 @@ test('allows a user that is logged in for an undefined route', t => {
 /* getRolesForRoute */
 
 test('returns correct role for routes', t => {
+	t.deepEqual(t.context.user.getRolesForRoute.call(t.context, 'get', '/posts'), ['member']);
+	t.deepEqual(t.context.user.getRolesForRoute.call(t.context, 'get', '/posts/'), ['member']);
+	t.deepEqual(t.context.user.getRolesForRoute.call(t.context, 'get', '/Posts'), ['member']);
+
 	t.deepEqual(t.context.user.getRolesForRoute.call(t.context, 'get', '/faq'), ['anyone']);
 	t.deepEqual(t.context.user.getRolesForRoute.call(t.context, 'get', '/login'), ['stranger']);
-	t.deepEqual(t.context.user.getRolesForRoute.call(t.context, 'get', '/posts'), ['member']);
 	t.deepEqual(t.context.user.getRolesForRoute.call(t.context, 'get', '/edit'), ['member', 'admin']);
 	t.deepEqual(t.context.user.getRolesForRoute.call(t.context, 'get', '/admin'), ['admin']);
 });
