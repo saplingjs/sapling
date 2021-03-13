@@ -50,8 +50,8 @@
     "precommit": "lint-staged",
     "lint-fix": "xo --fix",
     "lint": "xo",
-    "report-coverage": "nyc report --reporter=text-lcov > coverage.lcov && codecov",
-    "test": "nyc ava"
+    "test": "nyc ava",
+    "test:report": "nyc --reporter=lcov npm test && npx codecov"
   },
   "devDependencies": {
     "@babel/core": "^7.13.10",

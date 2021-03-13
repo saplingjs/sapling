@@ -20,11 +20,8 @@ jobs:
       - name: Install dependencies
         run: yarn install
 
-      - name: Run unit tests
-        run: npm run test
-
       - name: Run linter
         run: npm run lint
       
       - name: Report coverage
-        run: npm run report-coverage
+        run: npm run test:report
