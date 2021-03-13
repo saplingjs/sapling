@@ -1,8 +1,9 @@
 <p align="center"><a href="https://saplingjs.com" target="_blank" rel="noopener noreferrer"><img width="200" src="https://saplingjs.com/images/logo.svg" alt="Sapling logo"></a></p>
 
 <p align="center">
+  <a href="https://github.com/saplingjs/sapling/actions"><img src="https://img.shields.io/github/workflow/status/saplingjs/sapling/CI" alt="GitHub Workflow Status"></a>
   <a href="https://www.npmjs.com/package/@sapling/sapling"><img src="https://img.shields.io/npm/v/@sapling/sapling.svg?sanitize=true" alt="Version"></a>
-  <a href="https://www.npmjs.com/package/@sapling/sapling"><img src="https://img.shields.io/npm/l/@sapling/sapling.svg?sanitize=true" alt="License"></a>
+  <a href="https://github.com/saplingjs/sapling/blob/master/LICENSE"><img src="https://img.shields.io/npm/l/@sapling/sapling.svg?sanitize=true" alt="License"></a>
 </p>
 
 **Sapling** is a Node.js framework for building websites, web apps and APIs as fast as you can imagine them.  With unrivalled speed of development, you can prototype quickly, iterate with ease, and deploy the same day.  Zero code, zero config – unless you want to.  And what's more, it comes with all the SaaS features you never want to write, all built-in.
