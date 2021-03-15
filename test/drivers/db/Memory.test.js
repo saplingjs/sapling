@@ -108,6 +108,17 @@ test.serial('reads a record by numerical value', async t => {
 	t.is(results[0].baz, 2);
 });
 
+test.serial('reads records by array value', async t => {
+	await t.context.memory.write('first', { foo: 'wax', baz: 10 });
+
+	const results = await t.context.memory.read('first', { foo: ['bar', 'qux'] });
+
+	t.true(Array.isArray(results));
+	t.is(results.length, 2);
+	t.is(results[0].foo, 'bar');
+	t.is(results[1].foo, 'qux');
+});
+
 test.serial('reads a record by a preceding wildcard', async t => {
 	await t.context.memory.write('fifth', { name: 'New Hampshire' });
 	await t.context.memory.write('fifth', { name: 'New York' });
@@ -148,6 +159,16 @@ test.serial('reads a record by multiple wildcards', async t => {
 	t.is(results.length, 2);
 	t.is(results[0].name, 'New Hampshire');
 	t.is(results[1].name, 'Hamptons');
+});
+
+test.serial('reads records by array of wildcards', async t => {
+	const results = await t.context.memory.read('fifth', { name: ['new*', '*york*'] });
+
+	t.true(Array.isArray(results));
+	t.is(results.length, 3);
+	t.is(results[0].name, 'New Hampshire');
+	t.is(results[1].name, 'New York');
+	t.is(results[2].name, 'North Yorkshire');
 });
 
 test.serial('reads nothing in a non-existent collection', async t => {
@@ -205,31 +226,31 @@ test.serial('deletes one record by ID', async t => {
 	await t.context.memory.write('first', { foo: 'boz', baz: 0 });
 	await t.context.memory.write('first', { foo: 'bez', baz: 3 });
 
-	t.is(t.context.memory.memory.first.length, 5);
+	t.is(t.context.memory.memory.first.length, 6);
 
 	await t.context.memory.remove('first', { _id: t.context.memory.memory.first[0]._id });
 
-	t.is(t.context.memory.memory.first.length, 4);
+	t.is(t.context.memory.memory.first.length, 5);
 });
 
 test.serial('deletes records by string value', async t => {
-	t.is(t.context.memory.memory.first.length, 4);
+	t.is(t.context.memory.memory.first.length, 5);
 
 	await t.context.memory.remove('first', { foo: 'baz' });
 
-	t.is(t.context.memory.memory.first.length, 3);
+	t.is(t.context.memory.memory.first.length, 4);
 });
 
 test.serial('deletes records by numerical value', async t => {
-	t.is(t.context.memory.memory.first.length, 3);
+	t.is(t.context.memory.memory.first.length, 4);
 
 	await t.context.memory.remove('first', { baz: 3 });
 
-	t.is(t.context.memory.memory.first.length, 2);
+	t.is(t.context.memory.memory.first.length, 3);
 });
 
 test.serial('deletes all records', async t => {
-	t.is(t.context.memory.memory.first.length, 2);
+	t.is(t.context.memory.memory.first.length, 3);
 
 	await t.context.memory.remove('first', {});
 
