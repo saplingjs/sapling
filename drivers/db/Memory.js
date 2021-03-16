@@ -153,19 +153,27 @@ module.exports = class Memory extends Interface {
 				continue;
 			}
 
-			/* If it's an ID, do an exact match always */
-			if (field === '_id' && record[field] === conditions[field]) {
-				match = true;
-				break;
+			let condition = conditions[field];
+
+			/* Coerce into an array */
+			if (Array.isArray(condition) === false) {
+				condition = [condition];
 			}
 
-			/* If we have wildcards, build a regex */
-			if (String(conditions[field]).includes('*')) {
-				match = String(record[field]).match(new RegExp(`^${conditions[field].split('*').join('(.*)')}$`, 'gmi')) !== null;
-			} else {
+			match = condition.some(value => {
+				/* If it's an ID, do an exact match always */
+				if (field === '_id' && record[field] === value) {
+					return true;
+				}
+
+				/* If we have wildcards, build a regex */
+				if (String(value).includes('*')) {
+					return String(record[field]).match(new RegExp(`^${value.split('*').join('(.*)')}$`, 'gmi')) !== null;
+				}
+
 				/* Otherwise do a direct match */
-				match = typeof record[field] === 'number' ? record[field] === conditions[field] : record[field].includes(conditions[field]);
-			}
+				return typeof record[field] === 'number' ? record[field] === value : record[field].includes(value);
+			});
 		}
 
 		return match;
