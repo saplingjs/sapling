@@ -63,6 +63,7 @@
     "husky": "4.3.8",
     "lint-staged": ">=10",
     "maildev": "^1.1.0",
+    "mime-types": "^2.1.29",
     "nyc": "^15.1.0",
     "supertest": "^6.1.3",
     "webpack": "^5.26.2",
