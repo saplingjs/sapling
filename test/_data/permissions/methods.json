@@ -1,0 +1,8 @@
+{
+    "GET /my-account": "member",
+    "POST /data/users": "member",
+    "DELETE /data/users": {
+        "role": "admin",
+        "redirect": "/"
+    }
+}
