@@ -1,0 +1,3 @@
+{
+    "GET /api/user/logged": "sapling/user/logged.js"
+}

@@ -81,6 +81,6 @@ test('converts values to true boolean', t => {
 });
 
 
-test.after(t => {
+test.after.always(t => {
 	fs.chmodSync(path.join(__dirname, '../_data/inaccessible'), 0o755);
 });

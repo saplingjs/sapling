@@ -11,6 +11,7 @@ const path = require('path');
 
 const { console } = require('../lib/Cluster');
 const Response = require('../lib/Response');
+const SaplingError = require('../lib/SaplingError');
 
 
 /**
@@ -27,34 +28,42 @@ module.exports = async function (next) {
 	/* Load the hooks file */
 	if (fs.existsSync(hooksPath)) {
 		/* If we have a hooks file, let's load it */
-		const file = fs.readFileSync(hooksPath);
+		let file = null;
+		let hooks = {};
 
-		/* Parse and merge the hooks, or throw an error if it's malformed */
+		/* Read the hooks file, or throw an error if it can't be done */
 		try {
-			const hooks = JSON.parse(file.toString());
+			file = fs.readFileSync(hooksPath);
+		} catch {
+			throw new SaplingError(`Hooks at ${hooksPath} could not be read.`);
+		}
 
-			/* Set exported functions as object values */
-			for (const hook of Object.keys(hooks)) {
-				const { method, route } = this.parseMethodRouteKey(hook);
+		/* Parse the hooks, or throw an error if it's malformed */
+		try {
+			hooks = JSON.parse(file.toString());
+		} catch {
+			throw new SaplingError(`Hooks at ${hooksPath} could not be parsed.`);
+		}
 
-				this.hooks[`${method.toUpperCase()} ${route}`] = require(path.join(this.dir, this.config.hooksDir, hooks[hook]));
+		/* Set exported functions as object values */
+		for (const hook of Object.keys(hooks)) {
+			const { method, route } = this.parseMethodRouteKey(hook);
 
-				/* Initialise hook if it doesn't exist in the controller */
-				if (!(route in this.controller) && !route.startsWith('/data') && !route.startsWith('data')) {
-					/* Listen on */
-					this.server[method](route, async (request, response) => {
-						/* Run a hook, if it exists */
-						await this.runHook(method, route, request, response, null, () => {
-							new Response(this, request, response, null);
-						});
+			this.hooks[`${method} ${route}`] = require(path.join(this.dir, this.config.hooksDir, hooks[hook]));
+
+			/* Initialise hook if it doesn't exist in the controller */
+			if (!(route in this.controller) && !route.startsWith('/data') && !route.startsWith('data')) {
+				/* Listen on */
+				this.server[method](route, async (request, response) => {
+					/* Run a hook, if it exists */
+					return await this.runHook(method, route, request, response, null, () => {
+						return new Response(this, request, response, null);
 					});
+				});
 
-					/* Save the route for later */
-					this.routeStack[method].push(route);
-				}
+				/* Save the route for later */
+				this.routeStack[method].push(route);
 			}
-		} catch (error) {
-			console.error('Hooks could not be loaded.  Make sure all hook files exist.', error);
 		}
 	}
 
