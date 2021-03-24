@@ -1,0 +1,10 @@
+{
+    "GET /my-account": {
+        "role": "member",
+        "redirect": "/login"
+    },
+    "POST /data/posts": {
+        "role": ["member", "moderator"],
+        "redirect": "/login"
+    }
+}

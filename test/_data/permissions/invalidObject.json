@@ -1,0 +1,6 @@
+{
+    "GET /my-account": {
+        "role": false,
+        "redirect": "/login"
+    }
+}

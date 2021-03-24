@@ -23,7 +23,7 @@ const SaplingError = require('../lib/SaplingError');
  */
 module.exports = async function (next) {
 	/* Load the permissions file */
-	const permissionsPath = path.join(this.dir, 'permissions.json');
+	const permissionsPath = path.join(this.dir, this.config.permissions);
 	this.permissions = {};
 	let perms = {};
 
@@ -36,11 +36,7 @@ module.exports = async function (next) {
 	/* Loop over the urls in permissions */
 	for (const url of Object.keys(perms)) {
 		/* Format expected: "GET /url/here" */
-		let { method, route } = this.parseMethodRouteKey(url);
-
-		if (!route) {
-			return false;
-		}
+		const { method, route } = this.parseMethodRouteKey(url);
 
 		/* The minimum role level required for this method+route combination */
 		let perm = perms[url];
@@ -70,12 +66,7 @@ module.exports = async function (next) {
 		}
 
 		/* Save to object */
-		this.permissions[url] = perm;
-
-		/* Default method is `all`. */
-		if (!['get', 'post', 'delete'].includes(method)) {
-			method = 'all';
-		}
+		this.permissions[`${method} ${route}`] = perm;
 
 		/* Create middleware for each particular method+route combination */
 		this.server[method](route, (request, response, next) => {
@@ -89,7 +80,7 @@ module.exports = async function (next) {
 				if (request.permission.redirect) {
 					response.redirect(request.permission.redirect);
 				} else {
-					new Response(this, request, response, new SaplingError('You do not have permission to complete this action.'));
+					return new Response(this, request, response, new SaplingError('You do not have permission to complete this action.'));
 				}
 			} else {
 				next();

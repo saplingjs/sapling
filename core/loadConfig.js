@@ -31,6 +31,7 @@ module.exports = async function (next) {
 		autoRouting: true,
 		routes: 'routes.json',
 		hooks: 'hooks.json',
+		permissions: 'permissions.json',
 		extension: 'html',
 		secret: this.utils.randString(),
 		showError: true,
