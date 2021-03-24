@@ -8,6 +8,7 @@ module.exports = () => {
 			render: {
 				driver: 'html'
 			},
+			hooksDir: 'hooks/',
 			viewsDir: 'views/',
 			extension: 'html'
 		},
