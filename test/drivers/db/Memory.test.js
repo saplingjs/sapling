@@ -1,5 +1,7 @@
 const test = require('ava');
 
+const SaplingError = require('../../../lib/SaplingError');
+
 const Memory = require('../../../drivers/db/Memory');
 
 
@@ -10,10 +12,6 @@ test.before(t => {
 
 test.serial('connect is stubbed', t => {
 	t.true(t.context.memory.connect());
-});
-
-test.serial('createIndex is stubbed', t => {
-	t.true(t.context.memory.createIndex());
 });
 
 test.serial('creates a collection', t => {
@@ -32,6 +30,12 @@ test.serial('creates a second collection', t => {
 	t.true('second' in t.context.memory.memory);
 	t.true(Array.isArray(t.context.memory.memory.second));
 	t.is(t.context.memory.memory.second.length, 0);
+});
+
+test.serial('creates an index', t => {
+	t.context.memory.createIndex('uniques', { email: 'unique' });
+
+	t.deepEqual(t.context.memory.uniques, { uniques: [ 'email' ] });
 });
 
 test.serial('creates a new record in an existent collection', async t => {
@@ -72,6 +76,17 @@ test.serial('creates a new record in a non-existent collection', async t => {
 	t.true('third' in t.context.memory.memory);
 	t.true(Array.isArray(t.context.memory.memory.third));
 	t.is(t.context.memory.memory.third.length, 1);
+});
+
+test.serial('throws an error attempting to create record with non-unique value for a unique field', async t => {
+	await t.context.memory.write('uniques', { email: 'john@example.com' });
+
+	await t.throwsAsync(async () => {
+		return await t.context.memory.write('uniques', { email: 'john@example.com' });
+	}, {
+		instanceOf: SaplingError,
+		message: 'Value of email must be unique'
+	});
 });
 
 test.serial('reads all records in a collection', async t => {
@@ -219,6 +234,17 @@ test.serial('modifies nothing in a non-existent collection', async t => {
 
 	t.true(Array.isArray(results));
 	t.is(results.length, 0);
+});
+
+test.serial('throws an error attempting to modify record with non-unique value for a unique field', async t => {
+	await t.context.memory.write('uniques', { email: 'sally@example.com' });
+
+	await t.throwsAsync(async () => {
+		return await t.context.memory.modify('uniques', { email: 'john@example.com' }, { email: 'sally@example.com' });
+	}, {
+		instanceOf: SaplingError,
+		message: 'Value of email must be unique'
+	});
 });
 
 test.serial('deletes one record by ID', async t => {

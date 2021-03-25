@@ -11,6 +11,8 @@
 /* Dependencies */
 const _ = require('underscore');
 const Interface = require('./Interface');
+
+const SaplingError = require('../../lib/SaplingError');
 const Utils = require('../../lib/Utils');
 
 
@@ -22,6 +24,7 @@ module.exports = class Memory extends Interface {
 	 * The object that contains everything
 	 */
 	memory = {}
+	uniques = {}
 
 
 	/**
@@ -45,8 +48,12 @@ module.exports = class Memory extends Interface {
 	/**
 	 * Create an index for the specified fields
 	 */
-	createIndex() {
-		return true;
+	createIndex(collection, fields) {
+		if (!(collection in this.uniques)) {
+			this.uniques[collection] = [];
+		}
+
+		this.uniques[collection] = this.uniques[collection].concat(Object.keys(fields));
 	}
 
 
@@ -78,14 +85,24 @@ module.exports = class Memory extends Interface {
 	 * @param {object} data Data for the collection
 	 */
 	async write(collection, data) {
+		/* Create collection if it doesn't exist */
 		if (!this.memory[collection]) {
 			this.memory[collection] = [];
 		}
 
+		/* Check for uniques */
+		const uniques = this.checkUnique(collection, data);
+		if (uniques) {
+			throw new SaplingError(`Value of ${uniques} must be unique`);
+		}
+
+		/* Generate random ID */
 		data._id = new Utils().randString();
 
+		/* Add to memory */
 		this.memory[collection].push(data);
 
+		/* Return to request */
 		return new Utils().deepClone([data]);
 	}
 
@@ -104,6 +121,12 @@ module.exports = class Memory extends Interface {
 		if (Object.keys(conditions).length > 0) {
 			for (const [index, record] of records.entries()) {
 				if (this.isMatch(record, conditions) && this.memory[collection]) {
+					/* Check for uniques */
+					const uniques = this.checkUnique(collection, data, this.memory[collection][index]._id);
+					if (uniques) {
+						throw new SaplingError(`Value of ${uniques} must be unique`);
+					}
+
 					this.memory[collection][index] = _.extend(this.memory[collection][index], data);
 					newRecords.push(this.memory[collection][index]);
 				}
@@ -177,5 +200,28 @@ module.exports = class Memory extends Interface {
 		}
 
 		return match;
+	}
+
+
+	/**
+	 * Check if a value for a field with a unique index already exists in memory
+	 *
+	 * @param {string} collection Name of the collection
+	 * @param {object} data Data that will be entered
+	 * @param {string} id Optional ID of the current object, to ignore the record being modified
+	 * @returns array of field names with matching values, false if no matches
+	 */
+	checkUnique(collection, data, id) {
+		const matches = [];
+
+		if (collection in this.uniques && Object.keys(data).some(r => this.uniques[collection].includes(r))) {
+			for (const field of this.uniques[collection]) {
+				if (this.memory[collection].filter(item => item[field] === data[field] && (id ? item._id !== id : true)).length > 0) {
+					matches.push(field);
+				}
+			}
+		}
+
+		return matches.length > 0 ? matches : false;
 	}
 };

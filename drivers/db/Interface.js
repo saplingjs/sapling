@@ -48,10 +48,9 @@ module.exports = class Interface {
 	 * Create an index for the specified fields
 	 *
 	 * @param {string} collection Name of the target collection
-	 * @param {object} fields List of field names that should have indexes created. Key is the field name, value is the type of index
-	 * @param {object} config Driver specific options for the operation
+	 * @param {object} fields Object of indices to create.  Key is field name, value is index type, e.g. 'unique'
 	 */
-	async createIndex(collection, fields, config) {
+	async createIndex(collection, fields) {
 		throw new SaplingError('Method not implemented: createIndex');
 	}
 
