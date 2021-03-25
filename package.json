@@ -23,6 +23,7 @@
       "name": "Louis Stowasser"
     }
   ],
+  "bin": "./index.js",
   "dependencies": {
     "async": "^3.2.0",
     "body-parser": "1.19.0",
@@ -46,14 +47,6 @@
     "unused-filename": "^2.1.0",
     "yargs": "^16.2.0"
   },
-  "scripts": {
-    "precommit": "lint-staged",
-    "lint-fix": "xo --fix",
-    "lint": "xo",
-    "test": "nyc ava",
-    "test:report": "nyc --reporter=lcov npm test",
-    "test:send": "npx codecov"
-  },
   "devDependencies": {
     "@babel/core": "^7.13.10",
     "@babel/eslint-parser": "^7.13.4",
@@ -71,6 +64,14 @@
   },
   "resolutions": {
     "maildev/socket.io": "^2.4.0"
+  },
+  "scripts": {
+    "precommit": "lint-staged",
+    "lint-fix": "xo --fix",
+    "lint": "xo",
+    "test": "nyc ava",
+    "test:report": "nyc --reporter=lcov npm test",
+    "test:send": "npx codecov"
   },
   "xo": {
     "ignores": [
