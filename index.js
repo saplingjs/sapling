@@ -21,7 +21,7 @@ const path = require('path');
 const fs = require('fs');
 
 /* Determine if session store is configured */
-const configPath = path.join(__dirname, 'config.json');
+const configPath = path.join(process.cwd(), 'config.json');
 let sessionAvailable = false;
 
 if (fs.existsSync(configPath)) {
@@ -57,5 +57,5 @@ if (cluster.isMaster && !argv.single && sessionAvailable) {
 
 	/* Load a single instance */
 	const App = require('./app');
-	new App(__dirname);
+	new App(process.cwd());
 }
