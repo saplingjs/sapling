@@ -8,7 +8,7 @@
 
 
 /* Dependencies */
-const Response = require('../../../lib/Response');
+const Response = require('@sapling/sapling/lib/Response');
 
 
 /* Hook /api/user/logout */
