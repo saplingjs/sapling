@@ -9,10 +9,10 @@
 
 
 /* Dependencies */
-const { console } = require('../../../lib/Cluster');
-const Response = require('../../../lib/Response');
-const SaplingError = require('../../../lib/SaplingError');
-const Validation = require('../../../lib/Validation');
+const { console } = require('@sapling/sapling/lib/Cluster');
+const Response = require('@sapling/sapling/lib/Response');
+const SaplingError = require('@sapling/sapling/lib/SaplingError');
+const Validation = require('@sapling/sapling/lib/Validation');
 
 
 /* Hook /api/user/forgot */

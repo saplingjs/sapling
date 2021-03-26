@@ -10,10 +10,10 @@
 /* Dependencies */
 const _ = require('underscore');
 
-const { console } = require('../../../lib/Cluster');
-const Hash = require('../../../lib/Hash');
-const Response = require('../../../lib/Response');
-const SaplingError = require('../../../lib/SaplingError');
+const { console } = require('@sapling/sapling/lib/Cluster');
+const Hash = require('@sapling/sapling/lib/Hash');
+const Response = require('@sapling/sapling/lib/Response');
+const SaplingError = require('@sapling/sapling/lib/SaplingError');
 
 
 /* Hook /api/user/register */

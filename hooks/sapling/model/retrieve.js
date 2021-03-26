@@ -8,9 +8,9 @@
 
 
 /* Dependencies */
-const Response = require('../../../lib/Response');
-const SaplingError = require('../../../lib/SaplingError');
-const Utils = require('../../../lib/Utils');
+const Response = require('@sapling/sapling/lib/Response');
+const SaplingError = require('@sapling/sapling/lib/SaplingError');
+const Utils = require('@sapling/sapling/lib/Utils');
 
 
 /* Hook /api/model/:model */

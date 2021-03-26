@@ -11,7 +11,7 @@
 /* Dependencies */
 const _ = require('underscore');
 
-const Response = require('../../../lib/Response');
+const Response = require('@sapling/sapling/lib/Response');
 
 
 /* Hook /api/user/logged */

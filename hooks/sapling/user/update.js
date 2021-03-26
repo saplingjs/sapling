@@ -9,10 +9,10 @@
 
 
 /* Dependencies */
-const Hash = require('../../../lib/Hash');
+const Hash = require('@sapling/sapling/lib/Hash');
 
-const Response = require('../../../lib/Response');
-const SaplingError = require('../../../lib/SaplingError');
+const Response = require('@sapling/sapling/lib/Response');
+const SaplingError = require('@sapling/sapling/lib/SaplingError');
 
 
 /* Hook /api/user/update */
