@@ -18,7 +18,7 @@ jobs:
           node-version: '14'
 
       - name: Install dependencies
-        run: yarn install
+        run: npm install
 
       - name: Run linter
         run: npm run lint
