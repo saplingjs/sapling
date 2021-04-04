@@ -36,6 +36,7 @@ module.exports = async function (next) {
 		secret: this.utils.randString(),
 		showError: true,
 		strict: false,
+		limit: 100,
 		production: 'auto',
 		db: {
 			driver: 'Memory'
