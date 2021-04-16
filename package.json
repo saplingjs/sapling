@@ -37,7 +37,7 @@
     "express-session": "1.17.1",
     "filenamify": "^4.2.0",
     "front-matter": "^4.0.2",
-    "image-size": "^0.9.7",
+    "image-size": "^1.0.0",
     "isobject": "^4.0.0",
     "moment": "2.29.1",
     "morgan": "^1.9.1",
