@@ -49,10 +49,19 @@ module.exports = async function (next) {
 			/* Attempt to parse the JSON */
 			const parsedModel = JSON.parse(model.toString());
 
-			/* Convert string-based definitions into their object-based normals */
 			for (const rule of Object.keys(parsedModel)) {
+				/* Convert string-based definitions into their object-based normals */
 				if (typeof parsedModel[rule] === 'string') {
 					parsedModel[rule] = { type: parsedModel[rule] };
+				}
+
+				/* Normalise access definition */
+				if ('access' in parsedModel[rule]) {
+					if (typeof parsedModel[rule].access === 'string') {
+						parsedModel[rule].access = { r: parsedModel[rule].access, w: parsedModel[rule].access };
+					}
+				} else {
+					parsedModel[rule].access = { r: 'anyone', w: 'anyone' };
 				}
 			}
 
