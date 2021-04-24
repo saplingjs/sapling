@@ -1,0 +1,19 @@
+{
+	"title": {
+		"type": "string",
+		"required": true,
+		"maxlen": 140,
+		"access": {
+			"r": "anyone",
+			"w": "owner"
+		}
+	},
+	"viewCount": {
+		"type": "number",
+		"default": 0,
+		"access": "anyone"
+	},
+	"content": {
+		"type": "string"
+	}
+}
