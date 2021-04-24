@@ -54,6 +54,32 @@ test('loads object based model definition', async t => {
 	t.is(t.context.app.structure.posts.viewCount.default, 0);
 });
 
+test('normalises access object', async t => {
+	t.context.app.config.modelsDir = 'test/_data/models/access';
+
+	await t.notThrowsAsync(async () => {
+		await loadModel.call(t.context.app);
+	});
+
+	t.true('posts' in t.context.app.structure);
+	t.true('title' in t.context.app.structure.posts);
+	t.true('viewCount' in t.context.app.structure.posts);
+	t.true('content' in t.context.app.structure.posts);
+	t.true('access' in t.context.app.structure.posts.title);
+	t.true('access' in t.context.app.structure.posts.viewCount);
+	t.true('access' in t.context.app.structure.posts.content);
+	t.true(_.isObject(t.context.app.structure.posts.title.access));
+	t.true(_.isObject(t.context.app.structure.posts.viewCount.access));
+	t.true(_.isObject(t.context.app.structure.posts.content.access));
+
+	t.is(t.context.app.structure.posts.title.access.r, 'anyone');
+	t.is(t.context.app.structure.posts.title.access.w, 'owner');
+	t.is(t.context.app.structure.posts.viewCount.access.r, 'anyone');
+	t.is(t.context.app.structure.posts.viewCount.access.w, 'anyone');
+	t.is(t.context.app.structure.posts.content.access.r, 'anyone');
+	t.is(t.context.app.structure.posts.content.access.w, 'anyone');
+});
+
 test('throws an error for a mangled model definition', async t => {
 	t.context.app.config.modelsDir = 'test/_data/models/mangled';
 
