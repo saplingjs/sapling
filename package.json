@@ -45,7 +45,7 @@
     "path-match": "^1.2.4",
     "underscore": "1.13.1",
     "unused-filename": "^2.1.0",
-    "yargs": "^16.2.0"
+    "yargs": "^17.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.13.10",
