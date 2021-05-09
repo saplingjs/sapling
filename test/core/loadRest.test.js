@@ -1,6 +1,6 @@
 const test = require('ava');
 const _ = require('underscore');
-const express = require('express');
+const { App: TinyHTTP } = require('@tinyhttp/app');
 const request = require('supertest');
 
 const Storage = require('../../lib/Storage');
@@ -14,7 +14,7 @@ test.beforeEach(t => {
 		name: 'test'
 	}, require('../_utils/app')());
 
-	t.context.app.server = express();
+	t.context.app.server = new TinyHTTP();
 
 	t.context.app.storage = new Storage(t.context.app, {
 		name: 'test',
