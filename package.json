@@ -44,7 +44,7 @@
     "nodemailer": "6.6.0",
     "path-match": "^1.2.4",
     "underscore": "1.13.1",
-    "unused-filename": "^2.1.0",
+    "unused-filename": "^3.0.0",
     "yargs": "^17.0.1"
   },
   "devDependencies": {
