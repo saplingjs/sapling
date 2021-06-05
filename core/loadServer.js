@@ -97,13 +97,13 @@ module.exports = function ({ reload, listen }, next) {
 	if (this.config.csrf || this.config.strict) {
 		server.use(csrf({ cookie: false }));
 
-		server.use((error, request, response, next) => {
+		server.onError = (error, request, response, next) => {
 			if (error.code !== 'EBADCSRFTOKEN') {
 				return next(error);
 			}
 
 			new Response(this, request, response, new SaplingError('Invalid CSRF token'));
-		});
+		};
 	}
 
 	/* Enable the /data data interface */

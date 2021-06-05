@@ -460,5 +460,5 @@ test('does not process a non-file field in strict mode', async t => {
 
 
 test.after.always(t => {
-	fs.rmdirSync(path.join(__dirname, 'uploads'), { recursive: true });
+	fs.rmSync(path.join(__dirname, 'uploads'), { recursive: true });
 });
