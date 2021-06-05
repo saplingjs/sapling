@@ -9,13 +9,13 @@
 
 
 /* Dependencies */
-const _ = require('underscore');
+import _ from 'underscore';
 
-const Response = require('@sapling/sapling/lib/Response');
+import Response from '@sapling/sapling/lib/Response.js';
 
 
 /* Hook /api/user/logged */
-module.exports = async function (app, request, response) {
+export default async function logged(app, request, response) {
 	/* If session exists */
 	if (request.session && request.session.user) {
 		/* Get the user from storage */
@@ -37,4 +37,4 @@ module.exports = async function (app, request, response) {
 
 	/* If no session, return empty object */
 	return new Response(app, request, response, null, {});
-};
+}

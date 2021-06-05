@@ -10,13 +10,13 @@
 
 
 /* Dependencies */
-const SaplingError = require('../../lib/SaplingError');
+import SaplingError from '../../lib/SaplingError.js';
 
 
 /**
  * The Interface class
  */
-module.exports = class Interface {
+export default class Interface {
 	/**
 	 * The connection object that should be populated by the connect() method
 	 */

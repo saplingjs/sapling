@@ -9,15 +9,15 @@
 
 
 /* Dependencies */
-const _ = require('underscore');
+import _ from 'underscore';
 
-const Hash = require('@sapling/sapling/lib/Hash');
-const Response = require('@sapling/sapling/lib/Response');
-const SaplingError = require('@sapling/sapling/lib/SaplingError');
+import Hash from '@sapling/sapling/lib/Hash.js';
+import Response from '@sapling/sapling/lib/Response.js';
+import SaplingError from '@sapling/sapling/lib/SaplingError.js';
 
 
 /* Hook /api/user/login */
-module.exports = async function (app, request, response) {
+export default async function login(app, request, response) {
 	/* Find all identifiable fields */
 	const identifiables = Object.keys(app.storage.schema.users).filter(field => app.storage.schema.users[field].identifiable);
 
@@ -127,4 +127,4 @@ module.exports = async function (app, request, response) {
 		/* Otherwise, reply with the user object */
 		return new Response(app, request, response, null, request.session.user);
 	}
-};
+}

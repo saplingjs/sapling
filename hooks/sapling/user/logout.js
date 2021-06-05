@@ -8,11 +8,11 @@
 
 
 /* Dependencies */
-const Response = require('@sapling/sapling/lib/Response');
+import Response from '@sapling/sapling/lib/Response.js';
 
 
 /* Hook /api/user/logout */
-module.exports = async function (app, request, response) {
+export default async function logout(app, request, response) {
 	/* Destroy the session */
 	request.session.destroy();
 	request.session = null;
@@ -23,4 +23,4 @@ module.exports = async function (app, request, response) {
 	} else {
 		return new Response(app, request, response);
 	}
-};
+}

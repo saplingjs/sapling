@@ -6,11 +6,11 @@
 
 
 /* Dependencies */
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
-const { console } = require('../lib/Cluster');
-const Templating = require('../lib/Templating');
+import { console } from '../lib/Cluster.js';
+import Templating from '../lib/Templating.js';
 
 
 /**
@@ -18,7 +18,7 @@ const Templating = require('../lib/Templating');
  *
  * @param {function} next Chain callback
  */
-module.exports = async function (next) {
+export default async function loadController(next) {
 	/* Load templating engine */
 	this.templating = new Templating(this);
 
@@ -99,4 +99,4 @@ module.exports = async function (next) {
 	if (next) {
 		next();
 	}
-};
+}

@@ -6,12 +6,12 @@
 
 
 /* Dependencies */
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
-const { console } = require('../lib/Cluster');
-const SaplingError = require('../lib/SaplingError');
-const Storage = require('../lib/Storage');
+import { console } from '../lib/Cluster.js';
+import SaplingError from '../lib/SaplingError.js';
+import Storage from '../lib/Storage.js';
 
 
 /**
@@ -20,7 +20,7 @@ const Storage = require('../lib/Storage');
  *
  * @param {function} next Chain callback
  */
-module.exports = async function (next) {
+export default async function loadModel(next) {
 	const modelPath = path.join(this.dir, this.config.modelsDir);
 	const structure = {};
 	let files = {};
@@ -85,4 +85,4 @@ module.exports = async function (next) {
 	if (next) {
 		next();
 	}
-};
+}

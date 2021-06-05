@@ -1,12 +1,17 @@
-const test = require('ava');
-const _ = require('underscore');
+import test from 'ava';
+import _ from 'underscore';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const Storage = require('../../lib/Storage');
+import Storage from '../../lib/Storage.js';
 
-const User = require('../../lib/User');
+import User from '../../lib/User.js';
 
 
-test.beforeEach(t => {
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+
+test.beforeEach(async t => {
 	t.context.app = _.defaults({
 		storage: new Storage({}, {
 			name: 'test',
@@ -30,9 +35,9 @@ test.beforeEach(t => {
 			'get /edit': { role: ['member', 'admin'] },
 			'get /admin': { role: 'admin' }
 		}
-	}, require('../_utils/app')());
+	}, (await import('../_utils/app.js')).default());
 
-	t.context.response = require('../_utils/response');
+	t.context.response = import('../_utils/response.js');
 
 	t.context.user = new User(t.context.app);
 });

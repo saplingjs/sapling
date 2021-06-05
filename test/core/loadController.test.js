@@ -1,5 +1,5 @@
-const test = require('ava');
+import test from 'ava';
 
-const loadController = require('../../core/loadController');
+import loadController from '../../core/loadController.js';
 
 test.todo('tests loadController');

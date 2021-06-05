@@ -1,10 +1,14 @@
-const test = require('ava');
-const fs = require('fs');
-const path = require('path');
+import test from 'ava';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const SaplingError = require('../../lib/SaplingError');
+import SaplingError from '../../lib/SaplingError.js';
 
-const Utils = require('../../lib/Utils');
+import Utils from '../../lib/Utils.js';
+
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 
 test.before(t => {

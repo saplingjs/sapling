@@ -1,8 +1,8 @@
-const test = require('ava');
+import test from 'ava';
 
-const SaplingError = require('../../lib/SaplingError');
+import SaplingError from '../../lib/SaplingError.js';
 
-const parseMethodRouteKey = require('../../core/parseMethodRouteKey');
+import parseMethodRouteKey from '../../core/parseMethodRouteKey.js';
 
 
 test('parses uppercase GET correctly', t => {

@@ -1,8 +1,8 @@
-const test = require('ava');
+import test from 'ava';
 
-const cluster = require('cluster');
+import cluster from 'cluster';
 
-const { Cluster } = require('../../lib/Cluster');
+import Cluster from '../../lib/Cluster.js';
 
 
 test.beforeEach(t => {

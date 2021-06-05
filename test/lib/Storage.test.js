@@ -1,5 +1,5 @@
-const test = require('ava');
+import test from 'ava';
 
-const Storage = require('../../lib/Storage');
+import Storage from '../../lib/Storage.js';
 
 test.todo('tests Storage');

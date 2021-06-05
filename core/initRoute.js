@@ -6,9 +6,9 @@
 
 
 /* Dependencies */
-const { console } = require('../lib/Cluster');
-const Response = require('../lib/Response');
-const SaplingError = require('../lib/SaplingError');
+import { console } from '../lib/Cluster.js';
+import Response from '../lib/Response.js';
+import SaplingError from '../lib/SaplingError.js';
 
 
 /**
@@ -18,7 +18,7 @@ const SaplingError = require('../lib/SaplingError');
  * @param {string} route Name of the route to be loaded
  * @param {function} view Chain callback
  */
-module.exports = async function (route, view) {
+export default async function initRoute(route, view) {
 	console.log('Loaded route', `${route}`);
 
 	/* Create a handler for incoming requests */
@@ -38,4 +38,4 @@ module.exports = async function (route, view) {
 	/* Save the routes for later */
 	this.routeStack.get.push(route);
 	this.routeStack.post.push(route);
-};
+}

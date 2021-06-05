@@ -1,9 +1,9 @@
-const test = require('ava');
-const MailDev = require('maildev');
+import test from 'ava';
+import MailDev from 'maildev';
 
-const SaplingError = require('../../lib/SaplingError');
+import SaplingError from '../../lib/SaplingError.js';
 
-const Notifications = require('../../lib/Notifications');
+import Notifications from '../../lib/Notifications.js';
 
 
 const setup = (t, host, port) => {
@@ -37,8 +37,8 @@ test.before(t => {
 	};
 });
 
-test.beforeEach(t => {
-	t.context.app = require('../_utils/app')();
+test.beforeEach(async t => {
+	t.context.app = (await import('../_utils/app.js')).default();
 });
 
 

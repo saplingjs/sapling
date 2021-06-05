@@ -6,12 +6,12 @@
 
 
 /* Dependencies */
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
-const { console } = require('../lib/Cluster');
-const Response = require('../lib/Response');
-const SaplingError = require('../lib/SaplingError');
+import { console } from '../lib/Cluster.js';
+import Response from '../lib/Response.js';
+import SaplingError from '../lib/SaplingError.js';
 
 
 /**
@@ -21,7 +21,7 @@ const SaplingError = require('../lib/SaplingError');
  *
  * @param {function} next Chain callback
  */
-module.exports = async function (next) {
+export default async function loadPermissions(next) {
 	/* Load the permissions file */
 	const permissionsPath = path.join(this.dir, this.config.permissions);
 	this.permissions = {};
@@ -91,4 +91,4 @@ module.exports = async function (next) {
 	if (next) {
 		next();
 	}
-};
+}

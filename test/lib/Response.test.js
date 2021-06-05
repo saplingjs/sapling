@@ -1,8 +1,7 @@
-const test = require('ava');
-const path = require('path');
+import test from 'ava';
 
-const Response = require('../../lib/Response');
-const SaplingError = require('../../lib/SaplingError');
+import Response from '../../lib/Response.js';
+import SaplingError from '../../lib/SaplingError.js';
 
 
 const noAjax = t => {
@@ -11,10 +10,10 @@ const noAjax = t => {
 }
 
 
-test.beforeEach(t => {
-	t.context.app = require('../_utils/app')();
+test.beforeEach(async t => {
+	t.context.app = (await import('../_utils/app.js')).default();
 
-	t.context.request = require('../_utils/request')();
+	t.context.request = (await import('../_utils/request.js')).default();
 
 	t.context.response = () => {
 		const response = {};

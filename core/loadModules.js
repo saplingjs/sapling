@@ -6,9 +6,9 @@
 
 
 /* Dependencies */
-const Notifications = require('../lib/Notifications');
-const Uploads = require('../lib/Uploads');
-const User = require('../lib/User');
+import Notifications from '../lib/Notifications.js';
+import Uploads from '../lib/Uploads.js';
+import User from '../lib/User.js';
 
 
 /**
@@ -16,7 +16,7 @@ const User = require('../lib/User');
  *
  * @param {function} next Chain callback
  */
-module.exports = async function (next) {
+export default async function loadModules(next) {
 	this.user = new User(this);
 
 	if (this.config.mail) {
@@ -30,4 +30,4 @@ module.exports = async function (next) {
 	if (next) {
 		next();
 	}
-};
+}

@@ -8,13 +8,13 @@
 
 
 /* Dependencies */
-const Response = require('@sapling/sapling/lib/Response');
-const SaplingError = require('@sapling/sapling/lib/SaplingError');
-const Utils = require('@sapling/sapling/lib/Utils');
+import Response from '@sapling/sapling/lib/Response.js';
+import SaplingError from '@sapling/sapling/lib/SaplingError.js';
+import Utils from '@sapling/sapling/lib/Utils.js';
 
 
 /* Hook /api/model/:model */
-module.exports = async function (app, request, response) {
+export default async function retrieve(app, request, response) {
 	if (request.params.model) {
 		/* Fetch the given model */
 		const schema = new Utils().deepClone(app.storage.schema[request.params.model] || []);
@@ -36,4 +36,4 @@ module.exports = async function (app, request, response) {
 	}
 
 	return new Response(app, request, response, new SaplingError('No model specified'));
-};
+}

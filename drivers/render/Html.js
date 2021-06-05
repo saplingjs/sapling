@@ -9,18 +9,18 @@
 
 
 /* Dependencies */
-const fs = require('fs');
-const path = require('path');
-const _ = require('underscore');
-const Interface = require('./Interface');
+import fs from 'fs';
+import path from 'path';
+import _ from 'underscore';
+import Interface from './Interface.js';
 
-const SaplingError = require('../../lib/SaplingError');
+import SaplingError from '../../lib/SaplingError.js';
 
 
 /**
  * The HTML class
  */
-module.exports = class HTML extends Interface {
+export default class HTML extends Interface {
 	/**
 	 * Initialise HTML
 	 */
@@ -62,4 +62,4 @@ module.exports = class HTML extends Interface {
 	registerTags() {
 		return true;
 	}
-};
+}

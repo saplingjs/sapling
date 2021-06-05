@@ -1,21 +1,21 @@
-const test = require('ava');
+import test from 'ava';
 
-const Response = require('../../lib/Response');
-const SaplingError = require('../../lib/SaplingError');
-const Templating = require('../../lib/Templating');
+import Response from '../../lib/Response.js';
+import SaplingError from '../../lib/SaplingError.js';
+import Templating from '../../lib/Templating.js';
 
-const initRoute = require('../../core/initRoute');
+import initRoute from '../../core/initRoute.js';
 
 
-test.beforeEach(t => {
-	t.context.app = require('../_utils/app')();
+test.beforeEach(async t => {
+	t.context.app = (await import('../_utils/app.js')).default();
 
-	t.context.app.runHook = require('../../core/runHook');
+	t.context.app.runHook = import('../../core/runHook.js');
 
 	t.context.app.templating = new Templating(t.context.app);
 
-	t.context.request = require('../_utils/request')();
-	t.context.response = require('../_utils/response')();
+	t.context.request = (await import('../_utils/request.js')).default();
+	t.context.response = (await import('../_utils/response.js')).default();
 });
 
 

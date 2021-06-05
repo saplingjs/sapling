@@ -9,17 +9,17 @@
 
 
 /* Dependencies */
-const _ = require('underscore');
-const Interface = require('./Interface');
+import _ from 'underscore';
+import Interface from './Interface.js';
 
-const SaplingError = require('../../lib/SaplingError');
-const Utils = require('../../lib/Utils');
+import SaplingError from '../../lib/SaplingError.js';
+import Utils from '../../lib/Utils.js';
 
 
 /**
  * The Memory class
  */
-module.exports = class Memory extends Interface {
+export default class Memory extends Interface {
 	/**
 	 * The object that contains everything
 	 */
@@ -224,4 +224,4 @@ module.exports = class Memory extends Interface {
 
 		return matches.length > 0 ? matches : false;
 	}
-};
+}

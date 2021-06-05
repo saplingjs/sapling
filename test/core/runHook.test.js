@@ -1,5 +1,5 @@
-const test = require('ava');
+import test from 'ava';
 
-const runHook = require('../../core/runHook');
+import runHook from '../../core/runHook.js';
 
 test.todo('tests runHook');

@@ -6,13 +6,14 @@
 
 
 /* Dependencies */
-const argv = require('yargs').argv;
-const fs = require('fs');
-const path = require('path');
-const _ = require('underscore');
+import yargs from 'yargs';
+import { hideBin } from 'yargs/helpers';
+import fs from 'fs';
+import path from 'path';
+import _ from 'underscore';
 
-const { console } = require('../lib/Cluster');
-const SaplingError = require('../lib/SaplingError');
+import { console } from '../lib/Cluster.js';
+import SaplingError from '../lib/SaplingError.js';
 
 
 /**
@@ -21,7 +22,9 @@ const SaplingError = require('../lib/SaplingError');
  *
  * @param {function} next Chain callback
  */
-module.exports = async function (next) {
+export default async function loadConfig(next) {
+	const argv = yargs(hideBin(process.argv)).argv;
+
 	/* Default configuration values */
 	const defaultConfig = {
 		publicDir: 'public',
@@ -141,4 +144,4 @@ module.exports = async function (next) {
 	if (next) {
 		next();
 	}
-};
+}

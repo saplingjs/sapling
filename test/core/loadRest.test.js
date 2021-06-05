@@ -1,18 +1,23 @@
-const test = require('ava');
-const _ = require('underscore');
-const express = require('express');
-const request = require('supertest');
+import test from 'ava';
+import _ from 'underscore';
+import express from 'express';
+import request from 'supertest';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const Storage = require('../../lib/Storage');
-const User = require('../../lib/User');
+import Storage from '../../lib/Storage.js';
+import User from '../../lib/User.js';
 
-const loadRest = require('../../core/loadRest');
+import loadRest from '../../core/loadRest.js';
 
 
-test.beforeEach(t => {
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+
+test.beforeEach(async t => {
 	t.context.app = _.extend({
 		name: 'test'
-	}, require('../_utils/app')());
+	}, (await import('../_utils/app.js')).default());
 
 	t.context.app.server = express();
 
@@ -25,10 +30,10 @@ test.beforeEach(t => {
 
 	t.context.app.user = new User(t.context.app);
 
-	t.context.app.runHook = require('../../core/runHook');
+	t.context.app.runHook = import('../../core/runHook');
 
-	t.context.request = require('../_utils/request')();
-	t.context.response = require('../_utils/response')();
+	t.context.request = (await import('../_utils/request.js')).default();
+	t.context.response = (await import('../_utils/response.js')).default();
 });
 
 

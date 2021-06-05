@@ -3,6 +3,7 @@
   "version": "0.1.4",
   "license": "MPL-2.0",
   "description": "Node.js framework for faster-than-light web development.",
+  "type": "module",
   "keywords": [
     "framework",
     "server",
@@ -52,7 +53,6 @@
     "@babel/eslint-parser": "^7.13.4",
     "@sapling/sapling": "file:.",
     "ava": "^3.15.0",
-    "babel-eslint": "^10.1.0",
     "eslint": "^7.22.0",
     "husky": "4.3.8",
     "lint-staged": ">=10",
@@ -81,7 +81,10 @@
       "node_modules/**/*.*",
       "test/**/*.*"
     ],
-    "parser": "babel-eslint",
+    "parser": "@babel/eslint-parser",
+    "parserOptions": {
+      "requireConfigFile": false
+    },
     "rules": {
       "max-params": [
         "warn",

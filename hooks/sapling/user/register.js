@@ -8,16 +8,16 @@
 
 
 /* Dependencies */
-const _ = require('underscore');
+import _ from 'underscore';
 
-const { console } = require('@sapling/sapling/lib/Cluster');
-const Hash = require('@sapling/sapling/lib/Hash');
-const Response = require('@sapling/sapling/lib/Response');
-const SaplingError = require('@sapling/sapling/lib/SaplingError');
+import { console } from '@sapling/sapling/lib/Cluster.js';
+import Hash from '@sapling/sapling/lib/Hash.js';
+import Response from '@sapling/sapling/lib/Response.js';
+import SaplingError from '@sapling/sapling/lib/SaplingError.js';
 
 
 /* Hook /api/user/register */
-module.exports = async function (app, request, response) {
+export default async function register(app, request, response) {
 	/* Error collection */
 	const errors = [];
 
@@ -106,4 +106,4 @@ module.exports = async function (app, request, response) {
 		/* Respond with the user object */
 		return new Response(app, request, response, null, userData);
 	}
-};
+}

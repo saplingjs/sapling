@@ -6,8 +6,8 @@
 
 
 /* Dependencies */
-const Response = require('../lib/Response');
-const SaplingError = require('../lib/SaplingError');
+import Response from '../lib/Response.js';
+import SaplingError from '../lib/SaplingError.js';
 
 
 /**
@@ -15,7 +15,7 @@ const SaplingError = require('../lib/SaplingError');
  *
  * @param {function} next Chain callback
  */
-module.exports = async function (next) {
+export default async function loadRest(next) {
 	/* Direct user creation to a special case endpoint */
 	this.server.post(/\/data\/users\/?$/, (request, response) => {
 		this.runHook('post', '/api/user/register', request, response);
@@ -65,4 +65,4 @@ module.exports = async function (next) {
 	if (next) {
 		next();
 	}
-};
+}
