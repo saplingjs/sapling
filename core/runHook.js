@@ -8,7 +8,7 @@
 /* Dependencies */
 const routeMatcher = require('path-match')();
 
-const { console } = require('../lib/Cluster');
+const { console } = require('../lib/Cluster.js');
 
 
 /**

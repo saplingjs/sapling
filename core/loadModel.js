@@ -9,9 +9,9 @@
 const fs = require('fs');
 const path = require('path');
 
-const { console } = require('../lib/Cluster');
-const SaplingError = require('../lib/SaplingError');
-const Storage = require('../lib/Storage');
+const { console } = require('../lib/Cluster.js');
+const SaplingError = require('../lib/SaplingError.js');
+const Storage = require('../lib/Storage.js');
 
 
 /**

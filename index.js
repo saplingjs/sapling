@@ -56,6 +56,6 @@ if (cluster.isMaster && !argv.single && sessionAvailable) {
 	}
 
 	/* Load a single instance */
-	const App = require('./app');
+	const App = require('./app.js');
 	new App(process.cwd());
 }

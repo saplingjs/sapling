@@ -4,10 +4,10 @@ const fs = require('fs');
 const _ = require('underscore');
 const mimeTypes = require('mime-types');
 
-const Response = require('../../lib/Response');
-const SaplingError = require('../../lib/SaplingError');
+const Response = require('../../lib/Response.js');
+const SaplingError = require('../../lib/SaplingError.js');
 
-const Uploads = require('../../lib/Uploads');
+const Uploads = require('../../lib/Uploads.js');
 
 
 const getFileObject = (filename, cb) => {

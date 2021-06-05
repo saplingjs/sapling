@@ -11,9 +11,9 @@
 const async = require('async');
 
 /* Internal dependencies */
-const { console } = require('./lib/Cluster');
-const Response = require('./lib/Response');
-const Utils = require('./lib/Utils');
+const { console } = require('./lib/Cluster.js');
+const Response = require('./lib/Response.js');
+const Utils = require('./lib/Utils.js');
 
 
 /**
@@ -43,51 +43,51 @@ class App {
 
 		/* Load everything */
 		async.series([
-			callback => require('./core/loadConfig').call(this, callback),
+			callback => require('./core/loadConfig.js').call(this, callback),
 			callback => {
 				if (options.loadServer !== false) {
-					require('./core/loadServer').call(this, options, callback);
+					require('./core/loadServer.js').call(this, options, callback);
 				}
 			},
 			callback => {
 				if (options.loadModel !== false) {
-					require('./core/loadModel').call(this, callback);
+					require('./core/loadModel.js').call(this, callback);
 				}
 			},
 			callback => {
 				if (options.loadPermissions !== false) {
-					require('./core/loadPermissions').call(this, callback);
+					require('./core/loadPermissions.js').call(this, callback);
 				}
 			},
 			callback => {
 				if (options.loadController !== false) {
-					require('./core/loadController').call(this, callback);
+					require('./core/loadController.js').call(this, callback);
 				}
 			},
 			callback => {
 				if (options.loadHooks !== false) {
-					require('./core/loadHooks').call(this, callback);
+					require('./core/loadHooks.js').call(this, callback);
 				}
 			},
 			callback => {
 				if (options.loadViews !== false) {
-					require('./core/loadCustomTags').call(this, callback);
+					require('./core/loadCustomTags.js').call(this, callback);
 				}
 			},
 			callback => {
-				require('./core/loadModules').call(this, callback);
+				require('./core/loadModules.js').call(this, callback);
 			},
 			callback => {
 				if (options.loadViews !== false) {
 					for (const route in this.controller) {
 						if ({}.hasOwnProperty.call(this.controller, route)) {
-							require('./core/initRoute').call(this, route, this.controller[route]);
+							require('./core/initRoute.js').call(this, route, this.controller[route]);
 						}
 					}
 				}
 
 				if (options.loadREST !== false) {
-					require('./core/loadRest').call(this, callback);
+					require('./core/loadRest.js').call(this, callback);
 				}
 			},
 			callback => {
@@ -111,8 +111,8 @@ class App {
 	}
 
 	/* Load remaining methods */
-	parseMethodRouteKey = require('./core/parseMethodRouteKey');
-	runHook = require('./core/runHook');
+	parseMethodRouteKey = require('./core/parseMethodRouteKey.js');
+	runHook = require('./core/runHook.js');
 }
 
 module.exports = App;

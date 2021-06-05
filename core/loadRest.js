@@ -6,8 +6,8 @@
 
 
 /* Dependencies */
-const Response = require('../lib/Response');
-const SaplingError = require('../lib/SaplingError');
+const Response = require('../lib/Response.js');
+const SaplingError = require('../lib/SaplingError.js');
 
 
 /**

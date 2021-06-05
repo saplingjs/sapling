@@ -7,9 +7,9 @@
 
 /* Dependencies */
 const path = require('path');
-const { Cluster } = require('../lib/Cluster');
-const Response = require('../lib/Response');
-const SaplingError = require('../lib/SaplingError');
+const { Cluster } = require('../lib/Cluster.js');
+const Response = require('../lib/Response.js');
+const SaplingError = require('../lib/SaplingError.js');
 
 const { App: TinyHTTP } = require('@tinyhttp/app');
 const sirv = require('sirv');

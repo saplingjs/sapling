@@ -10,10 +10,10 @@
 
 /* Dependencies */
 const _ = require('underscore');
-const Interface = require('./Interface');
+const Interface = require('./Interface.js');
 
-const SaplingError = require('../../lib/SaplingError');
-const Utils = require('../../lib/Utils');
+const SaplingError = require('../../lib/SaplingError.js');
+const Utils = require('../../lib/Utils.js');
 
 
 /**
