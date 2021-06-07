@@ -12,9 +12,9 @@
 const fs = require('fs');
 const path = require('path');
 const _ = require('underscore');
-const Interface = require('./Interface');
+const Interface = require('./Interface.js');
 
-const SaplingError = require('../../lib/SaplingError');
+const SaplingError = require('../../lib/SaplingError.js');
 
 
 /**

@@ -6,9 +6,9 @@
 
 
 /* Dependencies */
-const Notifications = require('../lib/Notifications');
-const Uploads = require('../lib/Uploads');
-const User = require('../lib/User');
+const Notifications = require('../lib/Notifications.js');
+const Uploads = require('../lib/Uploads.js');
+const User = require('../lib/User.js');
 
 
 /**

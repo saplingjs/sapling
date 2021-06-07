@@ -10,7 +10,7 @@
 
 
 /* Dependencies */
-const SaplingError = require('../../lib/SaplingError');
+const SaplingError = require('../../lib/SaplingError.js');
 
 
 /**

@@ -7,11 +7,12 @@
 
 /* Dependencies */
 const path = require('path');
-const { Cluster } = require('../lib/Cluster');
-const Response = require('../lib/Response');
-const SaplingError = require('../lib/SaplingError');
+const { Cluster } = require('../lib/Cluster.js');
+const Response = require('../lib/Response.js');
+const SaplingError = require('../lib/SaplingError.js');
 
-const express = require('express');
+const { App: TinyHTTP } = require('@tinyhttp/app');
+const sirv = require('sirv');
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
@@ -34,7 +35,7 @@ module.exports = function ({ reload, listen }, next) {
 		// This.server.routes = server._router.map;
 		// this.server.stack.length = 2;
 	} else {
-		server = express();
+		server = new TinyHTTP();
 		this.routeStack = { get: [], post: [], delete: [] };
 	}
 
@@ -82,7 +83,7 @@ module.exports = function ({ reload, listen }, next) {
 		/* Loop through it */
 		for (const publicDir of this.config.publicDir) {
 			const publicDirPath = path.join(this.dir, publicDir);
-			server.use(`/${publicDir}`, express.static(publicDirPath, { maxAge: 1 }));
+			server.use(`/${publicDir}`, sirv(publicDirPath, { maxAge: 1 }));
 		}
 	}
 
@@ -96,13 +97,13 @@ module.exports = function ({ reload, listen }, next) {
 	if (this.config.csrf || this.config.strict) {
 		server.use(csrf({ cookie: false }));
 
-		server.use((error, request, response, next) => {
+		server.onError = (error, request, response, next) => {
 			if (error.code !== 'EBADCSRFTOKEN') {
 				return next(error);
 			}
 
 			new Response(this, request, response, new SaplingError('Invalid CSRF token'));
-		});
+		};
 	}
 
 	/* Enable the /data data interface */

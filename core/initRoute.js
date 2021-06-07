@@ -6,9 +6,9 @@
 
 
 /* Dependencies */
-const { console } = require('../lib/Cluster');
-const Response = require('../lib/Response');
-const SaplingError = require('../lib/SaplingError');
+const { console } = require('../lib/Cluster.js');
+const Response = require('../lib/Response.js');
+const SaplingError = require('../lib/SaplingError.js');
 
 
 /**

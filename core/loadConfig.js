@@ -11,8 +11,8 @@ const fs = require('fs');
 const path = require('path');
 const _ = require('underscore');
 
-const { console } = require('../lib/Cluster');
-const SaplingError = require('../lib/SaplingError');
+const { console } = require('../lib/Cluster.js');
+const SaplingError = require('../lib/SaplingError.js');
 
 
 /**

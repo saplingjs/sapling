@@ -9,8 +9,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const { console } = require('../lib/Cluster');
-const Templating = require('../lib/Templating');
+const { console } = require('../lib/Cluster.js');
+const Templating = require('../lib/Templating.js');
 
 
 /**
