@@ -16,25 +16,28 @@ test.beforeEach(async t => {
 });
 
 
-test.serial('loads the default renderer', t => {
-	t.notThrows(() => {
+test.serial('loads the default renderer', async t => {
+	await t.notThrowsAsync(async () => {
 		t.context.app.templating = new Templating(t.context.app);
+		return await t.context.app.templating.importDriver();
 	});
 });
 
-test.serial('loads a renderer case insensitively', t => {
+test.serial('loads a renderer case insensitively', async t => {
 	t.context.app.config.render.driver = 'hTMl';
 
-	t.notThrows(() => {
+	await t.notThrowsAsync(async () => {
 		t.context.app.templating = new Templating(t.context.app);
+		return await t.context.app.templating.importDriver();
 	});
 });
 
-test.serial('loads a custom renderer', t => {
+test.serial('loads a custom renderer', async t => {
 	t.context.app.config.render.driver = 'render-driver-custom';
 
-	t.throws(() => {
+	await t.throwsAsync(async () => {
 		t.context.app.templating = new Templating(t.context.app);
+		return await t.context.app.templating.importDriver();
 	}, {
 		instanceOf: SaplingError,
 		message: 'Cannot find any render driver for \'render-driver-custom\''
