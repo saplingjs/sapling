@@ -37,7 +37,7 @@ test.beforeEach(async t => {
 		}
 	}, (await import('../_utils/app.js')).default());
 
-	t.context.response = import('../_utils/response.js');
+	t.context.response = (await import('../_utils/response.js')).default();
 
 	t.context.user = new User(t.context.app);
 });
@@ -150,7 +150,7 @@ test('allows a user that is logged in for a protected route', t => {
 				role: 'member'
 			}
 		}
-	}, t.context.response()));
+	}, t.context.response));
 });
 
 test('denies a user that is not logged in for a protected route', t => {
@@ -159,7 +159,7 @@ test('denies a user that is not logged in for a protected route', t => {
 			role: [ 'member' ]
 		},
 		session: {}
-	}, t.context.response()));
+	}, t.context.response));
 });
 
 test('allows a user that is logged in for a public route', t => {
@@ -172,7 +172,7 @@ test('allows a user that is logged in for a public route', t => {
 				role: 'member'
 			}
 		}
-	}, t.context.response()));
+	}, t.context.response));
 });
 
 test('allows a user that is not logged in for a public route', t => {
@@ -181,7 +181,7 @@ test('allows a user that is not logged in for a public route', t => {
 			role: [ 'anyone' ]
 		},
 		session: {}
-	}, t.context.response()));
+	}, t.context.response));
 });
 
 test('denies a user that is logged in for a stranger route', t => {
@@ -194,7 +194,7 @@ test('denies a user that is logged in for a stranger route', t => {
 				role: 'member'
 			}
 		}
-	}, t.context.response()));
+	}, t.context.response));
 });
 
 test('allows a user that is not logged in for a stranger route', t => {
@@ -203,14 +203,14 @@ test('allows a user that is not logged in for a stranger route', t => {
 			role: [ 'stranger' ]
 		},
 		session: {}
-	}, t.context.response()));
+	}, t.context.response));
 });
 
 test('allows a user that is not logged in for an undefined route', t => {
 	t.true(t.context.user.isUserAuthenticatedForRoute({
 		permission: null,
 		session: {}
-	}, t.context.response()));
+	}, t.context.response));
 });
 
 test('allows a user that is logged in for an undefined route', t => {
@@ -219,7 +219,7 @@ test('allows a user that is logged in for an undefined route', t => {
 		session: {
 			role: 'member'
 		}
-	}, t.context.response()));
+	}, t.context.response));
 });
 
 

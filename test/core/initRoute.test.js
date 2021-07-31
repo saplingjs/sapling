@@ -4,13 +4,14 @@ import Response from '../../lib/Response.js';
 import SaplingError from '../../lib/SaplingError.js';
 import Templating from '../../lib/Templating.js';
 
+import runHook from '../../core/runHook.js';
 import initRoute from '../../core/initRoute.js';
 
 
 test.beforeEach(async t => {
 	t.context.app = (await import('../_utils/app.js')).default();
 
-	t.context.app.runHook = import('../../core/runHook.js');
+	t.context.app.runHook = runHook;
 
 	t.context.app.templating = new Templating(t.context.app);
 

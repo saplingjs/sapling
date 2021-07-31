@@ -43,6 +43,7 @@ test.beforeEach(async t => {
 
 
 test.cb('sends a notification', t => {
+	process.env.NODE_ENV = 'production';
 	t.timeout(1000);
 	t.plan(3);
 

@@ -29,6 +29,7 @@ test.beforeEach(async t => {
 		config: { db: { driver: 'Memory' } },
 		dir: __dirname
 	});
+	await t.context.app.storage.importDriver();
 });
 
 
