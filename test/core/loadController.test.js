@@ -8,7 +8,7 @@ import loadController from '../../core/loadController.js';
 test.beforeEach(t => {
 	t.context.app = _.defaults({
 		dir: path.join(__dirname, '../_data')
-	}, require('../_utils/app')());
+	}, (await import('../_utils/app.js')).default());
 });
 
 
