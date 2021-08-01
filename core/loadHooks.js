@@ -49,14 +49,14 @@ export default async function loadHooks(next) {
 		for (const hook of Object.keys(hooks)) {
 			const { method, route } = this.parseMethodRouteKey(hook);
 
-			this.hooks[`${method} ${route}`] = import(path.join(this.dir, this.config.hooksDir, hooks[hook]));
+			this.hooks[`${method} ${route}`] = (await import(path.join(this.dir, this.config.hooksDir, hooks[hook]))).default;
 
 			/* Initialise hook if it doesn't exist in the controller */
 			if (!(route in this.controller) && !route.startsWith('/data') && !route.startsWith('data')) {
 				/* Listen on */
 				this.server[method](route, async (request, response) => {
 					/* Run a hook, if it exists */
-					return await this.runHook(method, route, request, response, null, () => {
+					return await this.runHook.call(this, method, route, request, response, null, () => {
 						return new Response(this, request, response, null);
 					});
 				});

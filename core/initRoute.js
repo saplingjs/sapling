@@ -24,7 +24,7 @@ export default async function initRoute(route, view) {
 	/* Create a handler for incoming requests */
 	const handler = async (request, response) => {
 		/* Run a hook, if it exists */
-		return await this.runHook('get', route, request, response, null, async () => {
+		return await this.runHook.call(this, 'get', route, request, response, null, async () => {
 			const html = await this.templating.renderView(view, {}, request);
 
 			return html instanceof SaplingError ? new Response(this, request, response, html) : new Response(this, request, response, null, html);

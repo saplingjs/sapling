@@ -21,6 +21,7 @@ import Templating from '../lib/Templating.js';
 export default async function loadController(next) {
 	/* Load templating engine */
 	this.templating = new Templating(this);
+	await this.templating.importDriver();
 
 	this.controller = {};
 
@@ -71,11 +72,10 @@ export default async function loadController(next) {
 
 	/* Load the controller file */
 	if (fs.existsSync(controllerPath) && fs.lstatSync(controllerPath).isFile()) {
-		/* If we have a controller file, let's load it */
-		const file = fs.readFileSync(controllerPath);
-
 		/* Parse and merge the controller, or throw an error if it's malformed */
 		try {
+			/* Load the controller file */
+			const file = fs.readFileSync(controllerPath);
 			const routes = JSON.parse(file.toString());
 
 			/* Remove file extension */
