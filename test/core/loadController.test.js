@@ -1,11 +1,15 @@
 import test from 'ava';
 import path from 'path';
 import _ from 'underscore';
+import { fileURLToPath } from 'url';
 
 import loadController from '../../core/loadController.js';
 
 
-test.beforeEach(t => {
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+
+test.beforeEach(async t => {
 	t.context.app = _.defaults({
 		dir: path.join(__dirname, '../_data')
 	}, (await import('../_utils/app.js')).default());

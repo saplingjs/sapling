@@ -39,6 +39,7 @@ test.beforeEach(async t => {
 		config: { db: { driver: 'Memory' } },
 		dir: __dirname
 	});
+	await t.context.app.storage.importDriver();
 
 	t.context.app.user = new User(t.context.app);
 

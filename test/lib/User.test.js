@@ -36,6 +36,7 @@ test.beforeEach(async t => {
 			'get /admin': { role: 'admin' }
 		}
 	}, (await import('../_utils/app.js')).default());
+	await t.context.app.storage.importDriver();
 
 	t.context.response = (await import('../_utils/response.js')).default();
 

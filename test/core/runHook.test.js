@@ -1,11 +1,16 @@
 import test from 'ava';
 import _ from 'underscore';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 import parseMethodRouteKey from '../../core/parseMethodRouteKey.js';
 import runHook from '../../core/runHook.js';
 
 
-test.beforeEach(t => {
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+
+test.beforeEach(async t => {
 	t.context.app = _.defaults({
 		dir: __dirname
 	}, (await import('../_utils/app.js')).default());
