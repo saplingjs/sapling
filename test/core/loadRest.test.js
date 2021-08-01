@@ -1,12 +1,15 @@
 import test from 'ava';
 import _ from 'underscore';
 import express from 'express';
+import session from 'express-session';
+import bodyParser from 'body-parser';
 import request from 'supertest';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 import Storage from '../../lib/Storage.js';
 import User from '../../lib/User.js';
+import runHook from '../../core/runHook.js';
 
 import loadRest from '../../core/loadRest.js';
 
@@ -20,10 +23,13 @@ test.beforeEach(async t => {
 	}, (await import('../_utils/app.js')).default());
 
 	t.context.app.server = express();
+	t.context.app.server.use(session({ secret: 'abc', resave: false, saveUninitialized: true, cookie: { maxAge: null } }));
+	t.context.app.server.use(bodyParser.urlencoded({ extended: true }));
+	t.context.app.server.use(bodyParser.json());
 
 	t.context.app.storage = new Storage(t.context.app, {
 		name: 'test',
-		schema: {},
+		schema: { posts: { title: { type: 'string' } } },
 		config: { db: { driver: 'Memory' } },
 		dir: __dirname
 	});
@@ -31,7 +37,7 @@ test.beforeEach(async t => {
 
 	t.context.app.user = new User(t.context.app);
 
-	t.context.app.runHook = import('../../core/runHook');
+	t.context.app.runHook = runHook;
 
 	t.context.request = (await import('../_utils/request.js')).default();
 	t.context.response = (await import('../_utils/response.js')).default();
@@ -53,8 +59,7 @@ test.serial.cb('loads get endpoints', t => {
 		});
 });
 
-/* Hangs on line 693 of Storage.js for some reason */
-test.serial.cb.skip('loads post endpoints', t => {
+test.serial.cb('loads post endpoints', t => {
 	t.plan(2);
 
 	t.notThrows(() => {
@@ -63,7 +68,7 @@ test.serial.cb.skip('loads post endpoints', t => {
 
 	request(t.context.app.server)
 		.post('/data/posts')
-		.send({ title: 'Hello' })
+		.send('title=Hello')
 		.set('Accept', 'application/json')
 		.expect(200, (error, response) => {
 			t.is(response.status, 200);
@@ -86,7 +91,7 @@ test.serial.cb('loads delete endpoints', t => {
 		});
 });
 
-test('calls callback when specified', async t => {
+test.serial('calls callback when specified', async t => {
 	await loadRest.call(t.context.app, () => {
 		t.pass();
 	});
