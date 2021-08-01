@@ -17,6 +17,7 @@ import cluster from 'cluster';
 import os from 'os';
 import chalk from 'chalk';
 import yargs from 'yargs';
+/* eslint-disable-next-line node/file-extension-in-import */
 import { hideBin } from 'yargs/helpers';
 import path from 'path';
 import fs from 'fs';

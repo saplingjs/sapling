@@ -18,7 +18,7 @@ import SaplingError from '../lib/SaplingError.js';
 export default async function loadRest(next) {
 	/* Direct user creation to a special case endpoint */
 	this.server.post(/\/data\/users\/?$/, async (request, response) => {
-		await this.runHook.call(this, 'post', '/api/user/register', request, response);
+		await this.runHook('post', '/api/user/register', request, response);
 	});
 
 	/* Otherwise, send each type of query to be handled by Storage */
@@ -27,7 +27,7 @@ export default async function loadRest(next) {
 		const data = await this.storage.get(request, response);
 
 		/* Run hooks, then send data */
-		await this.runHook.call(this, 'get', request.originalUrl, request, response, data, (app, request, response, data) => {
+		await this.runHook('get', request.originalUrl, request, response, data, (app, request, response, data) => {
 			if (data) {
 				new Response(this, request, response, null, data || []);
 			} else {
@@ -40,7 +40,7 @@ export default async function loadRest(next) {
 		const data = await this.storage.post(request, response);
 
 		/* Run hooks, then send data */
-		await this.runHook.call(this, 'post', request.originalUrl, request, response, data, (app, request, response, data) => {
+		await this.runHook('post', request.originalUrl, request, response, data, (app, request, response, data) => {
 			if (data) {
 				new Response(this, request, response, null, data || []);
 			} else {
@@ -53,7 +53,7 @@ export default async function loadRest(next) {
 		await this.storage.delete(request, response);
 
 		/* Run hooks, then send data */
-		await this.runHook.call(this, 'delete', request.originalUrl, request, response, [], (app, request, response, data) => {
+		await this.runHook('delete', request.originalUrl, request, response, [], (app, request, response, data) => {
 			if (data) {
 				new Response(this, request, response, null, data || []);
 			} else {

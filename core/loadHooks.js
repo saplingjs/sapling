@@ -56,7 +56,7 @@ export default async function loadHooks(next) {
 				/* Listen on */
 				this.server[method](route, async (request, response) => {
 					/* Run a hook, if it exists */
-					return await this.runHook.call(this, method, route, request, response, null, () => {
+					return await this.runHook(method, route, request, response, null, () => {
 						return new Response(this, request, response, null);
 					});
 				});
