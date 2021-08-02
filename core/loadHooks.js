@@ -6,12 +6,12 @@
 
 
 /* Dependencies */
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
-const { console } = require('../lib/Cluster');
-const Response = require('../lib/Response');
-const SaplingError = require('../lib/SaplingError');
+import { console } from '../lib/Cluster.js';
+import Response from '../lib/Response.js';
+import SaplingError from '../lib/SaplingError.js';
 
 
 /**
@@ -19,7 +19,7 @@ const SaplingError = require('../lib/SaplingError');
  *
  * @param {function} next Chain callback
  */
-module.exports = async function (next) {
+export default async function loadHooks(next) {
 	/* Location of the hooks file */
 	const hooksPath = path.join(this.dir, this.config.hooks);
 
@@ -49,7 +49,7 @@ module.exports = async function (next) {
 		for (const hook of Object.keys(hooks)) {
 			const { method, route } = this.parseMethodRouteKey(hook);
 
-			this.hooks[`${method} ${route}`] = require(path.join(this.dir, this.config.hooksDir, hooks[hook]));
+			this.hooks[`${method} ${route}`] = (await import(path.join(this.dir, this.config.hooksDir, hooks[hook]))).default;
 
 			/* Initialise hook if it doesn't exist in the controller */
 			if (!(route in this.controller) && !route.startsWith('/data') && !route.startsWith('data')) {
@@ -72,4 +72,4 @@ module.exports = async function (next) {
 	if (next) {
 		next();
 	}
-};
+}

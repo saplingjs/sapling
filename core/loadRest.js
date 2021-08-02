@@ -6,8 +6,8 @@
 
 
 /* Dependencies */
-const Response = require('../lib/Response');
-const SaplingError = require('../lib/SaplingError');
+import Response from '../lib/Response.js';
+import SaplingError from '../lib/SaplingError.js';
 
 
 /**
@@ -15,9 +15,9 @@ const SaplingError = require('../lib/SaplingError');
  *
  * @param {function} next Chain callback
  */
-module.exports = async function (next) {
+export default async function loadRest(next) {
 	/* Direct user creation to a special case endpoint */
-	this.server.post(/\/data\/users\/?$/, (request, response) => {
+	this.server.post(/\/data\/users\/?$/, async (request, response) => {
 		this.runHook('post', '/api/user/register', request, response);
 	});
 
@@ -27,7 +27,7 @@ module.exports = async function (next) {
 		const data = await this.storage.get(request, response);
 
 		/* Run hooks, then send data */
-		await this.runHook('get', request.originalUrl, request, response, data, (app, request, response, data) => {
+		this.runHook('get', request.originalUrl, request, response, data, (app, request, response, data) => {
 			if (data) {
 				new Response(this, request, response, null, data || []);
 			} else {
@@ -40,7 +40,7 @@ module.exports = async function (next) {
 		const data = await this.storage.post(request, response);
 
 		/* Run hooks, then send data */
-		await this.runHook('post', request.originalUrl, request, response, data, (app, request, response, data) => {
+		this.runHook('post', request.originalUrl, request, response, data, (app, request, response, data) => {
 			if (data) {
 				new Response(this, request, response, null, data || []);
 			} else {
@@ -53,7 +53,7 @@ module.exports = async function (next) {
 		await this.storage.delete(request, response);
 
 		/* Run hooks, then send data */
-		await this.runHook('delete', request.originalUrl, request, response, [], (app, request, response, data) => {
+		this.runHook('delete', request.originalUrl, request, response, [], (app, request, response, data) => {
 			if (data) {
 				new Response(this, request, response, null, data || []);
 			} else {
@@ -65,4 +65,4 @@ module.exports = async function (next) {
 	if (next) {
 		next();
 	}
-};
+}

@@ -1,18 +1,24 @@
-const test = require('ava');
-const _ = require('underscore');
+import test from 'ava';
+import _ from 'underscore';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const runHook = require('../../core/runHook');
+import parseMethodRouteKey from '../../core/parseMethodRouteKey.js';
+import runHook from '../../core/runHook.js';
 
 
-test.beforeEach(t => {
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+
+test.beforeEach(async t => {
 	t.context.app = _.defaults({
 		dir: __dirname
-	}, require('../_utils/app')());
+	}, (await import('../_utils/app.js')).default());
 
-	t.context.app.parseMethodRouteKey = require('../../core/parseMethodRouteKey');
+	t.context.app.parseMethodRouteKey = parseMethodRouteKey;
 
-	t.context.request = require('../_utils/request')();
-	t.context.response = require('../_utils/response')();
+	t.context.request = (await import('../_utils/request.js')).default();
+	t.context.response = (await import('../_utils/response.js')).default();
 });
 
 

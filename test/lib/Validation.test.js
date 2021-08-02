@@ -1,6 +1,6 @@
-const test = require('ava');
+import test from 'ava';
 
-const Validation = require('../../lib/Validation');
+import Validation from '../../lib/Validation.js';
 
 test.beforeEach(t => {
 	t.context.validator = new Validation();

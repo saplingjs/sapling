@@ -9,14 +9,14 @@
 
 
 /* Dependencies */
-const Hash = require('@sapling/sapling/lib/Hash');
+import Hash from '@sapling/sapling/lib/Hash.js';
 
-const Response = require('@sapling/sapling/lib/Response');
-const SaplingError = require('@sapling/sapling/lib/SaplingError');
+import Response from '@sapling/sapling/lib/Response.js';
+import SaplingError from '@sapling/sapling/lib/SaplingError.js';
 
 
 /* Hook /api/user/update */
-module.exports = async function (app, request, response) {
+export default async function update(app, request, response) {
 	/* If the user isn't logged in */
 	if (!request.session || !request.session.user) {
 		return new Response(app, request, response, new SaplingError({
@@ -118,4 +118,4 @@ module.exports = async function (app, request, response) {
 		/* Respond with the user object */
 		return new Response(app, request, response, null, userData);
 	}
-};
+}

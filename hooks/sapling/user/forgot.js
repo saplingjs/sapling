@@ -9,14 +9,14 @@
 
 
 /* Dependencies */
-const { console } = require('@sapling/sapling/lib/Cluster');
-const Response = require('@sapling/sapling/lib/Response');
-const SaplingError = require('@sapling/sapling/lib/SaplingError');
-const Validation = require('@sapling/sapling/lib/Validation');
+import { console } from '@sapling/sapling/lib/Cluster.js';
+import Response from '@sapling/sapling/lib/Response.js';
+import SaplingError from '@sapling/sapling/lib/SaplingError.js';
+import Validation from '@sapling/sapling/lib/Validation.js';
 
 
 /* Hook /api/user/forgot */
-module.exports = async function (app, request, response) {
+export default async function forgot(app, request, response) {
 	/* Check email for format */
 	const errors = new Validation().validate(request.body.email, 'email', { email: true, required: true });
 	if (errors.length > 0) {
@@ -65,4 +65,4 @@ module.exports = async function (app, request, response) {
 		/* Respond positively */
 		return new Response(app, request, response);
 	}
-};
+}

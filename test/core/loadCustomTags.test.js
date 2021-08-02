@@ -1,14 +1,19 @@
-const test = require('ava');
-const _ = require('underscore');
+import test from 'ava';
+import _ from 'underscore';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const Storage = require('../../lib/Storage');
-const User = require('../../lib/User');
+import Storage from '../../lib/Storage.js';
+import User from '../../lib/User.js';
 
-const loadCustomTags = require('../../core/loadCustomTags');
+import loadCustomTags from '../../core/loadCustomTags.js';
 
 
-test.beforeEach(t => {
-	t.context.app = require('../_utils/app')();
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+
+test.beforeEach(async t => {
+	t.context.app = (await import('../_utils/app.js')).default();
 
 	t.context.app.templating = {
 		renderer: {
@@ -24,6 +29,7 @@ test.beforeEach(t => {
 		config: { db: { driver: 'Memory' } },
 		dir: __dirname
 	});
+	await t.context.app.storage.importDriver();
 });
 
 

@@ -11,7 +11,7 @@
  *
  * @param {function} next Chain callback
  */
-module.exports = async function (next) {
+export default async function loadCustomTags(next) {
 	await this.templating.renderer.registerTags({
 
 		/**
@@ -51,4 +51,4 @@ module.exports = async function (next) {
 	if (next) {
 		next();
 	}
-};
+}

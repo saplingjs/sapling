@@ -6,18 +6,18 @@
 
 
 /* Dependencies */
-const path = require('path');
-const { Cluster } = require('../lib/Cluster');
-const Response = require('../lib/Response');
-const SaplingError = require('../lib/SaplingError');
+import path from 'path';
+import Cluster from '../lib/Cluster.js';
+import Response from '../lib/Response.js';
+import SaplingError from '../lib/SaplingError.js';
 
-const express = require('express');
-const session = require('express-session');
-const cookieParser = require('cookie-parser');
-const bodyParser = require('body-parser');
-const logger = require('morgan');
-const compression = require('compression');
-const csrf = require('csurf');
+import express from 'express';
+import session from 'express-session';
+import cookieParser from 'cookie-parser';
+import bodyParser from 'body-parser';
+import logger from 'morgan';
+import compression from 'compression';
+import csrf from 'csurf';
 
 
 /**
@@ -26,7 +26,7 @@ const csrf = require('csurf');
  * @param {object} opts Options for reload and listen
  * @param {function} next Chain callback
  */
-module.exports = function ({ reload, listen }, next) {
+export default function loadServer({ reload, listen }, next) {
 	let server;
 
 	if (reload && this.server) {
@@ -61,7 +61,7 @@ module.exports = function ({ reload, listen }, next) {
 
 		/* If we've defined a type, load it */
 		if ('type' in this.config.sessionStore && this.config.sessionStore.type !== null) {
-			const Store = require(this.config.sessionStore.type)(session);
+			const Store = import(this.config.sessionStore.type);
 			sessionConfig.store = new Store(this.config.sessionStore.options);
 		}
 
@@ -145,4 +145,4 @@ module.exports = function ({ reload, listen }, next) {
 	if (next) {
 		next();
 	}
-};
+}

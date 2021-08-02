@@ -6,7 +6,7 @@
 
 
 /* Dependencies */
-const SaplingError = require('../lib/SaplingError');
+import SaplingError from '../lib/SaplingError.js';
 
 
 /**
@@ -15,7 +15,7 @@ const SaplingError = require('../lib/SaplingError');
  *
  * @param {string} key
  */
-module.exports = function (key) {
+export default function parseMethodRouteKey(key) {
 	const object = {
 		method: false,
 		route: false
@@ -53,4 +53,4 @@ module.exports = function (key) {
 	}
 
 	return object;
-};
+}

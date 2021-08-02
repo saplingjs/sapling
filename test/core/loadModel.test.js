@@ -1,10 +1,10 @@
-const test = require('ava');
-const _ = require('underscore');
-const path = require('path');
+import test from 'ava';
+import _ from 'underscore';
+import path from 'path';
 
-const SaplingError = require('../../lib/SaplingError');
+import SaplingError from '../../lib/SaplingError.js';
 
-const loadModel = require('../../core/loadModel');
+import loadModel from '../../core/loadModel.js';
 
 
 test.before(t => {
@@ -12,10 +12,10 @@ test.before(t => {
 	console.log = () => true;
 });
 
-test.beforeEach(t => {
+test.beforeEach(async t => {
 	t.context.app = _.defaults({
 		config: { db: { driver: 'Memory' } }
-	}, require('../_utils/app')());
+	}, (await import('../_utils/app.js')).default());
 });
 
 

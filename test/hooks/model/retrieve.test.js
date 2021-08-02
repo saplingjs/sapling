@@ -1,14 +1,19 @@
-const test = require('ava');
-const _ = require('underscore');
+import test from 'ava';
+import _ from 'underscore';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const Response = require('../../../lib/Response');
-const SaplingError = require('../../../lib/SaplingError');
-const Storage = require('../../../lib/Storage');
+import Response from '../../../lib/Response.js';
+import SaplingError from '../../../lib/SaplingError.js';
+import Storage from '../../../lib/Storage.js';
 
-const retrieve = require('../../../hooks/sapling/model/retrieve');
+import retrieve from '../../../hooks/sapling/model/retrieve.js';
 
 
-test.beforeEach(t => {
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+
+test.beforeEach(async t => {
 	t.context.app = _.defaults({
 		storage: new Storage({}, {
 			name: 'test',
@@ -16,10 +21,11 @@ test.beforeEach(t => {
 			config: { db: { driver: 'Memory' } },
 			dir: __dirname
 		})
-	}, require('../../_utils/app')());
+	}, (await import('../../_utils/app.js')).default());
+	await t.context.app.storage.importDriver();
 
-	t.context.request = require('../../_utils/request')();
-	t.context.response = require('../../_utils/response')();
+	t.context.request = (await import('../../_utils/request.js')).default();
+	t.context.response = (await import('../../_utils/response.js')).default();
 });
 
 

@@ -1,13 +1,17 @@
-const test = require('ava');
-const path = require('path');
-const fs = require('fs');
-const _ = require('underscore');
-const mimeTypes = require('mime-types');
+import test from 'ava';
+import path from 'path';
+import fs from 'fs';
+import _ from 'underscore';
+import mimeTypes from 'mime-types';
+import { fileURLToPath } from 'url';
 
-const Response = require('../../lib/Response');
-const SaplingError = require('../../lib/SaplingError');
+import Response from '../../lib/Response.js';
+import SaplingError from '../../lib/SaplingError.js';
 
-const Uploads = require('../../lib/Uploads');
+import Uploads from '../../lib/Uploads.js';
+
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 
 const getFileObject = (filename, cb) => {
@@ -28,7 +32,7 @@ const getFileObject = (filename, cb) => {
 };
 
 
-test.beforeEach(t => {
+test.beforeEach(async t => {
 	t.context.app = _.defaults({
 		dir: __dirname,
 		config: {
@@ -40,10 +44,10 @@ test.beforeEach(t => {
 				driver: 'Html'
 			}
 		}
-	}, require('../_utils/app')());
+	}, (await import('../_utils/app.js')).default());
 
-	t.context.request = require('../_utils/request')();
-	t.context.response = require('../_utils/response')();
+	t.context.request = (await import('../_utils/request.js')).default();
+	t.context.response = (await import('../_utils/response.js')).default();
 });
 
 

@@ -1,9 +1,13 @@
-const test = require('ava');
-const path = require('path');
+import test from 'ava';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const SaplingError = require('../../../lib/SaplingError');
+import SaplingError from '../../../lib/SaplingError.js';
 
-const Html = require('../../../drivers/render/Html');
+import Html from '../../../drivers/render/Html.js';
+
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 
 test.before(t => {

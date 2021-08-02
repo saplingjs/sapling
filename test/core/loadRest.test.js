@@ -1,34 +1,46 @@
-const test = require('ava');
-const _ = require('underscore');
-const express = require('express');
-const request = require('supertest');
+import test from 'ava';
+import _ from 'underscore';
+import express from 'express';
+import session from 'express-session';
+import bodyParser from 'body-parser';
+import request from 'supertest';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const Storage = require('../../lib/Storage');
-const User = require('../../lib/User');
+import Storage from '../../lib/Storage.js';
+import User from '../../lib/User.js';
+import runHook from '../../core/runHook.js';
 
-const loadRest = require('../../core/loadRest');
+import loadRest from '../../core/loadRest.js';
 
 
-test.beforeEach(t => {
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+
+test.beforeEach(async t => {
 	t.context.app = _.extend({
 		name: 'test'
-	}, require('../_utils/app')());
+	}, (await import('../_utils/app.js')).default());
 
 	t.context.app.server = express();
+	t.context.app.server.use(session({ secret: 'abc', resave: false, saveUninitialized: true, cookie: { maxAge: null } }));
+	t.context.app.server.use(bodyParser.urlencoded({ extended: true }));
+	t.context.app.server.use(bodyParser.json());
 
 	t.context.app.storage = new Storage(t.context.app, {
 		name: 'test',
-		schema: {},
+		schema: { posts: { title: { type: 'string' } } },
 		config: { db: { driver: 'Memory' } },
 		dir: __dirname
 	});
+	await t.context.app.storage.importDriver();
 
 	t.context.app.user = new User(t.context.app);
 
-	t.context.app.runHook = require('../../core/runHook');
+	t.context.app.runHook = runHook;
 
-	t.context.request = require('../_utils/request')();
-	t.context.response = require('../_utils/response')();
+	t.context.request = (await import('../_utils/request.js')).default();
+	t.context.response = (await import('../_utils/response.js')).default();
 });
 
 
@@ -47,8 +59,7 @@ test.serial.cb('loads get endpoints', t => {
 		});
 });
 
-/* Hangs on line 693 of Storage.js for some reason */
-test.serial.cb.skip('loads post endpoints', t => {
+test.serial.cb('loads post endpoints', t => {
 	t.plan(2);
 
 	t.notThrows(() => {
@@ -57,7 +68,7 @@ test.serial.cb.skip('loads post endpoints', t => {
 
 	request(t.context.app.server)
 		.post('/data/posts')
-		.send({ title: 'Hello' })
+		.send('title=Hello')
 		.set('Accept', 'application/json')
 		.expect(200, (error, response) => {
 			t.is(response.status, 200);
@@ -80,7 +91,7 @@ test.serial.cb('loads delete endpoints', t => {
 		});
 });
 
-test('calls callback when specified', async t => {
+test.serial('calls callback when specified', async t => {
 	await loadRest.call(t.context.app, () => {
 		t.pass();
 	});

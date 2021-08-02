@@ -1,6 +1,6 @@
-const test = require('ava');
+import test from 'ava';
 
-const SaplingError = require('../../lib/SaplingError');
+import SaplingError from '../../lib/SaplingError.js';
 
 
 test('creates an error with a string', t => {

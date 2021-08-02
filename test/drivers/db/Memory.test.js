@@ -1,8 +1,8 @@
-const test = require('ava');
+import test from 'ava';
 
-const SaplingError = require('../../../lib/SaplingError');
+import SaplingError from '../../../lib/SaplingError.js';
 
-const Memory = require('../../../drivers/db/Memory');
+import Memory from '../../../drivers/db/Memory.js';
 
 
 test.before(t => {

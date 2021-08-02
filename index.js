@@ -13,12 +13,20 @@
 
 
 /* Require native clustering bits */
-const cluster = require('cluster');
-const os = require('os');
-const chalk = require('chalk');
-const argv = require('yargs').argv;
-const path = require('path');
-const fs = require('fs');
+import cluster from 'cluster';
+import os from 'os';
+import chalk from 'chalk';
+import yargs from 'yargs';
+/* eslint-disable-next-line node/file-extension-in-import */
+import { hideBin } from 'yargs/helpers';
+import path from 'path';
+import fs from 'fs';
+
+import App from './app.js';
+
+
+const argv = yargs(hideBin(process.argv)).argv;
+
 
 /* Determine if session store is configured */
 const configPath = path.join(process.cwd(), 'config.json');
@@ -56,6 +64,5 @@ if (cluster.isMaster && !argv.single && sessionAvailable) {
 	}
 
 	/* Load a single instance */
-	const App = require('./app');
 	new App(process.cwd());
 }

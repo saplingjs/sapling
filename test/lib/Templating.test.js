@@ -1,36 +1,43 @@
-const test = require('ava');
-const path = require('path');
+import test from 'ava';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const SaplingError = require('../../lib/SaplingError');
+import SaplingError from '../../lib/SaplingError.js';
 
-const Templating = require('../../lib/Templating');
+import Templating from '../../lib/Templating.js';
 
 
-test.beforeEach(t => {
-	t.context.app = require('../_utils/app')();
-	t.context.request = require('../_utils/request')();
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+
+test.beforeEach(async t => {
+	t.context.app = (await import('../_utils/app.js')).default();
+	t.context.request = (await import('../_utils/request.js')).default();
 });
 
 
-test.serial('loads the default renderer', t => {
-	t.notThrows(() => {
+test.serial('loads the default renderer', async t => {
+	await t.notThrowsAsync(async () => {
 		t.context.app.templating = new Templating(t.context.app);
+		return await t.context.app.templating.importDriver();
 	});
 });
 
-test.serial('loads a renderer case insensitively', t => {
+test.serial('loads a renderer case insensitively', async t => {
 	t.context.app.config.render.driver = 'hTMl';
 
-	t.notThrows(() => {
+	await t.notThrowsAsync(async () => {
 		t.context.app.templating = new Templating(t.context.app);
+		return await t.context.app.templating.importDriver();
 	});
 });
 
-test.serial('loads a custom renderer', t => {
+test.serial('loads a custom renderer', async t => {
 	t.context.app.config.render.driver = 'render-driver-custom';
 
-	t.throws(() => {
+	await t.throwsAsync(async () => {
 		t.context.app.templating = new Templating(t.context.app);
+		return await t.context.app.templating.importDriver();
 	}, {
 		instanceOf: SaplingError,
 		message: 'Cannot find any render driver for \'render-driver-custom\''

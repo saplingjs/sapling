@@ -6,9 +6,9 @@
 
 
 /* Dependencies */
-const routeMatcher = require('path-match')();
+import routeMatcher from 'path-match';
 
-const { console } = require('../lib/Cluster');
+import { console } from '../lib/Cluster.js';
 
 
 /**
@@ -23,7 +23,7 @@ const { console } = require('../lib/Cluster');
  * @param {string} data Data, if any
  * @param {function} next Callback for after the hook
  */
-module.exports = async function (method, route, request, response, data, next) {
+export default async function runHook(method, route, request, response, data, next) {
 	console.log('Finding hooks for', method, route);
 
 	let found = false;
@@ -34,7 +34,7 @@ module.exports = async function (method, route, request, response, data, next) {
 		const { method: hookMethod, route: hookRoute } = this.parseMethodRouteKey(hook);
 
 		/* If the route and method match, run the hook */
-		if (routeMatcher(hookRoute)(route) !== false && hookMethod.toLowerCase() === method.toLowerCase()) {
+		if (routeMatcher()(hookRoute)(route) !== false && hookMethod.toLowerCase() === method.toLowerCase()) {
 			await this.hooks[hook](this, request, response, data, next);
 			found = true;
 			break;
@@ -45,4 +45,4 @@ module.exports = async function (method, route, request, response, data, next) {
 	if (!found) {
 		return next(this, request, response, data);
 	}
-};
+}

@@ -8,12 +8,15 @@
 
 
 /* System dependencies */
-const async = require('async');
+import async from 'async';
 
 /* Internal dependencies */
-const { console } = require('./lib/Cluster');
-const Response = require('./lib/Response');
-const Utils = require('./lib/Utils');
+import { console } from './lib/Cluster.js';
+import Response from './lib/Response.js';
+import Utils from './lib/Utils.js';
+
+import parseMethodRouteKey from './core/parseMethodRouteKey.js';
+import runHook from './core/runHook.js';
 
 
 /**
@@ -43,51 +46,51 @@ class App {
 
 		/* Load everything */
 		async.series([
-			callback => require('./core/loadConfig').call(this, callback),
-			callback => {
+			async callback => await (await import('./core/loadConfig.js')).default.call(this, callback),
+			async callback => {
 				if (options.loadServer !== false) {
-					require('./core/loadServer').call(this, options, callback);
+					await (await import('./core/loadServer.js')).default.call(this, options, callback);
 				}
 			},
-			callback => {
+			async callback => {
 				if (options.loadModel !== false) {
-					require('./core/loadModel').call(this, callback);
+					await (await import('./core/loadModel.js')).default.call(this, callback);
 				}
 			},
-			callback => {
+			async callback => {
 				if (options.loadPermissions !== false) {
-					require('./core/loadPermissions').call(this, callback);
+					await (await import('./core/loadPermissions.js')).default.call(this, callback);
 				}
 			},
-			callback => {
+			async callback => {
 				if (options.loadController !== false) {
-					require('./core/loadController').call(this, callback);
+					await (await import('./core/loadController.js')).default.call(this, callback);
 				}
 			},
-			callback => {
+			async callback => {
 				if (options.loadHooks !== false) {
-					require('./core/loadHooks').call(this, callback);
+					await (await import('./core/loadHooks.js')).default.call(this, callback);
 				}
 			},
-			callback => {
+			async callback => {
 				if (options.loadViews !== false) {
-					require('./core/loadCustomTags').call(this, callback);
+					await (await import('./core/loadCustomTags.js')).default.call(this, callback);
 				}
 			},
-			callback => {
-				require('./core/loadModules').call(this, callback);
+			async callback => {
+				await (await import('./core/loadModules.js')).default.call(this, callback);
 			},
-			callback => {
+			async callback => {
 				if (options.loadViews !== false) {
 					for (const route in this.controller) {
 						if ({}.hasOwnProperty.call(this.controller, route)) {
-							require('./core/initRoute').call(this, route, this.controller[route]);
+							await (await import('./core/initRoute.js')).default.call(this, route, this.controller[route]);
 						}
 					}
 				}
 
 				if (options.loadREST !== false) {
-					require('./core/loadRest').call(this, callback);
+					await (await import('./core/loadRest.js')).default.call(this, callback);
 				}
 			},
 			callback => {
@@ -111,8 +114,8 @@ class App {
 	}
 
 	/* Load remaining methods */
-	parseMethodRouteKey = require('./core/parseMethodRouteKey');
-	runHook = require('./core/runHook');
+	parseMethodRouteKey = parseMethodRouteKey;
+	runHook = runHook;
 }
 
-module.exports = App;
+export default App;
