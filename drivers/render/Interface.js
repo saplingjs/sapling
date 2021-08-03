@@ -7,8 +7,6 @@
  * database technology.
  */
 
-'use strict';
-
 
 /* Dependencies */
 import SaplingError from '../../lib/SaplingError.js';
