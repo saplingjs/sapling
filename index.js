@@ -13,11 +13,11 @@
 import path from 'node:path';
 import cluster from 'node:cluster';
 import os from 'node:os';
+import fs from 'node:fs';
 import chalk from 'chalk';
 import yargs from 'yargs';
 /* eslint-disable-next-line node/file-extension-in-import */
 import { hideBin } from 'yargs/helpers';
-import fs from 'node:fs';
 
 import App from './app.js';
 

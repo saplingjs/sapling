@@ -4,10 +4,10 @@
 
 /* Dependencies */
 import fs from 'node:fs';
+import path from 'node:path';
 import yargs from 'yargs';
 /* eslint-disable-next-line node/file-extension-in-import */
 import { hideBin } from 'yargs/helpers';
-import path from 'node:path';
 import _ from 'underscore';
 
 import { console } from '../lib/Cluster.js';
