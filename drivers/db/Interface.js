@@ -6,8 +6,6 @@
  * in whatever way makes sense for the particular database technology.
  */
 
-'use strict';
-
 
 /* Dependencies */
 import SaplingError from '../../lib/SaplingError.js';
