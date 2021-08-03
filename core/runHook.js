@@ -2,9 +2,6 @@
  * Run hook
  */
 
-'use strict';
-
-
 /* Dependencies */
 import routeMatcher from 'path-match';
 

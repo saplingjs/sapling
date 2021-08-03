@@ -4,9 +4,6 @@
  * Create a new user.
  */
 
-'use strict';
-
-
 /* Dependencies */
 import _ from 'underscore';
 
@@ -39,8 +36,8 @@ export default async function register(app, request, response) {
 			detail: 'You must provide a value for key `email`',
 			meta: {
 				key: 'email',
-				rule: 'required'
-			}
+				rule: 'required',
+			},
 		});
 	}
 
@@ -53,8 +50,8 @@ export default async function register(app, request, response) {
 			detail: 'You must provide a value for key `password`',
 			meta: {
 				key: 'password',
-				rule: 'required'
-			}
+				rule: 'required',
+			},
 		});
 	}
 
@@ -83,7 +80,7 @@ export default async function register(app, request, response) {
 		url: '/data/users',
 		session: request.session,
 		permission: request.permission,
-		body: request.body
+		body: request.body,
 	}, response);
 
 	/* If post() already gave a response */

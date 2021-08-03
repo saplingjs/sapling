@@ -2,12 +2,9 @@
  * Load model
  */
 
-'use strict';
-
-
 /* Dependencies */
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 
 import { console } from '../lib/Cluster.js';
 import SaplingError from '../lib/SaplingError.js';
@@ -79,7 +76,7 @@ export default async function loadModel(next) {
 		name: this.name,
 		schema: this.structure,
 		config: this.config,
-		dir: this.dir
+		dir: this.dir,
 	});
 
 	if (next) {

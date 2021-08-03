@@ -113,7 +113,8 @@
             "pascalCase": true
           }
         }
-      ]
+      ],
+      "unicorn/numeric-separators-style": "off"
     }
   },
   "ava": {

@@ -4,9 +4,6 @@
  * Initialises a Sapling instance and handles incoming requests
  */
 
-'use strict';
-
-
 /* System dependencies */
 import async from 'async';
 
@@ -38,7 +35,7 @@ class App {
 
 		/* Define an admin session for big ops */
 		this.adminSession = {
-			user: { role: 'admin' }
+			user: { role: 'admin' },
 		};
 
 		/* Load utility functions */
@@ -83,7 +80,7 @@ class App {
 			async callback => {
 				if (options.loadViews !== false) {
 					for (const route in this.controller) {
-						if ({}.hasOwnProperty.call(this.controller, route)) {
+						if (Object.prototype.hasOwnProperty.call(this.controller, route)) {
 							await (await import('./core/initRoute.js')).default.call(this, route, this.controller[route]);
 						}
 					}
@@ -98,7 +95,7 @@ class App {
 					new Response(this, request, response, null, false);
 				});
 				callback();
-			}
+			},
 		], error => {
 			if (error) {
 				console.error('Error starting Sapling');

@@ -4,9 +4,6 @@
  * Fetch the details of the given model
  */
 
-'use strict';
-
-
 /* Dependencies */
 import Response from '@sapling/sapling/lib/Response.js';
 import SaplingError from '@sapling/sapling/lib/SaplingError.js';

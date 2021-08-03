@@ -4,9 +4,6 @@
  * Log out the current user.
  */
 
-'use strict';
-
-
 /* Dependencies */
 import Response from '@sapling/sapling/lib/Response.js';
 

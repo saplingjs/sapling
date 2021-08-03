@@ -5,15 +5,12 @@
  * object in app memory, and gets wiped when the server dies.
  */
 
-'use strict';
-
-
 /* Dependencies */
 import _ from 'underscore';
-import Interface from './Interface.js';
 
 import SaplingError from '../../lib/SaplingError.js';
 import Utils from '../../lib/Utils.js';
+import Interface from './Interface.js';
 
 
 /**
@@ -69,9 +66,7 @@ export default class Memory extends Interface {
 
 		/* If there are any conditions */
 		if (Object.keys(conditions).length > 0) {
-			records = records.filter(record => {
-				return this.isMatch(record, conditions);
-			});
+			records = records.filter(record => this.isMatch(record, conditions));
 		}
 
 		return records;
@@ -216,7 +211,7 @@ export default class Memory extends Interface {
 
 		if (collection in this.uniques && Object.keys(data).some(r => this.uniques[collection].includes(r))) {
 			for (const field of this.uniques[collection]) {
-				if (this.memory[collection].filter(item => item[field] === data[field] && (id ? item._id !== id : true)).length > 0) {
+				if (this.memory[collection].some(item => item[field] === data[field] && (id ? item._id !== id : true))) {
 					matches.push(field);
 				}
 			}

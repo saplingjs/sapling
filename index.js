@@ -9,18 +9,15 @@
  *                                        *
  *****************************************/
 
-'use strict';
-
-
 /* Require native clustering bits */
-import cluster from 'cluster';
-import os from 'os';
+import path from 'node:path';
+import cluster from 'node:cluster';
+import os from 'node:os';
 import chalk from 'chalk';
 import yargs from 'yargs';
 /* eslint-disable-next-line node/file-extension-in-import */
 import { hideBin } from 'yargs/helpers';
-import path from 'path';
-import fs from 'fs';
+import fs from 'node:fs';
 
 import App from './app.js';
 

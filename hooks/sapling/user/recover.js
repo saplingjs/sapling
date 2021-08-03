@@ -4,9 +4,6 @@
  * Handle recovering a user account.
  */
 
-'use strict';
-
-
 /* Dependencies */
 import Hash from '@sapling/sapling/lib/Hash.js';
 
@@ -25,8 +22,8 @@ export default async function recover(app, request, response) {
 			detail: 'You must provide a value for key `new_password`',
 			meta: {
 				key: 'password',
-				rule: 'required'
-			}
+				rule: 'required',
+			},
 		}));
 	}
 
@@ -34,7 +31,7 @@ export default async function recover(app, request, response) {
 	const validation = app.storage.validateData({
 		body: { password: request.body.new_password },
 		collection: 'users',
-		type: 'filter'
+		type: 'filter',
 	}, response);
 
 	if (validation.length > 0) {
@@ -50,8 +47,8 @@ export default async function recover(app, request, response) {
 			detail: 'You must provide a value for key `auth`',
 			meta: {
 				key: 'auth',
-				rule: 'required'
-			}
+				rule: 'required',
+			},
 		}));
 	}
 
@@ -70,15 +67,15 @@ export default async function recover(app, request, response) {
 			detail: 'The authkey has expired and can no longer be used.',
 			meta: {
 				type: 'recover',
-				error: 'expired'
-			}
+				error: 'expired',
+			},
 		}));
 	}
 
 	/* Get users matching the key with admin privs */
 	const user = await app.storage.get({
 		url: `/data/users/_authkey/${request.body.auth}/?single=true`,
-		session: app.adminSession
+		session: app.adminSession,
 	});
 
 	/* If there is no such user */
@@ -90,8 +87,8 @@ export default async function recover(app, request, response) {
 			detail: 'The authkey could not be located in the database.',
 			meta: {
 				type: 'recover',
-				error: 'invalid'
-			}
+				error: 'invalid',
+			},
 		}));
 	}
 
@@ -103,7 +100,7 @@ export default async function recover(app, request, response) {
 	const userData = await app.storage.post({
 		url: `/data/users/_id/${user._id}`,
 		body: { password: hash[1], _salt: hash[0], _authkey: '' },
-		session: app.adminSession
+		session: app.adminSession,
 	});
 
 	/* If we need to redirect, let's redirect */

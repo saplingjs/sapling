@@ -2,9 +2,6 @@
  * Load modules
  */
 
-'use strict';
-
-
 /* Dependencies */
 import Notifications from '../lib/Notifications.js';
 import Uploads from '../lib/Uploads.js';

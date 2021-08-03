@@ -2,12 +2,9 @@
  * Load permissions
  */
 
-'use strict';
-
-
 /* Dependencies */
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 
 import { console } from '../lib/Cluster.js';
 import Response from '../lib/Response.js';

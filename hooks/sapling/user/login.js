@@ -5,9 +5,6 @@
  * or a success message or redirection on success.
  */
 
-'use strict';
-
-
 /* Dependencies */
 import _ from 'underscore';
 
@@ -53,8 +50,8 @@ export default async function login(app, request, response) {
 			detail: 'No email address or identifiable provided.',
 			meta: {
 				key: 'identifiable',
-				rule: 'required'
-			}
+				rule: 'required',
+			},
 		}));
 	}
 
@@ -73,8 +70,8 @@ export default async function login(app, request, response) {
 			detail: 'Either the user does not exist or the password is incorrect.',
 			meta: {
 				type: 'login',
-				error: 'invalid'
-			}
+				error: 'invalid',
+			},
 		}));
 	}
 
@@ -87,8 +84,8 @@ export default async function login(app, request, response) {
 			detail: 'You must provide a value for key `password`',
 			meta: {
 				key: 'password',
-				rule: 'required'
-			}
+				rule: 'required',
+			},
 		}));
 	}
 
@@ -115,8 +112,8 @@ export default async function login(app, request, response) {
 			detail: 'Either the user does not exist or the password is incorrect.',
 			meta: {
 				type: 'login',
-				error: 'invalid'
-			}
+				error: 'invalid',
+			},
 		}));
 	}
 
