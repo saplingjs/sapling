@@ -2,12 +2,9 @@
  * Load hooks
  */
 
-'use strict';
-
-
 /* Dependencies */
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 
 import { console } from '../lib/Cluster.js';
 import Response from '../lib/Response.js';
@@ -54,12 +51,10 @@ export default async function loadHooks(next) {
 			/* Initialise hook if it doesn't exist in the controller */
 			if (!(route in this.controller) && !route.startsWith('/data') && !route.startsWith('data')) {
 				/* Listen on */
-				this.server[method](route, async (request, response) => {
+				this.server[method](route, async (request, response) =>
 					/* Run a hook, if it exists */
-					return await this.runHook(method, route, request, response, null, () => {
-						return new Response(this, request, response, null);
-					});
-				});
+					await this.runHook(method, route, request, response, null, () => new Response(this, request, response, null)),
+				);
 
 				/* Save the route for later */
 				this.routeStack[method].push(route);

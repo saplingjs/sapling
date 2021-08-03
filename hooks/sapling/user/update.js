@@ -5,9 +5,6 @@
  * user.
  */
 
-'use strict';
-
-
 /* Dependencies */
 import Hash from '@sapling/sapling/lib/Hash.js';
 
@@ -26,8 +23,8 @@ export default async function update(app, request, response) {
 			detail: 'You must log in before completing this action.',
 			meta: {
 				type: 'login',
-				error: 'unauthorized'
-			}
+				error: 'unauthorized',
+			},
 		}));
 	}
 
@@ -40,8 +37,8 @@ export default async function update(app, request, response) {
 			detail: 'You must provide a value for key `password`',
 			meta: {
 				key: 'password',
-				rule: 'required'
-			}
+				rule: 'required',
+			},
 		}));
 	}
 
@@ -50,7 +47,7 @@ export default async function update(app, request, response) {
 		const validation = app.storage.validateData({
 			body: { password: request.body.new_password },
 			collection: 'users',
-			type: 'filter'
+			type: 'filter',
 		}, response);
 
 		if (validation.length > 0) {
@@ -61,7 +58,7 @@ export default async function update(app, request, response) {
 	/* Get the current user */
 	const user = await app.storage.get({
 		url: `/data/users/_id/${request.session.user._id}/?single=true`,
-		session: request.session
+		session: request.session,
 	});
 
 	/* Hash the incoming password */
@@ -93,8 +90,8 @@ export default async function update(app, request, response) {
 			detail: 'Value for key `password` did not match the password in the database.',
 			meta: {
 				key: 'password',
-				rule: 'match'
-			}
+				rule: 'match',
+			},
 		}));
 	}
 
@@ -102,7 +99,7 @@ export default async function update(app, request, response) {
 	const userData = await app.storage.post({
 		url: `/data/users/_id/${user._id}`,
 		body: request.body,
-		session: request.session
+		session: request.session,
 	});
 
 	/* If we need to redirect, let's redirect */

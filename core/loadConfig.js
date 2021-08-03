@@ -2,15 +2,12 @@
  * Load configuration
  */
 
-'use strict';
-
-
 /* Dependencies */
+import fs from 'node:fs';
+import path from 'node:path';
 import yargs from 'yargs';
 /* eslint-disable-next-line node/file-extension-in-import */
 import { hideBin } from 'yargs/helpers';
-import fs from 'fs';
-import path from 'path';
 import _ from 'underscore';
 
 import { console } from '../lib/Cluster.js';
@@ -43,14 +40,14 @@ export default async function loadConfig(next) {
 		limit: 100,
 		production: 'auto',
 		db: {
-			driver: 'Memory'
+			driver: 'Memory',
 		},
 		render: {
-			driver: 'HTML'
+			driver: 'HTML',
 		},
 		sessionStore: {
 			type: null,
-			options: {}
+			options: {},
 		},
 		mail: {
 			host: process.env.MAIL_HOST || '',
@@ -58,15 +55,15 @@ export default async function loadConfig(next) {
 			secure: this.utils.trueBoolean(process.env.MAIL_TLS) || true,
 			auth: {
 				user: process.env.MAIL_USER,
-				pass: process.env.MAIL_PASS
-			}
+				pass: process.env.MAIL_PASS,
+			},
 		},
 		upload: {
 			type: 'local',
-			destination: 'public/uploads'
+			destination: 'public/uploads',
 		},
 		port: argv.port || this.opts.port || 3000,
-		url: ''
+		url: '',
 	};
 
 	this.config = {};

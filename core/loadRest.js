@@ -2,9 +2,6 @@
  * Load REST
  */
 
-'use strict';
-
-
 /* Dependencies */
 import Response from '../lib/Response.js';
 import SaplingError from '../lib/SaplingError.js';

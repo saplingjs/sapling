@@ -5,16 +5,12 @@
  * its given.
  */
 
-'use strict';
-
-
 /* Dependencies */
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 import _ from 'underscore';
-import Interface from './Interface.js';
-
 import SaplingError from '../../lib/SaplingError.js';
+import Interface from './Interface.js';
 
 
 /**
@@ -47,10 +43,10 @@ export default class HTML extends Interface {
 		}
 
 		/* Do some rudimentary var replacement */
-		html = html.replace(/{{ ?([\w.]+) ?(?:\| ?safe ?)?}}/gi, (tag, identifier) => {
+		html = html.replace(/{{ ?([\w.]+) ?(?:\| ?safe ?)?}}/gi, (tag, identifier) =>
 			/* Return either matching data, or the tag literal */
-			return _.get(data, identifier, tag);
-		});
+			_.get(data, identifier, tag),
+		);
 
 		return html;
 	}

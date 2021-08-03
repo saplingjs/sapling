@@ -2,14 +2,8 @@
  * Load server
  */
 
-'use strict';
-
-
 /* Dependencies */
-import path from 'path';
-import Cluster from '../lib/Cluster.js';
-import Response from '../lib/Response.js';
-import SaplingError from '../lib/SaplingError.js';
+import path from 'node:path';
 
 import express from 'express';
 import session from 'express-session';
@@ -18,6 +12,9 @@ import bodyParser from 'body-parser';
 import logger from 'morgan';
 import compression from 'compression';
 import csrf from 'csurf';
+import SaplingError from '../lib/SaplingError.js';
+import Response from '../lib/Response.js';
+import Cluster from '../lib/Cluster.js';
 
 
 /**
@@ -56,7 +53,7 @@ export default function loadServer({ reload, listen }, next) {
 			secret,
 			resave: false,
 			saveUninitialized: true,
-			cookie: { maxAge: null }
+			cookie: { maxAge: null },
 		};
 
 		/* If we've defined a type, load it */

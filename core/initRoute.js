@@ -2,9 +2,6 @@
  * Initialise route
  */
 
-'use strict';
-
-
 /* Dependencies */
 import { console } from '../lib/Cluster.js';
 import Response from '../lib/Response.js';
@@ -22,14 +19,13 @@ export default async function initRoute(route, view) {
 	console.log('Loaded route', `${route}`);
 
 	/* Create a handler for incoming requests */
-	const handler = async (request, response) => {
+	const handler = async (request, response) =>
 		/* Run a hook, if it exists */
-		return await this.runHook('get', route, request, response, null, async () => {
+		await this.runHook('get', route, request, response, null, async () => {
 			const html = await this.templating.renderView(view, {}, request);
 
 			return html instanceof SaplingError ? new Response(this, request, response, html) : new Response(this, request, response, null, html);
 		});
-	};
 
 	/* Listen on both GET and POST with the same handler */
 	this.server.get(route, handler);

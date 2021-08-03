@@ -2,9 +2,6 @@
  * Load custom tags
  */
 
-'use strict';
-
-
 /**
  * Setup custom tags into the template parser to
  * return data from the storage engine.
@@ -43,9 +40,9 @@ export default async function loadCustomTags(next) {
 			return await this.storage.get({
 				url,
 				permission: { role: permission },
-				session
+				session,
 			});
-		}
+		},
 	});
 
 	if (next) {

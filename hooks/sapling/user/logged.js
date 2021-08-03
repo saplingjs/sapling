@@ -5,9 +5,6 @@
  * if the user isn't logged in, or the user object if they are.
  */
 
-'use strict';
-
-
 /* Dependencies */
 import _ from 'underscore';
 
@@ -21,7 +18,7 @@ export default async function logged(app, request, response) {
 		/* Get the user from storage */
 		const user = await app.storage.get({
 			url: `/data/users/_id/${request.session.user._id}/?single=true`,
-			session: request.session
+			session: request.session,
 		});
 
 		/* Set the user session */

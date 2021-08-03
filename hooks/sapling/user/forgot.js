@@ -5,9 +5,6 @@
  * user has forgotten the password.
  */
 
-'use strict';
-
-
 /* Dependencies */
 import { console } from '@sapling/sapling/lib/Cluster.js';
 import Response from '@sapling/sapling/lib/Response.js';
@@ -26,7 +23,7 @@ export default async function forgot(app, request, response) {
 	/* Get authkey and identifiable from database */
 	const { email } = await app.storage.get({
 		url: `/data/users/email/${request.body.email}/?single=true`,
-		session: app.adminSession
+		session: app.adminSession,
 	});
 
 	/* Only do stuff if we found a user */
@@ -39,14 +36,14 @@ export default async function forgot(app, request, response) {
 		await app.storage.post({
 			url: `/data/users/email/${request.body.email}`,
 			body: { _authkey: key },
-			session: app.adminSession
+			session: app.adminSession,
 		});
 
 		/* Data for recovery email */
 		const templateData = {
 			name: app.name,
 			key,
-			url: app.config.url
+			url: app.config.url,
 		};
 
 		/* Send authkey via email */
