@@ -71,6 +71,7 @@
     "lint-fix": "xo --fix",
     "lint": "xo",
     "test": "npx c8 ava",
+    "test:nocov": "npx ava",
     "test:report": "npx c8 --reporter=lcov npm test",
     "test:send": "npx codecov"
   },
