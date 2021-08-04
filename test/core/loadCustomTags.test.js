@@ -3,6 +3,7 @@ import _ from 'underscore';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+import Request from '../../lib/Request.js';
 import Storage from '../../lib/Storage.js';
 import User from '../../lib/User.js';
 
@@ -22,6 +23,7 @@ test.beforeEach(async t => {
 	};
 
 	t.context.app.user = new User(t.context.app);
+	t.context.app.request = new Request(t.context.app);
 
 	t.context.app.storage = new Storage(t.context.app, {
 		name: 'test',

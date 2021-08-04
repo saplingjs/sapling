@@ -4,6 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 import Hash from '../../../lib/Hash.js';
+import Request from '../../../lib/Request.js';
 import Response from '../../../lib/Response.js';
 import SaplingError from '../../../lib/SaplingError.js';
 import Storage from '../../../lib/Storage.js';
@@ -33,6 +34,9 @@ test.beforeEach(async t => {
 		name: 'untitled'
 	}, (await import('../../_utils/app.js')).default());
 
+	t.context.app.user = new User(t.context.app);
+	t.context.app.request = new Request(t.context.app);
+
 	t.context.app.storage = new Storage(t.context.app, {
 		name: 'test',
 		schema: {},
@@ -40,8 +44,6 @@ test.beforeEach(async t => {
 		dir: __dirname
 	});
 	await t.context.app.storage.importDriver();
-
-	t.context.app.user = new User(t.context.app);
 
 	t.context.request = (await import('../../_utils/request.js')).default();
 	t.context.response = (await import('../../_utils/response.js')).default();

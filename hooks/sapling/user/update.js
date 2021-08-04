@@ -44,7 +44,7 @@ export default async function update(app, request, response) {
 
 	/* If the new password has been provided, validate it */
 	if (request.body.new_password) {
-		const validation = app.storage.validateData({
+		const validation = app.request.validateData({
 			body: { password: request.body.new_password },
 			collection: 'users',
 			type: 'filter',
