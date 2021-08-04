@@ -70,8 +70,8 @@
     "precommit": "lint-staged",
     "lint-fix": "xo --fix",
     "lint": "xo",
-    "test": "npx c8 ava",
-    "test:nocov": "npx ava",
+    "test": "npx ava",
+    "test:coverage": "npx c8 ava",
     "test:report": "npx c8 --reporter=lcov npm test",
     "test:send": "npx codecov"
   },
