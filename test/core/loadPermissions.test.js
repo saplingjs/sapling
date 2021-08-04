@@ -3,6 +3,7 @@ import path from 'path';
 import _ from 'underscore';
 import { fileURLToPath } from 'url';
 
+import Request from '../../lib/Request.js';
 import Response from '../../lib/Response.js';
 import SaplingError from '../../lib/SaplingError.js';
 import Storage from '../../lib/Storage.js';
@@ -23,6 +24,7 @@ test.beforeEach(async t => {
 	t.context.app.parseMethodRouteKey = parseMethodRouteKey;
 
 	t.context.app.user = new User(t.context.app);
+	t.context.app.request = new Request(t.context.app);
 
 	t.context.app.storage = new Storage(t.context.app, {
 		name: 'test',

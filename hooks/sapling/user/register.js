@@ -57,7 +57,7 @@ export default async function register(app, request, response) {
 
 	/* Validate for format */
 	/* Doing this here because by the time we do it Storage, the password's been hashed */
-	const validation = app.storage.validateData(_.extend(request, { collection: 'users' }), response);
+	const validation = app.request.validateData(_.extend(request, { collection: 'users' }), response);
 
 	/* Show the above errors, if any */
 	const combinedErrors = [...errors, ...validation];

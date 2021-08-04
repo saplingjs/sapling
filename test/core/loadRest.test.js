@@ -7,6 +7,7 @@ import request from 'supertest';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+import Request from '../../lib/Request.js';
 import Storage from '../../lib/Storage.js';
 import User from '../../lib/User.js';
 import runHook from '../../core/runHook.js';
@@ -27,6 +28,9 @@ test.beforeEach(async t => {
 	t.context.app.server.use(bodyParser.urlencoded({ extended: true }));
 	t.context.app.server.use(bodyParser.json());
 
+	t.context.app.user = new User(t.context.app);
+	t.context.app.request = new Request(t.context.app);
+
 	t.context.app.storage = new Storage(t.context.app, {
 		name: 'test',
 		schema: { posts: { title: { type: 'string' } } },
@@ -34,8 +38,6 @@ test.beforeEach(async t => {
 		dir: __dirname
 	});
 	await t.context.app.storage.importDriver();
-
-	t.context.app.user = new User(t.context.app);
 
 	t.context.app.runHook = runHook;
 

@@ -3,6 +3,7 @@ import _ from 'underscore';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+import Request from '../../lib/Request.js';
 import Storage from '../../lib/Storage.js';
 
 import User from '../../lib/User.js';
@@ -41,6 +42,7 @@ test.beforeEach(async t => {
 	t.context.response = (await import('../_utils/response.js')).default();
 
 	t.context.user = new User(t.context.app);
+	t.context.app.request = new Request(t.context.app);
 });
 
 

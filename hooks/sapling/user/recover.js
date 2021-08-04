@@ -28,7 +28,7 @@ export default async function recover(app, request, response) {
 	}
 
 	/* If the new password does not match rules, throw error  */
-	const validation = app.storage.validateData({
+	const validation = app.request.validateData({
 		body: { password: request.body.new_password },
 		collection: 'users',
 		type: 'filter',
