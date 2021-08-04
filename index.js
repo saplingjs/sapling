@@ -10,10 +10,11 @@
  *****************************************/
 
 /* Require native clustering bits */
-import path from 'node:path';
 import cluster from 'node:cluster';
-import os from 'node:os';
 import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import process from 'node:process';
 import chalk from 'chalk';
 import yargs from 'yargs';
 /* eslint-disable-next-line node/file-extension-in-import */
