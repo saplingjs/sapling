@@ -1,7 +1,5 @@
 import test from 'ava';
 import _ from 'underscore';
-import path from 'path';
-import { fileURLToPath } from 'url';
 
 import Request from '../../lib/Request.js';
 import Storage from '../../lib/Storage.js';
@@ -9,59 +7,54 @@ import Storage from '../../lib/Storage.js';
 import User from '../../lib/User.js';
 
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-
 test.beforeEach(async t => {
 	t.context.app = _.defaults({
-		storage: new Storage({}, {
+		storage: new Storage({
 			name: 'test',
-			schema: {
-				posts: {
-					one: {
-						type: 'string'
-					},
-					two: {
-						type: 'string',
-						access: 'member'
-					},
-					three: {
-						type: 'string',
-						access: 'admin'
-					},
-					four: {
-						type: 'string',
-						access: {
-							r: 'member',
-							w: 'owner'
-						}
-					},
-					five: {
-						type: 'string',
-						access: {
-							r: 'admin',
-							w: 'owner'
-						}
-					},
-					six: {
-						type: 'string',
-						access: 'anyone'
-					},
-					seven: {
-						type: 'string',
-						access: 'owner'
-					},
-					eight: {
-						type: 'string',
-						access: {
-							r: 'owner',
-							w: 'admin'
-						}
+			config: { db: { driver: 'Memory' } }
+		}, {
+			posts: {
+				one: {
+					type: 'string'
+				},
+				two: {
+					type: 'string',
+					access: 'member'
+				},
+				three: {
+					type: 'string',
+					access: 'admin'
+				},
+				four: {
+					type: 'string',
+					access: {
+						r: 'member',
+						w: 'owner'
+					}
+				},
+				five: {
+					type: 'string',
+					access: {
+						r: 'admin',
+						w: 'owner'
+					}
+				},
+				six: {
+					type: 'string',
+					access: 'anyone'
+				},
+				seven: {
+					type: 'string',
+					access: 'owner'
+				},
+				eight: {
+					type: 'string',
+					access: {
+						r: 'owner',
+						w: 'admin'
 					}
 				}
-			},
-			config: { db: { driver: 'Memory' } },
-			dir: __dirname
+			}
 		}),
 		routeStack: {
 			get: [

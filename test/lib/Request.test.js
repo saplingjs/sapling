@@ -1,7 +1,5 @@
 import test from 'ava';
 import _ from 'underscore';
-import path from 'path';
-import { fileURLToPath } from 'url';
 
 import Storage from '../../lib/Storage.js';
 import User from '../../lib/User.js';
@@ -9,45 +7,40 @@ import User from '../../lib/User.js';
 import Request from '../../lib/Request.js';
 
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const originalConsole = console;
 
 
 test.beforeEach(async t => {
 	t.context.app = (await import('../_utils/app.js')).default();
 
+	t.context.app.name = 'test';
 	t.context.app.storage = new Storage(t.context.app, {
-		name: 'test',
-		schema: {
-			posts: {
-				title: {
-					type: 'string',
-					minlen: 20
-				},
-				likes: {
-					type: 'number'
-				},
-				script: {
-					type: 'string',
-					trim: false
-				},
-				published: {
-					type: 'boolean',
-					access: 'owner',
-					required: true
-				},
-				password: {
-					type: 'string',
-					access: 'admin'
-				},
-				tags: {
-					type: 'string',
-					default: 'uncategorised'
-				}
+		posts: {
+			title: {
+				type: 'string',
+				minlen: 20
+			},
+			likes: {
+				type: 'number'
+			},
+			script: {
+				type: 'string',
+				trim: false
+			},
+			published: {
+				type: 'boolean',
+				access: 'owner',
+				required: true
+			},
+			password: {
+				type: 'string',
+				access: 'admin'
+			},
+			tags: {
+				type: 'string',
+				default: 'uncategorised'
 			}
-		},
-		config: { db: { driver: 'Memory' } },
-		dir: __dirname
+		}
 	});
 	await t.context.app.storage.importDriver();
 
