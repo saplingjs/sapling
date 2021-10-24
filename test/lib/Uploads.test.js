@@ -1,34 +1,21 @@
-const test = require('ava');
-const path = require('path');
-const fs = require('fs');
-const _ = require('underscore');
-const mimeTypes = require('mime-types');
+import test from 'ava';
+import path from 'path';
+import fs from 'fs';
+import _ from 'underscore';
+import { fileURLToPath } from 'url';
 
-const Response = require('../../lib/Response.js');
-const SaplingError = require('../../lib/SaplingError.js');
+import Response from '../../lib/Response.js';
+import SaplingError from '../../lib/SaplingError.js';
 
-const Uploads = require('../../lib/Uploads.js');
+import getFileObject from '../_utils/getFileObject.js';
 
-
-const getFileObject = (filename, cb) => {
-	const filepath = path.join(__dirname, '../_data/files', filename);
-	const file = fs.readFileSync(filepath);
-	const stats = fs.statSync(filepath);
-	const mime = mimeTypes.lookup(filepath);
-
-	return {
-		name: filename,
-		data: file,
-		size: stats.size,
-		tempFilePath: filepath,
-		truncated: false,
-		mimetype: mime,
-		mv: cb ? cb : () => true
-	};
-};
+import Uploads from '../../lib/Uploads.js';
 
 
-test.beforeEach(t => {
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+
+test.beforeEach(async t => {
 	t.context.app = _.defaults({
 		dir: __dirname,
 		config: {
@@ -40,10 +27,10 @@ test.beforeEach(t => {
 				driver: 'Html'
 			}
 		}
-	}, require('../_utils/app')());
+	}, (await import('../_utils/app.js')).default());
 
-	t.context.request = require('../_utils/request')();
-	t.context.response = require('../_utils/response')();
+	t.context.request = (await import('../_utils/request.js')).default();
+	t.context.response = (await import('../_utils/response.js')).default();
 });
 
 
@@ -460,5 +447,9 @@ test('does not process a non-file field in strict mode', async t => {
 
 
 test.after.always(t => {
-	fs.rmSync(path.join(__dirname, 'uploads'), { recursive: true });
+	if (typeof fs.rmSync === 'function') {
+		fs.rmSync(path.join(__dirname, 'uploads'), { recursive: true });
+	} else {
+		fs.rmdirSync(path.join(__dirname, 'uploads'), { recursive: true });
+	}
 });

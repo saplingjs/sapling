@@ -5,22 +5,18 @@
  * its given.
  */
 
-'use strict';
-
-
 /* Dependencies */
-const fs = require('fs');
-const path = require('path');
-const _ = require('underscore');
-const Interface = require('./Interface.js');
-
-const SaplingError = require('../../lib/SaplingError.js');
+import fs from 'node:fs';
+import path from 'node:path';
+import _ from 'underscore';
+import SaplingError from '../../lib/SaplingError.js';
+import Interface from './Interface.js';
 
 
 /**
  * The HTML class
  */
-module.exports = class HTML extends Interface {
+export default class HTML extends Interface {
 	/**
 	 * Initialise HTML
 	 */
@@ -47,10 +43,10 @@ module.exports = class HTML extends Interface {
 		}
 
 		/* Do some rudimentary var replacement */
-		html = html.replace(/{{ ?([\w.]+) ?(?:\| ?safe ?)?}}/gi, (tag, identifier) => {
+		html = html.replace(/{{ ?([\w.]+) ?(?:\| ?safe ?)?}}/gi, (tag, identifier) =>
 			/* Return either matching data, or the tag literal */
-			return _.get(data, identifier, tag);
-		});
+			_.get(data, identifier, tag),
+		);
 
 		return html;
 	}
@@ -62,4 +58,4 @@ module.exports = class HTML extends Interface {
 	registerTags() {
 		return true;
 	}
-};
+}

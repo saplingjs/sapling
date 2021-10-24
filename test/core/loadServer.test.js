@@ -1,7 +1,7 @@
-const test = require('ava');
-const request = require('supertest');
+import test from 'ava';
+import request from 'supertest';
 
-const loadServer = require('../../core/loadServer');
+import loadServer from '../../core/loadServer.js';
 
 
 const cookies = response => {
@@ -11,8 +11,8 @@ const cookies = response => {
 };
 
 
-test.beforeEach(t => {
-	t.context.app = require('../_utils/app')();
+test.beforeEach(async t => {
+	t.context.app = (await import('../_utils/app.js')).default();
 
 	t.context.app.config = {
 		sessionStore: {

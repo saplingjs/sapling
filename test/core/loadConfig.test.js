@@ -1,13 +1,17 @@
-const test = require('ava');
-const path = require('path');
+import test from 'ava';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const SaplingError = require('../../lib/SaplingError');
+import SaplingError from '../../lib/SaplingError.js';
 
-const loadConfig = require('../../core/loadConfig');
+import loadConfig from '../../core/loadConfig.js';
 
 
-test.beforeEach(t => {
-	t.context.app = require('../_utils/app')();
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+
+test.beforeEach(async t => {
+	t.context.app = (await import('../_utils/app.js')).default();
 	process.env.NODE_ENV = 'test';
 });
 

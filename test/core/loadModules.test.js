@@ -1,15 +1,15 @@
-const test = require('ava');
-const _ = require('underscore');
+import test from 'ava';
+import _ from 'underscore';
 
-const Notifications = require('../../lib/Notifications');
-const Uploads = require('../../lib/Uploads');
-const User = require('../../lib/User');
+import Notifications from '../../lib/Notifications.js';
+import Uploads from '../../lib/Uploads.js';
+import User from '../../lib/User.js';
 
-const loadModules = require('../../core/loadModules');
+import loadModules from '../../core/loadModules.js';
 
 
-test.beforeEach(t => {
-	t.context.app = require('../_utils/app')();
+test.beforeEach(async t => {
+	t.context.app = (await import('../_utils/app.js')).default();
 });
 
 

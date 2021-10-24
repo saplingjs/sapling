@@ -2,11 +2,8 @@
  * Parse method-route key
  */
 
-'use strict';
-
-
 /* Dependencies */
-const SaplingError = require('../lib/SaplingError.js');
+import SaplingError from '../lib/SaplingError.js';
 
 
 /**
@@ -15,10 +12,10 @@ const SaplingError = require('../lib/SaplingError.js');
  *
  * @param {string} key
  */
-module.exports = function (key) {
+export default function parseMethodRouteKey(key) {
 	const object = {
 		method: false,
-		route: false
+		route: false,
 	};
 
 	/* Format expected: "GET /url/here" */
@@ -53,4 +50,4 @@ module.exports = function (key) {
 	}
 
 	return object;
-};
+}

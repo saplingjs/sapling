@@ -4,20 +4,17 @@
  * Create a new user.
  */
 
-'use strict';
-
-
 /* Dependencies */
-const _ = require('underscore');
+import _ from 'underscore';
 
-const { console } = require('@sapling/sapling/lib/Cluster');
-const Hash = require('@sapling/sapling/lib/Hash');
-const Response = require('@sapling/sapling/lib/Response');
-const SaplingError = require('@sapling/sapling/lib/SaplingError');
+import { console } from '@sapling/sapling/lib/Cluster.js';
+import Hash from '@sapling/sapling/lib/Hash.js';
+import Response from '@sapling/sapling/lib/Response.js';
+import SaplingError from '@sapling/sapling/lib/SaplingError.js';
 
 
 /* Hook /api/user/register */
-module.exports = async function (app, request, response) {
+export default async function register(app, request, response) {
 	/* Error collection */
 	const errors = [];
 
@@ -39,8 +36,8 @@ module.exports = async function (app, request, response) {
 			detail: 'You must provide a value for key `email`',
 			meta: {
 				key: 'email',
-				rule: 'required'
-			}
+				rule: 'required',
+			},
 		});
 	}
 
@@ -53,14 +50,14 @@ module.exports = async function (app, request, response) {
 			detail: 'You must provide a value for key `password`',
 			meta: {
 				key: 'password',
-				rule: 'required'
-			}
+				rule: 'required',
+			},
 		});
 	}
 
 	/* Validate for format */
 	/* Doing this here because by the time we do it Storage, the password's been hashed */
-	const validation = app.storage.validateData(_.extend(request, { collection: 'users' }), response);
+	const validation = app.request.validateData(_.extend(request, { collection: 'users' }), response);
 
 	/* Show the above errors, if any */
 	const combinedErrors = [...errors, ...validation];
@@ -83,7 +80,7 @@ module.exports = async function (app, request, response) {
 		url: '/data/users',
 		session: request.session,
 		permission: request.permission,
-		body: request.body
+		body: request.body,
 	}, response);
 
 	/* If post() already gave a response */
@@ -106,4 +103,4 @@ module.exports = async function (app, request, response) {
 		/* Respond with the user object */
 		return new Response(app, request, response, null, userData);
 	}
-};
+}

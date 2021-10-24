@@ -2,16 +2,13 @@
  * Load model
  */
 
-'use strict';
-
-
 /* Dependencies */
-const fs = require('fs');
-const path = require('path');
+import fs from 'node:fs';
+import path from 'node:path';
 
-const { console } = require('../lib/Cluster.js');
-const SaplingError = require('../lib/SaplingError.js');
-const Storage = require('../lib/Storage.js');
+import { console } from '../lib/Cluster.js';
+import SaplingError from '../lib/SaplingError.js';
+import Storage from '../lib/Storage.js';
 
 
 /**
@@ -20,9 +17,9 @@ const Storage = require('../lib/Storage.js');
  *
  * @param {function} next Chain callback
  */
-module.exports = async function (next) {
+export default async function loadModel(next) {
 	const modelPath = path.join(this.dir, this.config.modelsDir);
-	const structure = {};
+	const schema = {};
 	let files = {};
 
 	/* Load all models in the model directory */
@@ -44,7 +41,7 @@ module.exports = async function (next) {
 
 		const model = fs.readFileSync(path.join(modelPath, file));
 
-		/* Read the model JSON into the structure */
+		/* Read the model JSON into the schema */
 		try {
 			/* Attempt to parse the JSON */
 			const parsedModel = JSON.parse(model.toString());
@@ -66,23 +63,16 @@ module.exports = async function (next) {
 			}
 
 			/* Save */
-			structure[table] = parsedModel;
+			schema[table] = parsedModel;
 		} catch {
 			throw new SaplingError(`Error parsing model \`${table}\``);
 		}
 	}
 
-	this.structure = structure;
-
 	/* Create a storage instance based on the models */
-	this.storage = new Storage(this, {
-		name: this.name,
-		schema: this.structure,
-		config: this.config,
-		dir: this.dir
-	});
+	this.storage = new Storage(this, schema);
 
 	if (next) {
 		next();
 	}
-};
+}

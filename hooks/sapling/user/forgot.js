@@ -5,18 +5,15 @@
  * user has forgotten the password.
  */
 
-'use strict';
-
-
 /* Dependencies */
-const { console } = require('@sapling/sapling/lib/Cluster');
-const Response = require('@sapling/sapling/lib/Response');
-const SaplingError = require('@sapling/sapling/lib/SaplingError');
-const Validation = require('@sapling/sapling/lib/Validation');
+import { console } from '@sapling/sapling/lib/Cluster.js';
+import Response from '@sapling/sapling/lib/Response.js';
+import SaplingError from '@sapling/sapling/lib/SaplingError.js';
+import Validation from '@sapling/sapling/lib/Validation.js';
 
 
 /* Hook /api/user/forgot */
-module.exports = async function (app, request, response) {
+export default async function forgot(app, request, response) {
 	/* Check email for format */
 	const errors = new Validation().validate(request.body.email, 'email', { email: true, required: true });
 	if (errors.length > 0) {
@@ -26,7 +23,7 @@ module.exports = async function (app, request, response) {
 	/* Get authkey and identifiable from database */
 	const { email } = await app.storage.get({
 		url: `/data/users/email/${request.body.email}/?single=true`,
-		session: app.adminSession
+		session: app.adminSession,
 	});
 
 	/* Only do stuff if we found a user */
@@ -39,14 +36,14 @@ module.exports = async function (app, request, response) {
 		await app.storage.post({
 			url: `/data/users/email/${request.body.email}`,
 			body: { _authkey: key },
-			session: app.adminSession
+			session: app.adminSession,
 		});
 
 		/* Data for recovery email */
 		const templateData = {
 			name: app.name,
 			key,
-			url: app.config.url
+			url: app.config.url,
 		};
 
 		/* Send authkey via email */
@@ -65,4 +62,4 @@ module.exports = async function (app, request, response) {
 		/* Respond positively */
 		return new Response(app, request, response);
 	}
-};
+}

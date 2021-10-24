@@ -1,8 +1,7 @@
-const test = require('ava');
-const path = require('path');
+import test from 'ava';
 
-const Response = require('../../lib/Response');
-const SaplingError = require('../../lib/SaplingError');
+import Response from '../../lib/Response.js';
+import SaplingError from '../../lib/SaplingError.js';
 
 
 const noAjax = t => {
@@ -11,10 +10,10 @@ const noAjax = t => {
 }
 
 
-test.beforeEach(t => {
-	t.context.app = require('../_utils/app')();
+test.beforeEach(async t => {
+	t.context.app = (await import('../_utils/app.js')).default();
 
-	t.context.request = require('../_utils/request')();
+	t.context.request = (await import('../_utils/request.js')).default();
 
 	t.context.response = () => {
 		const response = {};
@@ -119,7 +118,7 @@ test('returns empty string for bad data', t => {
 
 /* viewResponse */
 
-test('responds with a view when pre-rendered HTML is passed', async t => {
+test.cb('responds with a view when pre-rendered HTML is passed', t => {
 	noAjax(t);
 
 	const response = t.context.response();
@@ -131,13 +130,14 @@ test('responds with a view when pre-rendered HTML is passed', async t => {
 	response.send = data => {
 		t.is(typeof data, 'string');
 		t.is(data, '<h1>Hello</h1>');
+		t.end();
 		return response;
 	};
 
 	new Response(t.context.app, t.context.request, response, null, '<h1>Hello</h1>');
 });
 
-test('responds with data JSON when a string of data is passed', async t => {
+test.cb('responds with data JSON when a string of data is passed', t => {
 	const response = t.context.response();
 
 	response.status = statusCode => {
@@ -146,13 +146,14 @@ test('responds with data JSON when a string of data is passed', async t => {
 	};
 	response.json = data => {
 		t.deepEqual(data, [{foo:"bar"}]);
+		t.end();
 		return response;
 	};
 
 	new Response(t.context.app, t.context.request, response, null, '[{"foo":"bar"}]');
 });
 
-test('responds with a data view when a string of data is passed', async t => {
+test.cb('responds with a data view when a string of data is passed', t => {
 	noAjax(t);
 
 	const response = t.context.response();
@@ -164,6 +165,7 @@ test('responds with a data view when a string of data is passed', async t => {
 	response.send = data => {
 		t.is(typeof data, 'string');
 		t.true(data.includes('Response to'));
+		t.end();
 		return response;
 	};
 
@@ -173,7 +175,7 @@ test('responds with a data view when a string of data is passed', async t => {
 
 /* genericResponse */
 
-test('responds with a generic success status when no content is passed', async t => {
+test.cb('responds with a generic success status when no content is passed', t => {
 	const response = t.context.response();
 
 	response.status = statusCode => {
@@ -182,6 +184,7 @@ test('responds with a generic success status when no content is passed', async t
 	};
 	response.send = data => {
 		t.true(data.success);
+		t.end();
 		return response;
 	};
 
@@ -191,20 +194,21 @@ test('responds with a generic success status when no content is passed', async t
 
 /* dataResponse */
 
-test('redirects when redirect query string is passed', async t => {
+test.cb('redirects when redirect query string is passed', t => {
 	t.context.request.query.redirect = '/my-account';
 
 	const response = t.context.response();
 
 	response.redirect = destination => {
 		t.is(destination, '/my-account');
+		t.end();
 		return response;
 	};
 
 	new Response(t.context.app, t.context.request, response, null, []);
 });
 
-test('responds with data JSON when data is passed', async t => {
+test.cb('responds with data JSON when data is passed', t => {
 	const response = t.context.response();
 
 	response.status = statusCode => {
@@ -213,13 +217,14 @@ test('responds with data JSON when data is passed', async t => {
 	};
 	response.json = data => {
 		t.deepEqual(data, [{foo:'bar'}]);
+		t.end();
 		return response;
 	};
 
 	new Response(t.context.app, t.context.request, response, null, [{foo:'bar'}]);
 });
 
-test('responds with a data view when data is passed', async t => {
+test.cb('responds with a data view when data is passed', t => {
 	noAjax(t);
 
 	const response = t.context.response();
@@ -231,6 +236,7 @@ test('responds with a data view when data is passed', async t => {
 	response.send = data => {
 		t.is(typeof data, 'string');
 		t.true(data.includes('Response to'));
+		t.end();
 		return response;
 	};
 
@@ -240,7 +246,7 @@ test('responds with a data view when data is passed', async t => {
 
 /* errorResponse */
 
-test('responds with an error JSON when an error is passed', async t => {
+test.cb('responds with an error JSON when an error is passed', t => {
 	const response = t.context.response();
 
 	response.status = statusCode => {
@@ -249,13 +255,14 @@ test('responds with an error JSON when an error is passed', async t => {
 	};
 	response.json = data => {
 		t.is(data.errors.length, 1);
+		t.end();
 		return response;
 	};
 
 	new Response(t.context.app, t.context.request, response, new SaplingError('error'));
 });
 
-test('responds with an error view when an error is passed', async t => {
+test.cb('responds with an error view when an error is passed', t => {
 	noAjax(t);
 	t.context.app.config.showError = true;
 
@@ -268,13 +275,14 @@ test('responds with an error view when an error is passed', async t => {
 	response.send = data => {
 		t.is(typeof data, 'string');
 		t.true(data.includes('SaplingError'));
+		t.end();
 		return response;
 	};
 	
 	new Response(t.context.app, t.context.request, response, new SaplingError('error'));
 });
 
-test('responds with a plain error view when an error is passed', async t => {
+test.cb('responds with a plain error view when an error is passed', t => {
 	noAjax(t);
 	t.context.app.config.showError = false;
 
@@ -287,6 +295,7 @@ test('responds with a plain error view when an error is passed', async t => {
 	response.send = data => {
 		t.is(typeof data, 'string');
 		t.true(data.includes('A critical error has occurred with this website.  Please try again later.'));
+		t.end();
 		return response;
 	};
 	
@@ -296,7 +305,7 @@ test('responds with a plain error view when an error is passed', async t => {
 
 /* notFoundResponse */
 
-test('responds with a 404 status when an empty content is passed', async t => {
+test.cb('responds with a 404 status when an empty content is passed', t => {
 	const response = t.context.response();
 
 	response.status = statusCode => {
@@ -305,13 +314,14 @@ test('responds with a 404 status when an empty content is passed', async t => {
 	};
 	response.send = data => {
 		t.falsy(data);
+		t.end();
 		return response;
 	};
 	
 	new Response(t.context.app, t.context.request, response, null, false);
 });
 
-test('responds with a 404 error view when an empty content is passed', async t => {
+test.cb('responds with a 404 error view when an empty content is passed', t => {
 	noAjax(t);
 
 	const response = t.context.response();
@@ -323,6 +333,7 @@ test('responds with a 404 error view when an empty content is passed', async t =
 	response.send = data => {
 		t.is(typeof data, 'string');
 		t.true(data.includes('This page either does not exist, or you do not have permission to see it.'));
+		t.end();
 		return response;
 	};
 	

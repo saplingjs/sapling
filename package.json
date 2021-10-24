@@ -3,6 +3,7 @@
   "version": "0.1.4",
   "license": "MPL-2.0",
   "description": "Node.js framework for faster-than-light web development.",
+  "type": "module",
   "keywords": [
     "framework",
     "server",
@@ -35,13 +36,13 @@
     "csurf": "^1.11.0",
     "express-fileupload": "^1.2.1",
     "express-session": "1.17.2",
-    "filenamify": "^4.2.0",
+    "filenamify": "^5.0.0",
     "front-matter": "^4.0.2",
     "image-size": "^1.0.0",
     "isobject": "^4.0.0",
     "moment": "2.29.1",
     "morgan": "^1.9.1",
-    "nodemailer": "6.6.1",
+    "nodemailer": "6.7.0",
     "path-match": "^1.2.4",
     "sirv": "^1.0.11",
     "underscore": "1.13.1",
@@ -53,16 +54,15 @@
     "@babel/eslint-parser": "^7.13.4",
     "@sapling/sapling": "file:.",
     "ava": "^3.15.0",
-    "babel-eslint": "^10.1.0",
+    "c8": "^7.8.0",
     "eslint": "^7.22.0",
     "husky": "4.3.8",
     "lint-staged": ">=10",
     "maildev": "^1.1.0",
     "mime-types": "^2.1.29",
-    "nyc": "^15.1.0",
     "supertest": "^6.1.3",
     "webpack": "^5.28.0",
-    "xo": "^0.39.1"
+    "xo": "^0.45.0"
   },
   "resolutions": {
     "maildev/socket.io": "^2.4.0"
@@ -71,8 +71,9 @@
     "precommit": "lint-staged",
     "lint-fix": "xo --fix",
     "lint": "xo",
-    "test": "nyc ava",
-    "test:report": "nyc --reporter=lcov npm test",
+    "test": "npx ava",
+    "test:coverage": "npx c8 ava",
+    "test:report": "npx c8 --reporter=lcov npm test",
     "test:send": "npx codecov"
   },
   "xo": {
@@ -82,7 +83,10 @@
       "node_modules/**/*.*",
       "test/**/*.*"
     ],
-    "parser": "babel-eslint",
+    "parser": "@babel/eslint-parser",
+    "parserOptions": {
+      "requireConfigFile": false
+    },
     "rules": {
       "max-params": [
         "warn",
@@ -111,7 +115,8 @@
             "pascalCase": true
           }
         }
-      ]
+      ],
+      "unicorn/numeric-separators-style": "off"
     }
   },
   "ava": {

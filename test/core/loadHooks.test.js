@@ -1,25 +1,32 @@
-const test = require('ava');
-const fs = require('fs');
-const path = require('path');
+import test from 'ava';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const loadHooks = require('../../core/loadHooks');
-const SaplingError = require('../../lib/SaplingError');
+import SaplingError from '../../lib/SaplingError.js';
+import parseMethodRouteKey from '../../core/parseMethodRouteKey.js';
+import runHook from '../../core/runHook.js';
+
+import loadHooks from '../../core/loadHooks.js';
+
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 
 test.before(t => {
 	fs.chmodSync(path.join(__dirname, '../_data/hooks/inaccessible.json'), 0o100);
 });
 
-test.beforeEach(t => {
-	t.context.app = require('../_utils/app')();
+test.beforeEach(async t => {
+	t.context.app = (await import('../_utils/app.js')).default();
 	t.context.app.controller = {};
 	t.context.app.config.hooks = 'test/_data/hooks/get.json';
 
-	t.context.app.parseMethodRouteKey = require('../../core/parseMethodRouteKey');
-	t.context.app.runHook = require('../../core/runHook');
+	t.context.app.parseMethodRouteKey = parseMethodRouteKey;
+	t.context.app.runHook = runHook;
 
-	t.context.request = require('../_utils/request')();
-	t.context.response = require('../_utils/response')();
+	t.context.request = (await import('../_utils/request.js')).default();
+	t.context.response = (await import('../_utils/response.js')).default();
 });
 
 

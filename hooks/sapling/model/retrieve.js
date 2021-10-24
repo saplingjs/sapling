@@ -4,36 +4,32 @@
  * Fetch the details of the given model
  */
 
-'use strict';
-
-
 /* Dependencies */
-const Response = require('@sapling/sapling/lib/Response');
-const SaplingError = require('@sapling/sapling/lib/SaplingError');
-const Utils = require('@sapling/sapling/lib/Utils');
+import Response from '@sapling/sapling/lib/Response.js';
+import SaplingError from '@sapling/sapling/lib/SaplingError.js';
 
 
 /* Hook /api/model/:model */
-module.exports = async function (app, request, response) {
+export default async function retrieve(app, request, response) {
 	if (request.params.model) {
 		/* Fetch the given model */
-		const schema = new Utils().deepClone(app.storage.schema[request.params.model] || []);
+		const rules = app.storage.getRules(request.params.model);
 
 		/* If no model, respond with an error */
-		if (schema.length === 0) {
+		if (Object.keys(rules).length === 0) {
 			return new Response(app, request, response, new SaplingError('No such model'));
 		}
 
 		/* Remove any internal/private model values (begin with _) */
-		for (const k in schema) {
+		for (const k in rules) {
 			if (k.startsWith('_')) {
-				delete schema[k];
+				delete rules[k];
 			}
 		}
 
 		/* Send it out */
-		return new Response(app, request, response, null, schema);
+		return new Response(app, request, response, null, rules);
 	}
 
 	return new Response(app, request, response, new SaplingError('No model specified'));
-};
+}

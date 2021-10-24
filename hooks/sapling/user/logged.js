@@ -5,23 +5,20 @@
  * if the user isn't logged in, or the user object if they are.
  */
 
-'use strict';
-
-
 /* Dependencies */
-const _ = require('underscore');
+import _ from 'underscore';
 
-const Response = require('@sapling/sapling/lib/Response');
+import Response from '@sapling/sapling/lib/Response.js';
 
 
 /* Hook /api/user/logged */
-module.exports = async function (app, request, response) {
+export default async function logged(app, request, response) {
 	/* If session exists */
 	if (request.session && request.session.user) {
 		/* Get the user from storage */
 		const user = await app.storage.get({
 			url: `/data/users/_id/${request.session.user._id}/?single=true`,
-			session: request.session
+			session: request.session,
 		});
 
 		/* Set the user session */
@@ -37,4 +34,4 @@ module.exports = async function (app, request, response) {
 
 	/* If no session, return empty object */
 	return new Response(app, request, response, null, {});
-};
+}

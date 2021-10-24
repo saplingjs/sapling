@@ -1,12 +1,17 @@
-const path = require('path');
-const Utils = require('../../lib/Utils');
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-module.exports = () => {
+import Utils from '../../lib/Utils.js';
+
+export default () => {
 	const app = {
-		dir: path.join(__dirname, '../../'),
+		dir: path.join(path.dirname(fileURLToPath(import.meta.url)), '../../'),
 		config: {
 			render: {
 				driver: 'html'
+			},
+			db: {
+				driver: 'Memory'
 			},
 			hooksDir: 'hooks/',
 			viewsDir: 'views/',
@@ -24,7 +29,8 @@ module.exports = () => {
 			get: [],
 			post: []
 		},
-		hooks: {}
+		hooks: {},
+		schema: {}
 	};
 
 	app.utils = new Utils(app);

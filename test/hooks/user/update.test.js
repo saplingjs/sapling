@@ -1,13 +1,14 @@
-const test = require('ava');
-const _ = require('underscore');
+import test from 'ava';
+import _ from 'underscore';
 
-const Hash = require('../../../lib/Hash');
-const Response = require('../../../lib/Response');
-const SaplingError = require('../../../lib/SaplingError');
-const Storage = require('../../../lib/Storage');
-const User = require('../../../lib/User');
+import Hash from '../../../lib/Hash.js';
+import Request from '../../../lib/Request.js';
+import Response from '../../../lib/Response.js';
+import SaplingError from '../../../lib/SaplingError.js';
+import Storage from '../../../lib/Storage.js';
+import User from '../../../lib/User.js';
 
-const update = require('../../../hooks/sapling/user/update');
+import update from '../../../hooks/sapling/user/update.js';
 
 
 const createUser = async t => {
@@ -23,22 +24,20 @@ const createUser = async t => {
 };
 
 
-test.beforeEach(t => {
+test.beforeEach(async t => {
 	t.context.app = _.extend({
 		name: 'untitled'
-	}, require('../../_utils/app')());
-
-	t.context.app.storage = new Storage(t.context.app, {
-		name: 'test',
-		schema: {},
-		config: { db: { driver: 'Memory' } },
-		dir: __dirname
-	});
+	}, (await import('../../_utils/app.js')).default());
 
 	t.context.app.user = new User(t.context.app);
+	t.context.app.request = new Request(t.context.app);
 
-	t.context.request = require('../../_utils/request')();
-	t.context.response = require('../../_utils/response')();
+	t.context.app.name = 'test';
+	t.context.app.storage = new Storage(t.context.app);
+	await t.context.app.storage.importDriver();
+
+	t.context.request = (await import('../../_utils/request.js')).default();
+	t.context.response = (await import('../../_utils/response.js')).default();
 });
 
 

@@ -7,17 +7,15 @@
  * database technology.
  */
 
-'use strict';
-
 
 /* Dependencies */
-const SaplingError = require('../../lib/SaplingError.js');
+import SaplingError from '../../lib/SaplingError.js';
 
 
 /**
  * The Interface class
  */
-module.exports = class Interface {
+export default class Interface {
 	/**
 	 * Load parent app
 	 */

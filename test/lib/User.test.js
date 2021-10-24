@@ -1,18 +1,60 @@
-const test = require('ava');
-const _ = require('underscore');
+import test from 'ava';
+import _ from 'underscore';
 
-const Storage = require('../../lib/Storage');
+import Request from '../../lib/Request.js';
+import Storage from '../../lib/Storage.js';
 
-const User = require('../../lib/User');
+import User from '../../lib/User.js';
 
 
-test.beforeEach(t => {
+test.beforeEach(async t => {
 	t.context.app = _.defaults({
-		storage: new Storage({}, {
+		storage: new Storage({
 			name: 'test',
-			schema: {},
-			config: { db: { driver: 'Memory' } },
-			dir: __dirname
+			config: { db: { driver: 'Memory' } }
+		}, {
+			posts: {
+				one: {
+					type: 'string'
+				},
+				two: {
+					type: 'string',
+					access: 'member'
+				},
+				three: {
+					type: 'string',
+					access: 'admin'
+				},
+				four: {
+					type: 'string',
+					access: {
+						r: 'member',
+						w: 'owner'
+					}
+				},
+				five: {
+					type: 'string',
+					access: {
+						r: 'admin',
+						w: 'owner'
+					}
+				},
+				six: {
+					type: 'string',
+					access: 'anyone'
+				},
+				seven: {
+					type: 'string',
+					access: 'owner'
+				},
+				eight: {
+					type: 'string',
+					access: {
+						r: 'owner',
+						w: 'admin'
+					}
+				}
+			}
 		}),
 		routeStack: {
 			get: [
@@ -20,7 +62,8 @@ test.beforeEach(t => {
 				'/login',
 				'/posts',
 				'/edit',
-				'/admin'
+				'/admin',
+				'/contact'
 			]
 		},
 		permissions: {
@@ -30,11 +73,13 @@ test.beforeEach(t => {
 			'get /edit': { role: ['member', 'admin'] },
 			'get /admin': { role: 'admin' }
 		}
-	}, require('../_utils/app')());
+	}, (await import('../_utils/app.js')).default());
+	await t.context.app.storage.importDriver();
 
-	t.context.response = require('../_utils/response');
+	t.context.response = (await import('../_utils/response.js')).default();
 
 	t.context.user = new User(t.context.app);
+	t.context.app.request = new Request(t.context.app);
 });
 
 
@@ -145,7 +190,7 @@ test('allows a user that is logged in for a protected route', t => {
 				role: 'member'
 			}
 		}
-	}, t.context.response()));
+	}, t.context.response));
 });
 
 test('denies a user that is not logged in for a protected route', t => {
@@ -154,7 +199,7 @@ test('denies a user that is not logged in for a protected route', t => {
 			role: [ 'member' ]
 		},
 		session: {}
-	}, t.context.response()));
+	}, t.context.response));
 });
 
 test('allows a user that is logged in for a public route', t => {
@@ -167,7 +212,7 @@ test('allows a user that is logged in for a public route', t => {
 				role: 'member'
 			}
 		}
-	}, t.context.response()));
+	}, t.context.response));
 });
 
 test('allows a user that is not logged in for a public route', t => {
@@ -176,7 +221,7 @@ test('allows a user that is not logged in for a public route', t => {
 			role: [ 'anyone' ]
 		},
 		session: {}
-	}, t.context.response()));
+	}, t.context.response));
 });
 
 test('denies a user that is logged in for a stranger route', t => {
@@ -189,7 +234,7 @@ test('denies a user that is logged in for a stranger route', t => {
 				role: 'member'
 			}
 		}
-	}, t.context.response()));
+	}, t.context.response));
 });
 
 test('allows a user that is not logged in for a stranger route', t => {
@@ -198,23 +243,25 @@ test('allows a user that is not logged in for a stranger route', t => {
 			role: [ 'stranger' ]
 		},
 		session: {}
-	}, t.context.response()));
+	}, t.context.response));
 });
 
 test('allows a user that is not logged in for an undefined route', t => {
 	t.true(t.context.user.isUserAuthenticatedForRoute({
 		permission: null,
 		session: {}
-	}, t.context.response()));
+	}, t.context.response));
 });
 
 test('allows a user that is logged in for an undefined route', t => {
 	t.true(t.context.user.isUserAuthenticatedForRoute({
 		permission: null,
 		session: {
-			role: 'member'
+			user: {
+				role: 'member'
+			}
 		}
-	}, t.context.response()));
+	}, t.context.response));
 });
 
 
@@ -231,7 +278,68 @@ test('returns correct role for routes', t => {
 	t.deepEqual(t.context.user.getRolesForRoute.call(t.context, 'get', '/admin'), ['admin']);
 });
 
+test('returns correct role for route with no permission set', t => {
+	t.deepEqual(t.context.user.getRolesForRoute.call(t.context, 'get', '/contact'), ['anyone']);
+});
+
 test('returns correct role for undefined route', t => {
 	t.deepEqual(t.context.user.getRolesForRoute.call(t.context, 'get', '/blog'), ['anyone']);
 	t.deepEqual(t.context.user.getRolesForRoute.call(t.context, 'post', '/data/blog'), ['anyone']);
+});
+
+
+/* getRole */
+
+test('returns the correct role from session', t => {
+	t.is(t.context.user.getRole({
+		session: {
+			user: {
+				role: 'member'
+			}
+		}
+	}), 'member');
+});
+
+test('returns null for empty session', t => {
+	t.is(t.context.user.getRole({
+		session: {}
+	}), null);
+});
+
+test('returns null from no session', t => {
+	t.is(t.context.user.getRole({}), null);
+});
+
+
+/* disallowedFields */
+
+test('returns the disallowed fields from rules for a stranger', t => {
+	t.deepEqual(
+		t.context.user.disallowedFields('stranger', t.context.app.storage.schema.posts),
+		['two', 'three', 'four', 'five']
+	);
+});
+
+test('returns the disallowed fields from rules for a member', t => {
+	t.deepEqual(
+		t.context.user.disallowedFields('member', t.context.app.storage.schema.posts),
+		['three', 'five']
+	);
+});
+
+test('returns the disallowed fields from rules for an admin', t => {
+	t.deepEqual(
+		t.context.user.disallowedFields('admin', t.context.app.storage.schema.posts),
+		[]
+	);
+});
+
+
+/* ownerFields */
+
+test('returns the owner fields from rules', t => {
+	t.deepEqual(
+		t.context.user.ownerFields(t.context.app.storage.schema.posts),
+		['seven', 'eight']
+	);
 });

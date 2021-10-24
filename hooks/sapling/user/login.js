@@ -5,21 +5,21 @@
  * or a success message or redirection on success.
  */
 
-'use strict';
-
-
 /* Dependencies */
-const _ = require('underscore');
+import _ from 'underscore';
 
-const Hash = require('@sapling/sapling/lib/Hash');
-const Response = require('@sapling/sapling/lib/Response');
-const SaplingError = require('@sapling/sapling/lib/SaplingError');
+import Hash from '@sapling/sapling/lib/Hash.js';
+import Response from '@sapling/sapling/lib/Response.js';
+import SaplingError from '@sapling/sapling/lib/SaplingError.js';
 
 
 /* Hook /api/user/login */
-module.exports = async function (app, request, response) {
+export default async function login(app, request, response) {
+	/* Fetch the user model */
+	const rules = app.storage.getRules('users');
+
 	/* Find all identifiable fields */
-	const identifiables = Object.keys(app.storage.schema.users).filter(field => app.storage.schema.users[field].identifiable);
+	const identifiables = Object.keys(rules).filter(field => rules[field].identifiable);
 
 	/* Figure out which request value is used */
 	let identValue = false;
@@ -53,8 +53,8 @@ module.exports = async function (app, request, response) {
 			detail: 'No email address or identifiable provided.',
 			meta: {
 				key: 'identifiable',
-				rule: 'required'
-			}
+				rule: 'required',
+			},
 		}));
 	}
 
@@ -73,8 +73,8 @@ module.exports = async function (app, request, response) {
 			detail: 'Either the user does not exist or the password is incorrect.',
 			meta: {
 				type: 'login',
-				error: 'invalid'
-			}
+				error: 'invalid',
+			},
 		}));
 	}
 
@@ -87,8 +87,8 @@ module.exports = async function (app, request, response) {
 			detail: 'You must provide a value for key `password`',
 			meta: {
 				key: 'password',
-				rule: 'required'
-			}
+				rule: 'required',
+			},
 		}));
 	}
 
@@ -115,8 +115,8 @@ module.exports = async function (app, request, response) {
 			detail: 'Either the user does not exist or the password is incorrect.',
 			meta: {
 				type: 'login',
-				error: 'invalid'
-			}
+				error: 'invalid',
+			},
 		}));
 	}
 
@@ -127,4 +127,4 @@ module.exports = async function (app, request, response) {
 		/* Otherwise, reply with the user object */
 		return new Response(app, request, response, null, request.session.user);
 	}
-};
+}

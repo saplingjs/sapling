@@ -2,16 +2,13 @@
  * Load custom tags
  */
 
-'use strict';
-
-
 /**
  * Setup custom tags into the template parser to
  * return data from the storage engine.
  *
  * @param {function} next Chain callback
  */
-module.exports = async function (next) {
+export default async function loadCustomTags(next) {
 	await this.templating.renderer.registerTags({
 
 		/**
@@ -43,12 +40,12 @@ module.exports = async function (next) {
 			return await this.storage.get({
 				url,
 				permission: { role: permission },
-				session
+				session,
 			});
-		}
+		},
 	});
 
 	if (next) {
 		next();
 	}
-};
+}

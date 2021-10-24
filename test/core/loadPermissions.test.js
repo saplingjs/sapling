@@ -1,33 +1,37 @@
-const test = require('ava');
-const path = require('path');
-const _ = require('underscore');
+import test from 'ava';
+import path from 'path';
+import _ from 'underscore';
+import { fileURLToPath } from 'url';
 
-const Response = require('../../lib/Response');
-const SaplingError = require('../../lib/SaplingError');
-const Storage = require('../../lib/Storage');
-const User = require('../../lib/User');
+import Request from '../../lib/Request.js';
+import Response from '../../lib/Response.js';
+import SaplingError from '../../lib/SaplingError.js';
+import Storage from '../../lib/Storage.js';
+import User from '../../lib/User.js';
+import parseMethodRouteKey from '../../core/parseMethodRouteKey.js';
 
-const loadPermissions = require('../../core/loadPermissions');
+import loadPermissions from '../../core/loadPermissions.js';
 
 
-test.beforeEach(t => {
-	t.context.app = require('../_utils/app')();
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+
+test.beforeEach(async t => {
+	t.context.app = (await import('../_utils/app.js')).default();
 	t.context.app.dir = path.join(__dirname, '../_data/permissions');
 	t.context.app.config.permissions = 'string.json';
 
-	t.context.app.parseMethodRouteKey = require('../../core/parseMethodRouteKey');
+	t.context.app.parseMethodRouteKey = parseMethodRouteKey;
 
 	t.context.app.user = new User(t.context.app);
+	t.context.app.request = new Request(t.context.app);
 
-	t.context.app.storage = new Storage(t.context.app, {
-		name: 'test',
-		schema: {},
-		config: { db: { driver: 'Memory' } },
-		dir: __dirname
-	});
+	t.context.app.name = 'test';
+	t.context.app.storage = new Storage(t.context.app);
+	await t.context.app.storage.importDriver();
 
-	t.context.request = require('../_utils/request')();
-	t.context.response = require('../_utils/response')();
+	t.context.request = (await import('../_utils/request.js')).default();
+	t.context.response = (await import('../_utils/response.js')).default();
 });
 
 

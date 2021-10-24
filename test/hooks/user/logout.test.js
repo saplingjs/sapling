@@ -1,15 +1,15 @@
-const test = require('ava');
+import test from 'ava';
 
-const Response = require('../../../lib/Response');
+import Response from '../../../lib/Response.js';
 
-const logout = require('../../../hooks/sapling/user/logout');
+import logout from '../../../hooks/sapling/user/logout.js';
 
 
-test.beforeEach(t => {
-	t.context.app = require('../../_utils/app')();
+test.beforeEach(async t => {
+	t.context.app = (await import('../../_utils/app.js')).default();
 
-	t.context.request = require('../../_utils/request')();
-	t.context.response = require('../../_utils/response')();
+	t.context.request = (await import('../../_utils/request.js')).default();
+	t.context.response = (await import('../../_utils/response.js')).default();
 });
 
 

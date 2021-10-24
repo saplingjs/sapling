@@ -4,16 +4,16 @@
  * Initialises a Sapling instance and handles incoming requests
  */
 
-'use strict';
-
-
 /* System dependencies */
-const async = require('async');
+import async from 'async';
 
 /* Internal dependencies */
-const { console } = require('./lib/Cluster.js');
-const Response = require('./lib/Response.js');
-const Utils = require('./lib/Utils.js');
+import { console } from './lib/Cluster.js';
+import Response from './lib/Response.js';
+import Utils from './lib/Utils.js';
+
+import parseMethodRouteKey from './core/parseMethodRouteKey.js';
+import runHook from './core/runHook.js';
 
 
 /**
@@ -35,7 +35,7 @@ class App {
 
 		/* Define an admin session for big ops */
 		this.adminSession = {
-			user: { role: 'admin' }
+			user: { role: 'admin' },
 		};
 
 		/* Load utility functions */
@@ -43,51 +43,51 @@ class App {
 
 		/* Load everything */
 		async.series([
-			callback => require('./core/loadConfig.js').call(this, callback),
-			callback => {
+			async callback => await (await import('./core/loadConfig.js')).default.call(this, callback),
+			async callback => {
 				if (options.loadServer !== false) {
-					require('./core/loadServer.js').call(this, options, callback);
+					await (await import('./core/loadServer.js')).default.call(this, options, callback);
 				}
 			},
-			callback => {
+			async callback => {
 				if (options.loadModel !== false) {
-					require('./core/loadModel.js').call(this, callback);
+					await (await import('./core/loadModel.js')).default.call(this, callback);
 				}
 			},
-			callback => {
+			async callback => {
 				if (options.loadPermissions !== false) {
-					require('./core/loadPermissions.js').call(this, callback);
+					await (await import('./core/loadPermissions.js')).default.call(this, callback);
 				}
 			},
-			callback => {
+			async callback => {
 				if (options.loadController !== false) {
-					require('./core/loadController.js').call(this, callback);
+					await (await import('./core/loadController.js')).default.call(this, callback);
 				}
 			},
-			callback => {
+			async callback => {
 				if (options.loadHooks !== false) {
-					require('./core/loadHooks.js').call(this, callback);
+					await (await import('./core/loadHooks.js')).default.call(this, callback);
 				}
 			},
-			callback => {
+			async callback => {
 				if (options.loadViews !== false) {
-					require('./core/loadCustomTags.js').call(this, callback);
+					await (await import('./core/loadCustomTags.js')).default.call(this, callback);
 				}
 			},
-			callback => {
-				require('./core/loadModules.js').call(this, callback);
+			async callback => {
+				await (await import('./core/loadModules.js')).default.call(this, callback);
 			},
-			callback => {
+			async callback => {
 				if (options.loadViews !== false) {
 					for (const route in this.controller) {
-						if ({}.hasOwnProperty.call(this.controller, route)) {
-							require('./core/initRoute.js').call(this, route, this.controller[route]);
+						if (Object.prototype.hasOwnProperty.call(this.controller, route)) {
+							await (await import('./core/initRoute.js')).default.call(this, route, this.controller[route]);
 						}
 					}
 				}
 
 				if (options.loadREST !== false) {
-					require('./core/loadRest.js').call(this, callback);
+					await (await import('./core/loadRest.js')).default.call(this, callback);
 				}
 			},
 			callback => {
@@ -95,7 +95,7 @@ class App {
 					new Response(this, request, response, null, false);
 				});
 				callback();
-			}
+			},
 		], error => {
 			if (error) {
 				console.error('Error starting Sapling');
@@ -111,8 +111,8 @@ class App {
 	}
 
 	/* Load remaining methods */
-	parseMethodRouteKey = require('./core/parseMethodRouteKey.js');
-	runHook = require('./core/runHook.js');
+	parseMethodRouteKey = parseMethodRouteKey;
+	runHook = runHook;
 }
 
-module.exports = App;
+export default App;

@@ -7,8 +7,43 @@ on:
     branches: [ master ]
 
 jobs:
-  test:
-    name: Run tests and linter
+  lint:
+    name: Run linter
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linter
+        run: npm run lint
+
+  test-node-16:
+    name: Test Node.js v16
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run test
+        run: npm run test:report
+
+      - name: Report coverage
+        run: npm run test:send
+
+  test-node-14:
+    name: Test Node.js v14
     runs-on: ubuntu-latest
 
     steps:
@@ -18,13 +53,23 @@ jobs:
           node-version: '14'
 
       - name: Install dependencies
-        run: npm install
-
-      - name: Run linter
-        run: npm run lint
+        run: npm ci
 
       - name: Run test
-        run: npm run test:report
+        run: npm run test
 
-      - name: Report coverage
-        run: npm run test:send
+  test-node-12:
+    name: Test Node.js v12
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '12'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run test
+        run: npm run test

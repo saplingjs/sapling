@@ -2,16 +2,13 @@
  * Load hooks
  */
 
-'use strict';
-
-
 /* Dependencies */
-const fs = require('fs');
-const path = require('path');
+import fs from 'node:fs';
+import path from 'node:path';
 
-const { console } = require('../lib/Cluster.js');
-const Response = require('../lib/Response.js');
-const SaplingError = require('../lib/SaplingError.js');
+import { console } from '../lib/Cluster.js';
+import Response from '../lib/Response.js';
+import SaplingError from '../lib/SaplingError.js';
 
 
 /**
@@ -19,7 +16,7 @@ const SaplingError = require('../lib/SaplingError.js');
  *
  * @param {function} next Chain callback
  */
-module.exports = async function (next) {
+export default async function loadHooks(next) {
 	/* Location of the hooks file */
 	const hooksPath = path.join(this.dir, this.config.hooks);
 
@@ -49,17 +46,15 @@ module.exports = async function (next) {
 		for (const hook of Object.keys(hooks)) {
 			const { method, route } = this.parseMethodRouteKey(hook);
 
-			this.hooks[`${method} ${route}`] = require(path.join(this.dir, this.config.hooksDir, hooks[hook]));
+			this.hooks[`${method} ${route}`] = (await import(path.join(this.dir, this.config.hooksDir, hooks[hook]))).default;
 
 			/* Initialise hook if it doesn't exist in the controller */
 			if (!(route in this.controller) && !route.startsWith('/data') && !route.startsWith('data')) {
 				/* Listen on */
-				this.server[method](route, async (request, response) => {
+				this.server[method](route, async (request, response) =>
 					/* Run a hook, if it exists */
-					return await this.runHook(method, route, request, response, null, () => {
-						return new Response(this, request, response, null);
-					});
-				});
+					await this.runHook(method, route, request, response, null, () => new Response(this, request, response, null)),
+				);
 
 				/* Save the route for later */
 				this.routeStack[method].push(route);
@@ -72,4 +67,4 @@ module.exports = async function (next) {
 	if (next) {
 		next();
 	}
-};
+}

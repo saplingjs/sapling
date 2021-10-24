@@ -4,18 +4,15 @@
  * Handle recovering a user account.
  */
 
-'use strict';
-
-
 /* Dependencies */
-const Hash = require('@sapling/sapling/lib/Hash');
+import Hash from '@sapling/sapling/lib/Hash.js';
 
-const Response = require('@sapling/sapling/lib/Response');
-const SaplingError = require('@sapling/sapling/lib/SaplingError');
+import Response from '@sapling/sapling/lib/Response.js';
+import SaplingError from '@sapling/sapling/lib/SaplingError.js';
 
 
 /* Hook /api/user/recover */
-module.exports = async function (app, request, response) {
+export default async function recover(app, request, response) {
 	/* If the new password has not been provided, throw error */
 	if (!request.body.new_password) {
 		return new Response(app, request, response, new SaplingError({
@@ -25,16 +22,16 @@ module.exports = async function (app, request, response) {
 			detail: 'You must provide a value for key `new_password`',
 			meta: {
 				key: 'password',
-				rule: 'required'
-			}
+				rule: 'required',
+			},
 		}));
 	}
 
 	/* If the new password does not match rules, throw error  */
-	const validation = app.storage.validateData({
+	const validation = app.request.validateData({
 		body: { password: request.body.new_password },
 		collection: 'users',
-		type: 'filter'
+		type: 'filter',
 	}, response);
 
 	if (validation.length > 0) {
@@ -50,8 +47,8 @@ module.exports = async function (app, request, response) {
 			detail: 'You must provide a value for key `auth`',
 			meta: {
 				key: 'auth',
-				rule: 'required'
-			}
+				rule: 'required',
+			},
 		}));
 	}
 
@@ -70,15 +67,15 @@ module.exports = async function (app, request, response) {
 			detail: 'The authkey has expired and can no longer be used.',
 			meta: {
 				type: 'recover',
-				error: 'expired'
-			}
+				error: 'expired',
+			},
 		}));
 	}
 
 	/* Get users matching the key with admin privs */
 	const user = await app.storage.get({
 		url: `/data/users/_authkey/${request.body.auth}/?single=true`,
-		session: app.adminSession
+		session: app.adminSession,
 	});
 
 	/* If there is no such user */
@@ -90,8 +87,8 @@ module.exports = async function (app, request, response) {
 			detail: 'The authkey could not be located in the database.',
 			meta: {
 				type: 'recover',
-				error: 'invalid'
-			}
+				error: 'invalid',
+			},
 		}));
 	}
 
@@ -103,7 +100,7 @@ module.exports = async function (app, request, response) {
 	const userData = await app.storage.post({
 		url: `/data/users/_id/${user._id}`,
 		body: { password: hash[1], _salt: hash[0], _authkey: '' },
-		session: app.adminSession
+		session: app.adminSession,
 	});
 
 	/* If we need to redirect, let's redirect */
@@ -124,4 +121,4 @@ module.exports = async function (app, request, response) {
 		/* Respond with the user object */
 		return new Response(app, request, response, null, userData);
 	}
-};
+}

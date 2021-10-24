@@ -1,6 +1,6 @@
-const test = require('ava');
+import test from 'ava';
 
-const Hash = require('../../lib/Hash');
+import Hash from '../../lib/Hash.js';
 
 
 test.before(t => {

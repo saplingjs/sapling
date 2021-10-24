@@ -2,17 +2,17 @@
  * Load configuration
  */
 
-'use strict';
-
-
 /* Dependencies */
-const argv = require('yargs').argv;
-const fs = require('fs');
-const path = require('path');
-const _ = require('underscore');
+import fs from 'node:fs';
+import path from 'node:path';
+import process from 'node:process';
+import yargs from 'yargs';
+/* eslint-disable-next-line node/file-extension-in-import */
+import { hideBin } from 'yargs/helpers';
+import _ from 'underscore';
 
-const { console } = require('../lib/Cluster.js');
-const SaplingError = require('../lib/SaplingError.js');
+import { console } from '../lib/Cluster.js';
+import SaplingError from '../lib/SaplingError.js';
 
 
 /**
@@ -21,7 +21,9 @@ const SaplingError = require('../lib/SaplingError.js');
  *
  * @param {function} next Chain callback
  */
-module.exports = async function (next) {
+export default async function loadConfig(next) {
+	const argv = yargs(hideBin(process.argv)).argv;
+
 	/* Default configuration values */
 	const defaultConfig = {
 		publicDir: 'public',
@@ -39,14 +41,14 @@ module.exports = async function (next) {
 		limit: 100,
 		production: 'auto',
 		db: {
-			driver: 'Memory'
+			driver: 'Memory',
 		},
 		render: {
-			driver: 'HTML'
+			driver: 'HTML',
 		},
 		sessionStore: {
 			type: null,
-			options: {}
+			options: {},
 		},
 		mail: {
 			host: process.env.MAIL_HOST || '',
@@ -54,15 +56,15 @@ module.exports = async function (next) {
 			secure: this.utils.trueBoolean(process.env.MAIL_TLS) || true,
 			auth: {
 				user: process.env.MAIL_USER,
-				pass: process.env.MAIL_PASS
-			}
+				pass: process.env.MAIL_PASS,
+			},
 		},
 		upload: {
 			type: 'local',
-			destination: 'public/uploads'
+			destination: 'public/uploads',
 		},
 		port: argv.port || this.opts.port || 3000,
-		url: ''
+		url: '',
 	};
 
 	this.config = {};
@@ -141,4 +143,4 @@ module.exports = async function (next) {
 	if (next) {
 		next();
 	}
-};
+}

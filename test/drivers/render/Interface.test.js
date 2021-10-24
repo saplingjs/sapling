@@ -1,8 +1,8 @@
-const test = require('ava');
+import test from 'ava';
 
-const SaplingError = require('../../../lib/SaplingError');
+import SaplingError from '../../../lib/SaplingError.js';
 
-const Interface = require('../../../drivers/render/Interface');
+import Interface from '../../../drivers/render/Interface.js';
 
 
 test.before(t => {

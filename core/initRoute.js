@@ -2,13 +2,10 @@
  * Initialise route
  */
 
-'use strict';
-
-
 /* Dependencies */
-const { console } = require('../lib/Cluster.js');
-const Response = require('../lib/Response.js');
-const SaplingError = require('../lib/SaplingError.js');
+import { console } from '../lib/Cluster.js';
+import Response from '../lib/Response.js';
+import SaplingError from '../lib/SaplingError.js';
 
 
 /**
@@ -18,18 +15,17 @@ const SaplingError = require('../lib/SaplingError.js');
  * @param {string} route Name of the route to be loaded
  * @param {function} view Chain callback
  */
-module.exports = async function (route, view) {
+export default async function initRoute(route, view) {
 	console.log('Loaded route', `${route}`);
 
 	/* Create a handler for incoming requests */
-	const handler = async (request, response) => {
+	const handler = async (request, response) =>
 		/* Run a hook, if it exists */
-		return await this.runHook('get', route, request, response, null, async () => {
+		await this.runHook('get', route, request, response, null, async () => {
 			const html = await this.templating.renderView(view, {}, request);
 
 			return html instanceof SaplingError ? new Response(this, request, response, html) : new Response(this, request, response, null, html);
 		});
-	};
 
 	/* Listen on both GET and POST with the same handler */
 	this.server.get(route, handler);
@@ -38,4 +34,4 @@ module.exports = async function (route, view) {
 	/* Save the routes for later */
 	this.routeStack.get.push(route);
 	this.routeStack.post.push(route);
-};
+}
