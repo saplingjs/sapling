@@ -15,8 +15,11 @@ import SaplingError from '@sapling/sapling/lib/SaplingError.js';
 
 /* Hook /api/user/login */
 export default async function login(app, request, response) {
+	/* Fetch the user model */
+	const rules = app.storage.getRules('users');
+
 	/* Find all identifiable fields */
-	const identifiables = Object.keys(app.storage.schema.users).filter(field => app.storage.schema.users[field].identifiable);
+	const identifiables = Object.keys(rules).filter(field => rules[field].identifiable);
 
 	/* Figure out which request value is used */
 	let identValue = false;

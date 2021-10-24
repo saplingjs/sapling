@@ -19,7 +19,7 @@ import Storage from '../lib/Storage.js';
  */
 export default async function loadModel(next) {
 	const modelPath = path.join(this.dir, this.config.modelsDir);
-	const structure = {};
+	const schema = {};
 	let files = {};
 
 	/* Load all models in the model directory */
@@ -41,7 +41,7 @@ export default async function loadModel(next) {
 
 		const model = fs.readFileSync(path.join(modelPath, file));
 
-		/* Read the model JSON into the structure */
+		/* Read the model JSON into the schema */
 		try {
 			/* Attempt to parse the JSON */
 			const parsedModel = JSON.parse(model.toString());
@@ -63,21 +63,14 @@ export default async function loadModel(next) {
 			}
 
 			/* Save */
-			structure[table] = parsedModel;
+			schema[table] = parsedModel;
 		} catch {
 			throw new SaplingError(`Error parsing model \`${table}\``);
 		}
 	}
 
-	this.structure = structure;
-
 	/* Create a storage instance based on the models */
-	this.storage = new Storage(this, {
-		name: this.name,
-		schema: this.structure,
-		config: this.config,
-		dir: this.dir,
-	});
+	this.storage = new Storage(this, schema);
 
 	if (next) {
 		next();

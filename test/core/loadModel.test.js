@@ -26,13 +26,13 @@ test('loads string based model definition', async t => {
 		await loadModel.call(t.context.app);
 	});
 
-	t.true('posts' in t.context.app.structure);
-	t.true('title' in t.context.app.structure.posts);
-	t.true('viewCount' in t.context.app.structure.posts);
-	t.true(_.isObject(t.context.app.structure.posts.title));
-	t.true(_.isObject(t.context.app.structure.posts.viewCount));
-	t.is(t.context.app.structure.posts.title.type, 'string');
-	t.is(t.context.app.structure.posts.viewCount.type, 'number');
+	t.true('posts' in t.context.app.storage.schema);
+	t.true('title' in t.context.app.storage.schema.posts);
+	t.true('viewCount' in t.context.app.storage.schema.posts);
+	t.true(_.isObject(t.context.app.storage.schema.posts.title));
+	t.true(_.isObject(t.context.app.storage.schema.posts.viewCount));
+	t.is(t.context.app.storage.schema.posts.title.type, 'string');
+	t.is(t.context.app.storage.schema.posts.viewCount.type, 'number');
 });
 
 test('loads object based model definition', async t => {
@@ -42,16 +42,16 @@ test('loads object based model definition', async t => {
 		await loadModel.call(t.context.app);
 	});
 
-	t.true('posts' in t.context.app.structure);
-	t.true('title' in t.context.app.structure.posts);
-	t.true('viewCount' in t.context.app.structure.posts);
-	t.true(_.isObject(t.context.app.structure.posts.title));
-	t.true(_.isObject(t.context.app.structure.posts.viewCount));
-	t.is(t.context.app.structure.posts.title.type, 'string');
-	t.is(t.context.app.structure.posts.title.required, true);
-	t.is(t.context.app.structure.posts.title.maxlen, 140);
-	t.is(t.context.app.structure.posts.viewCount.type, 'number');
-	t.is(t.context.app.structure.posts.viewCount.default, 0);
+	t.true('posts' in t.context.app.storage.schema);
+	t.true('title' in t.context.app.storage.schema.posts);
+	t.true('viewCount' in t.context.app.storage.schema.posts);
+	t.true(_.isObject(t.context.app.storage.schema.posts.title));
+	t.true(_.isObject(t.context.app.storage.schema.posts.viewCount));
+	t.is(t.context.app.storage.schema.posts.title.type, 'string');
+	t.is(t.context.app.storage.schema.posts.title.required, true);
+	t.is(t.context.app.storage.schema.posts.title.maxlen, 140);
+	t.is(t.context.app.storage.schema.posts.viewCount.type, 'number');
+	t.is(t.context.app.storage.schema.posts.viewCount.default, 0);
 });
 
 test('normalises access object', async t => {
@@ -61,23 +61,23 @@ test('normalises access object', async t => {
 		await loadModel.call(t.context.app);
 	});
 
-	t.true('posts' in t.context.app.structure);
-	t.true('title' in t.context.app.structure.posts);
-	t.true('viewCount' in t.context.app.structure.posts);
-	t.true('content' in t.context.app.structure.posts);
-	t.true('access' in t.context.app.structure.posts.title);
-	t.true('access' in t.context.app.structure.posts.viewCount);
-	t.true('access' in t.context.app.structure.posts.content);
-	t.true(_.isObject(t.context.app.structure.posts.title.access));
-	t.true(_.isObject(t.context.app.structure.posts.viewCount.access));
-	t.true(_.isObject(t.context.app.structure.posts.content.access));
+	t.true('posts' in t.context.app.storage.schema);
+	t.true('title' in t.context.app.storage.schema.posts);
+	t.true('viewCount' in t.context.app.storage.schema.posts);
+	t.true('content' in t.context.app.storage.schema.posts);
+	t.true('access' in t.context.app.storage.schema.posts.title);
+	t.true('access' in t.context.app.storage.schema.posts.viewCount);
+	t.true('access' in t.context.app.storage.schema.posts.content);
+	t.true(_.isObject(t.context.app.storage.schema.posts.title.access));
+	t.true(_.isObject(t.context.app.storage.schema.posts.viewCount.access));
+	t.true(_.isObject(t.context.app.storage.schema.posts.content.access));
 
-	t.is(t.context.app.structure.posts.title.access.r, 'anyone');
-	t.is(t.context.app.structure.posts.title.access.w, 'owner');
-	t.is(t.context.app.structure.posts.viewCount.access.r, 'anyone');
-	t.is(t.context.app.structure.posts.viewCount.access.w, 'anyone');
-	t.is(t.context.app.structure.posts.content.access.r, 'anyone');
-	t.is(t.context.app.structure.posts.content.access.w, 'anyone');
+	t.is(t.context.app.storage.schema.posts.title.access.r, 'anyone');
+	t.is(t.context.app.storage.schema.posts.title.access.w, 'owner');
+	t.is(t.context.app.storage.schema.posts.viewCount.access.r, 'anyone');
+	t.is(t.context.app.storage.schema.posts.viewCount.access.w, 'anyone');
+	t.is(t.context.app.storage.schema.posts.content.access.r, 'anyone');
+	t.is(t.context.app.storage.schema.posts.content.access.w, 'anyone');
 });
 
 test('throws an error for a mangled model definition', async t => {
@@ -99,8 +99,8 @@ test('does not load dot files', async t => {
 		await loadModel.call(t.context.app);
 	});
 
-	t.is(Object.keys(t.context.app.structure).length, 1);
-	t.false('dotfile' in t.context.app.structure);
+	t.is(Object.keys(t.context.app.storage.schema).length, 1);
+	t.false('dotfile' in t.context.app.storage.schema);
 });
 
 test('warns about a non-existant model path', async t => {

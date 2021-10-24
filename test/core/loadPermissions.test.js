@@ -26,12 +26,8 @@ test.beforeEach(async t => {
 	t.context.app.user = new User(t.context.app);
 	t.context.app.request = new Request(t.context.app);
 
-	t.context.app.storage = new Storage(t.context.app, {
-		name: 'test',
-		schema: {},
-		config: { db: { driver: 'Memory' } },
-		dir: __dirname
-	});
+	t.context.app.name = 'test';
+	t.context.app.storage = new Storage(t.context.app);
 	await t.context.app.storage.importDriver();
 
 	t.context.request = (await import('../_utils/request.js')).default();

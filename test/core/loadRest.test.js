@@ -4,8 +4,6 @@ import express from 'express';
 import session from 'express-session';
 import bodyParser from 'body-parser';
 import request from 'supertest';
-import path from 'path';
-import { fileURLToPath } from 'url';
 
 import Request from '../../lib/Request.js';
 import Storage from '../../lib/Storage.js';
@@ -13,9 +11,6 @@ import User from '../../lib/User.js';
 import runHook from '../../core/runHook.js';
 
 import loadRest from '../../core/loadRest.js';
-
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 
 test.beforeEach(async t => {
@@ -31,12 +26,8 @@ test.beforeEach(async t => {
 	t.context.app.user = new User(t.context.app);
 	t.context.app.request = new Request(t.context.app);
 
-	t.context.app.storage = new Storage(t.context.app, {
-		name: 'test',
-		schema: { posts: { title: { type: 'string' } } },
-		config: { db: { driver: 'Memory' } },
-		dir: __dirname
-	});
+	t.context.app.name = 'test';
+	t.context.app.storage = new Storage(t.context.app, { posts: { title: { type: 'string' } } });
 	await t.context.app.storage.importDriver();
 
 	t.context.app.runHook = runHook;

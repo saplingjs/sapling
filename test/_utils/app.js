@@ -10,6 +10,9 @@ export default () => {
 			render: {
 				driver: 'html'
 			},
+			db: {
+				driver: 'Memory'
+			},
 			hooksDir: 'hooks/',
 			viewsDir: 'views/',
 			extension: 'html'
@@ -26,7 +29,8 @@ export default () => {
 			get: [],
 			post: []
 		},
-		hooks: {}
+		hooks: {},
+		schema: {}
 	};
 
 	app.utils = new Utils(app);

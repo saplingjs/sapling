@@ -2,34 +2,17 @@ import test from 'ava';
 import path from 'path';
 import fs from 'fs';
 import _ from 'underscore';
-import mimeTypes from 'mime-types';
 import { fileURLToPath } from 'url';
 
 import Response from '../../lib/Response.js';
 import SaplingError from '../../lib/SaplingError.js';
 
+import getFileObject from '../_utils/getFileObject.js';
+
 import Uploads from '../../lib/Uploads.js';
 
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-
-const getFileObject = (filename, cb) => {
-	const filepath = path.join(__dirname, '../_data/files', filename);
-	const file = fs.readFileSync(filepath);
-	const stats = fs.statSync(filepath);
-	const mime = mimeTypes.lookup(filepath);
-
-	return {
-		name: filename,
-		data: file,
-		size: stats.size,
-		tempFilePath: filepath,
-		truncated: false,
-		mimetype: mime,
-		mv: cb ? cb : () => true
-	};
-};
 
 
 test.beforeEach(async t => {

@@ -1,7 +1,5 @@
 import test from 'ava';
 import _ from 'underscore';
-import path from 'path';
-import { fileURLToPath } from 'url';
 
 import Request from '../../../lib/Request.js';
 import Response from '../../../lib/Response.js';
@@ -11,21 +9,14 @@ import User from '../../../lib/User.js';
 import logged from '../../../hooks/sapling/user/logged.js';
 
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-
 test.beforeEach(async t => {
 	t.context.app = (await import('../../_utils/app.js')).default();
 
 	t.context.app.user = new User(t.context.app);
 	t.context.app.request = new Request(t.context.app);
 
-	t.context.app.storage = new Storage(t.context.app, {
-		name: 'test',
-		schema: {},
-		config: { db: { driver: 'Memory' } },
-		dir: __dirname
-	});
+	t.context.app.name = 'test';
+	t.context.app.storage = new Storage(t.context.app);
 	await t.context.app.storage.importDriver();
 
 	t.context.request = (await import('../../_utils/request.js')).default();

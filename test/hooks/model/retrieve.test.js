@@ -10,16 +10,12 @@ import Storage from '../../../lib/Storage.js';
 import retrieve from '../../../hooks/sapling/model/retrieve.js';
 
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-
 test.beforeEach(async t => {
 	t.context.app = _.defaults({
-		storage: new Storage({}, {
+		storage: new Storage({
 			name: 'test',
 			schema: {},
-			config: { db: { driver: 'Memory' } },
-			dir: __dirname
+			config: { db: { driver: 'Memory' } }
 		})
 	}, (await import('../../_utils/app.js')).default());
 	await t.context.app.storage.importDriver();
