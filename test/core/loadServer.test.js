@@ -48,7 +48,7 @@ test.serial('responds to data options preflight', async t => {
 		loadServer.call(t.context.app, {});
 	});
 
-	const response = await request(t.context.app.server).options('/data/posts');
+	const response = await request(t.context.app.server.listen()).options('/data/posts');
 
 	t.is(response.status, 200);
 });
@@ -67,7 +67,7 @@ test.serial('loads server with cors', async t => {
 		response.sendStatus(200);
 	});
 
-	const apiResponse = await request(t.context.app.server).get('/api/hook');
+	const apiResponse = await request(t.context.app.server.listen()).get('/api/hook');
 
 	t.true('access-control-allow-origin' in apiResponse.headers);
 	t.true('access-control-allow-methods' in apiResponse.headers);
@@ -77,7 +77,7 @@ test.serial('loads server with cors', async t => {
 	t.is(apiResponse.headers['access-control-allow-methods'], 'GET,POST');
 	t.is(apiResponse.headers['access-control-allow-headers'], 'Content-Type');
 
-	const dataResponse = await request(t.context.app.server).get('/data/posts');
+	const dataResponse = await request(t.context.app.server.listen()).get('/data/posts');
 
 	t.true('access-control-allow-origin' in dataResponse.headers);
 	t.true('access-control-allow-methods' in dataResponse.headers);
@@ -99,7 +99,7 @@ test.serial('loads server with csrf to respond with an error with no token', asy
 		response.sendStatus(200);
 	});
 
-	const response = await request(t.context.app.server).post('/data/posts');
+	const response = await request(t.context.app.server.listen()).post('/data/posts');
 	t.is(response.status, 500);
 	t.is(response.body.errors.length, 1);
 	t.is(response.body.errors[0].title, 'Invalid CSRF token');
@@ -116,10 +116,12 @@ test.serial.cb('loads server with csrf to respond with an error with invalid tok
 		response.sendStatus(200);
 	});
 
-	request(t.context.app.server)
+	t.context.app.live = t.context.app.server.listen();
+
+	request(t.context.app.live)
 		.get('/token')
 		.expect(200, (error, response) => {
-			request(t.context.app.server)
+			request(t.context.app.live)
 				.post('/data/posts')
 				.set('Cookie', cookies(response))
 				.send('_csrf=' + encodeURIComponent('invalid'))
@@ -147,10 +149,12 @@ test.serial.cb('loads server with csrf to respond normally with valid token', t 
 		response.sendStatus(200);
 	});
 
-	request(t.context.app.server)
+	t.context.app.live = t.context.app.server.listen();
+
+	request(t.context.app.live)
 		.get('/token')
 		.expect(200, (error, response) => {
-			request(t.context.app.server)
+			request(t.context.app.live)
 				.post('/data/posts')
 				.set('Cookie', cookies(response))
 				.send('_csrf=' + encodeURIComponent(response.body.token))
@@ -168,7 +172,7 @@ test.serial('loads server with a string-based publicDir', async t => {
 		loadServer.call(t.context.app, {});
 	});
 
-	const response = await request(t.context.app.server).get('/public/app.css');
+	const response = await request(t.context.app.server.listen()).get('/public/app.css');
 	t.is(response.status, 200);
 	t.true(response.headers['content-type'].includes('text/css'));
 });
@@ -180,11 +184,11 @@ test.serial('loads server with an array-based publicDir', async t => {
 		loadServer.call(t.context.app, {});
 	});
 
-	const publicResponse = await request(t.context.app.server).get('/public/app.css');
+	const publicResponse = await request(t.context.app.server.listen()).get('/public/app.css');
 	t.is(publicResponse.status, 200);
 	t.true(publicResponse.headers['content-type'].includes('text/css'));
 
-	const staticResponse = await request(t.context.app.server).get('/static/response/404.html');
+	const staticResponse = await request(t.context.app.server.listen()).get('/static/response/404.html');
 	t.is(staticResponse.status, 200);
 	t.true(staticResponse.headers['content-type'].includes('text/html'));
 });
@@ -203,7 +207,7 @@ test.serial.cb('loads server with compression', t => {
 		response.end('<strong>Hello</strong>');
 	});
 
-	request(t.context.app.server)
+	request(t.context.app.server.listen())
 		.get('/app')
 		.set('Accept-Encoding', 'gzip')
 		.expect('Content-Encoding', 'gzip', (error, response) => {

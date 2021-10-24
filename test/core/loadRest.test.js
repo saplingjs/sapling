@@ -1,6 +1,7 @@
 import test from 'ava';
 import _ from 'underscore';
-import express from 'express';
+
+import { App as TinyHTTP } from '@tinyhttp/app';
 import session from 'express-session';
 import bodyParser from 'body-parser';
 import request from 'supertest';
@@ -18,7 +19,8 @@ test.beforeEach(async t => {
 		name: 'test'
 	}, (await import('../_utils/app.js')).default());
 
-	t.context.app.server = express();
+	t.context.app.server = new TinyHTTP();
+	t.context.app.live = t.context.app.server.listen();
 	t.context.app.server.use(session({ secret: 'abc', resave: false, saveUninitialized: true, cookie: { maxAge: null } }));
 	t.context.app.server.use(bodyParser.urlencoded({ extended: true }));
 	t.context.app.server.use(bodyParser.json());
@@ -44,7 +46,7 @@ test.serial.cb('loads get endpoints', t => {
 		loadRest.call(t.context.app);
 	});
 
-	request(t.context.app.server)
+	request(t.context.app.live)
 		.get('/data/posts')
 		.expect(200, (error, response) => {
 			t.is(response.status, 200);
@@ -59,7 +61,7 @@ test.serial.cb('loads post endpoints', t => {
 		loadRest.call(t.context.app);
 	});
 
-	request(t.context.app.server)
+	request(t.context.app.live)
 		.post('/data/posts')
 		.send('title=Hello')
 		.set('Accept', 'application/json')
@@ -76,7 +78,7 @@ test.serial.cb('loads delete endpoints', t => {
 		loadRest.call(t.context.app);
 	});
 
-	request(t.context.app.server)
+	request(t.context.app.live)
 		.delete('/data/posts')
 		.end((error, response) => {
 			t.is(response.status, 200);

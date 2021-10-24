@@ -5,7 +5,8 @@
 /* Dependencies */
 import path from 'node:path';
 
-import express from 'express';
+import { App as TinyHTTP } from '@tinyhttp/app';
+import sirv from 'sirv';
 import session from 'express-session';
 import cookieParser from 'cookie-parser';
 import bodyParser from 'body-parser';
@@ -31,7 +32,7 @@ export default function loadServer({ reload, listen }, next) {
 		// This.server.routes = server._router.map;
 		// this.server.stack.length = 2;
 	} else {
-		server = express();
+		server = new TinyHTTP();
 		this.routeStack = { get: [], post: [], delete: [] };
 	}
 
@@ -79,7 +80,7 @@ export default function loadServer({ reload, listen }, next) {
 		/* Loop through it */
 		for (const publicDir of this.config.publicDir) {
 			const publicDirPath = path.join(this.dir, publicDir);
-			server.use(`/${publicDir}`, express.static(publicDirPath, { maxAge: 1 }));
+			server.use(`/${publicDir}`, sirv(publicDirPath, { maxAge: 1 }));
 		}
 	}
 
@@ -93,13 +94,13 @@ export default function loadServer({ reload, listen }, next) {
 	if (this.config.csrf || this.config.strict) {
 		server.use(csrf({ cookie: false }));
 
-		server.use((error, request, response, next) => {
+		server.onError = (error, request, response, next) => {
 			if (error.code !== 'EBADCSRFTOKEN') {
 				return next(error);
 			}
 
 			new Response(this, request, response, new SaplingError('Invalid CSRF token'));
-		});
+		};
 	}
 
 	/* Enable the /data data interface */
