@@ -104,19 +104,19 @@ export default async function recover(app, request, response) {
 		session: app.adminSession,
 	});
 
-	/* If we need to redirect, let's redirect */
-	if (!(new Redirect(app, request, response)).do()) {
-		/* Clean the output */
-		if (userData.length > 0) {
-			if ('password' in userData[0]) {
-				delete userData[0].password;
-			}
-
-			if ('_salt' in userData[0]) {
-				delete userData[0]._salt;
-			}
+	/* Clean the output */
+	if (userData.length > 0) {
+		if ('password' in userData[0]) {
+			delete userData[0].password;
 		}
 
+		if ('_salt' in userData[0]) {
+			delete userData[0]._salt;
+		}
+	}
+
+	/* If we need to redirect, let's redirect */
+	if (!(new Redirect(app, request, response, userData)).do()) {
 		/* Respond with the user object */
 		return new Response(app, request, response, null, userData);
 	}

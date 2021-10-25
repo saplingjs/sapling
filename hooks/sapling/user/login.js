@@ -122,7 +122,7 @@ export default async function login(app, request, response) {
 	}
 
 	/* If we need to redirect, let's redirect */
-	if (!(new Redirect(app, request, response)).do()) {
+	if (!(new Redirect(app, request, response, request.session.user)).do()) {
 		/* Otherwise, reply with the user object */
 		return new Response(app, request, response, null, request.session.user);
 	}

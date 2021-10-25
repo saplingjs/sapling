@@ -103,14 +103,14 @@ export default async function update(app, request, response) {
 		session: request.session,
 	});
 
-	/* If we need to redirect, let's redirect */
-	if (!(new Redirect(app, request, response)).do()) {
-		/* Clean the output */
-		for (const record of userData) {
-			delete record.password;
-			delete record._salt;
-		}
+	/* Clean the output */
+	for (const record of userData) {
+		delete record.password;
+		delete record._salt;
+	}
 
+	/* If we need to redirect, let's redirect */
+	if (!(new Redirect(app, request, response, userData)).do()) {
 		/* Respond with the user object */
 		return new Response(app, request, response, null, userData);
 	}

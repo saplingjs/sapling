@@ -98,7 +98,7 @@ export default async function register(app, request, response) {
 	console.log('REGISTER', errors, userData);
 
 	/* If we need to redirect, let's redirect */
-	if (!(new Redirect(app, request, response)).do()) {
+	if (!(new Redirect(app, request, response, userData)).do()) {
 		/* Respond with the user object */
 		return new Response(app, request, response, null, userData);
 	}
