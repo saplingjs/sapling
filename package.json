@@ -27,6 +27,7 @@
   "bin": "./index.js",
   "dependencies": {
     "@tinyhttp/app": "^2.0.11",
+    "@tinyhttp/url": "^2.0.3",
     "async": "^3.2.0",
     "body-parser": "1.19.0",
     "chalk": "^4.1.0",
@@ -44,6 +45,7 @@
     "morgan": "^1.9.1",
     "nodemailer": "6.7.0",
     "path-match": "^1.2.4",
+    "regexparam": "^2.0.0",
     "sirv": "^1.0.11",
     "underscore": "1.13.1",
     "unused-filename": "^3.0.0",

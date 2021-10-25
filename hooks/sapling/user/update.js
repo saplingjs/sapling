@@ -8,6 +8,7 @@
 /* Dependencies */
 import Hash from '@sapling/sapling/lib/Hash.js';
 
+import Redirect from '@sapling/sapling/lib/Redirect.js';
 import Response from '@sapling/sapling/lib/Response.js';
 import SaplingError from '@sapling/sapling/lib/SaplingError.js';
 
@@ -103,9 +104,7 @@ export default async function update(app, request, response) {
 	});
 
 	/* If we need to redirect, let's redirect */
-	if (request.query.redirect) {
-		response.redirect(request.query.redirect);
-	} else {
+	if (!(new Redirect(app, request, response)).do()) {
 		/* Clean the output */
 		for (const record of userData) {
 			delete record.password;

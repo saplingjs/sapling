@@ -7,6 +7,7 @@
 
 /* Dependencies */
 import { console } from '@sapling/sapling/lib/Cluster.js';
+import Redirect from '@sapling/sapling/lib/Redirect.js';
 import Response from '@sapling/sapling/lib/Response.js';
 import SaplingError from '@sapling/sapling/lib/SaplingError.js';
 import Validation from '@sapling/sapling/lib/Validation.js';
@@ -56,9 +57,7 @@ export default async function forgot(app, request, response) {
 
 	/* Respond the same way whether or not we did anything */
 	/* If we need to redirect, let's redirect */
-	if (request.query.redirect) {
-		response.redirect(request.query.redirect);
-	} else {
+	if (!(new Redirect(app, request, response)).do()) {
 		/* Respond positively */
 		return new Response(app, request, response);
 	}

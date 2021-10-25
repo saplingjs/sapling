@@ -9,6 +9,7 @@ import _ from 'underscore';
 
 import { console } from '@sapling/sapling/lib/Cluster.js';
 import Hash from '@sapling/sapling/lib/Hash.js';
+import Redirect from '@sapling/sapling/lib/Redirect.js';
 import Response from '@sapling/sapling/lib/Response.js';
 import SaplingError from '@sapling/sapling/lib/SaplingError.js';
 
@@ -97,9 +98,7 @@ export default async function register(app, request, response) {
 	console.log('REGISTER', errors, userData);
 
 	/* If we need to redirect, let's redirect */
-	if (request.query.redirect) {
-		response.redirect(request.query.redirect);
-	} else {
+	if (!(new Redirect(app, request, response)).do()) {
 		/* Respond with the user object */
 		return new Response(app, request, response, null, userData);
 	}
