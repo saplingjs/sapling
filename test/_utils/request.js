@@ -4,9 +4,7 @@ export default () => {
 		method: 'GET',
 		url: '',
 		originalUrl: '',
-		query: {
-			redirect: false
-		},
+		query: {},
 		body: {},
 		params: {},
 		headers: {},

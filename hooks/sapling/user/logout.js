@@ -5,6 +5,7 @@
  */
 
 /* Dependencies */
+import Redirect from '@sapling/sapling/lib/Redirect.js';
 import Response from '@sapling/sapling/lib/Response.js';
 
 
@@ -15,9 +16,7 @@ export default async function logout(app, request, response) {
 	request.session = null;
 
 	/* Redirect if needed, respond otherwise */
-	if (request.query.redirect) {
-		response.redirect(request.query.redirect);
-	} else {
+	if (!(new Redirect(app, request, response)).do()) {
 		return new Response(app, request, response);
 	}
 }
