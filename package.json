@@ -78,6 +78,21 @@
     "test:report": "npx c8 --reporter=lcov npm test",
     "test:send": "npx codecov"
   },
+  "files": [
+    "core",
+    "drivers",
+    "hooks",
+    "lib",
+    "public",
+    "static",
+    "test",
+    "views",
+    "app.js",
+    "index.js",
+    "config.json",
+    "hooks.json",
+    "permissions.json"
+  ],
   "xo": {
     "ignores": [
       "drivers/db/Interface.js",
