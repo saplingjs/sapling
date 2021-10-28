@@ -16,12 +16,13 @@ import SaplingError from '../lib/SaplingError.js';
 
 
 /**
- * Load the configuration data. Should exist in a file
- * called "config.json" and must be valid JSON.
+ * Digest config files and apply default config
  *
- * @param {function} next Chain callback
+ * @returns {object} Config
  */
-export default async function loadConfig(next) {
+export function digest() {
+	let config = {};
+
 	const argv = yargs(hideBin(process.argv)).argv;
 
 	/* Default configuration values */
@@ -67,8 +68,7 @@ export default async function loadConfig(next) {
 		url: '',
 	};
 
-	this.config = {};
-	Object.assign(this.config, defaultConfig);
+	Object.assign(config, defaultConfig);
 
 	/* Location of the configuration */
 	const configPath = path.join(this.dir, this.configFile || 'config.json');
@@ -81,36 +81,32 @@ export default async function loadConfig(next) {
 		/* Parse and merge the config, or throw an error if it's malformed */
 		try {
 			const c = JSON.parse(file.toString());
-			_.extend(this.config, c);
+			_.extend(config, c);
 		} catch (error) {
 			throw new SaplingError('Error loading config', error);
 		}
 	} else {
 		/* If not, let's add a fallback */
-		_.extend(this.config, { name: 'untitled' });
+		_.extend(config, { name: 'untitled' });
 	}
 
 	/* Detect production environment */
-	if (this.config.production === 'auto') {
-		this.config.production = process.env.NODE_ENV === 'production';
+	if (config.production === 'auto') {
+		config.production = process.env.NODE_ENV === 'production';
 	}
 
 	/* Figure out automatic CORS */
-	if (!('cors' in this.config)) {
-		this.config.cors = !this.config.production;
+	if (!('cors' in config)) {
+		config.cors = !config.production;
 	}
 
 	/* Figure out automatic compression */
-	if (!('compression' in this.config)) {
-		this.config.compression = this.config.production;
+	if (!('compression' in config)) {
+		config.compression = config.production;
 	}
 
-	console.log('Production mode is', this.config.production);
-	console.log('Compression is', this.config.compression);
-	console.log('CORS is', this.config.cors);
-
 	/* Set other config based on production */
-	if (this.config.production === true || this.config.production === 'on') {
+	if (config.production === true || config.production === 'on') {
 		/* Check if there's a separate production config */
 		const prodConfigPath = path.join(this.dir, (this.configFile && this.configFile.replace('.json', `.${process.env.NODE_ENV}.json`)) || `config.${process.env.NODE_ENV}.json`);
 
@@ -118,23 +114,36 @@ export default async function loadConfig(next) {
 			/* If we have a config file, let's load it */
 			const file = fs.readFileSync(prodConfigPath);
 
-			this.config = {};
-			Object.assign(this.config, defaultConfig);
+			config = {};
+			Object.assign(config, defaultConfig);
 
 			/* Parse and merge the config, or throw an error if it's malformed */
 			try {
 				const pc = JSON.parse(file.toString());
-				_.extend(this.config, pc);
+				_.extend(config, pc);
 			} catch (error) {
 				throw new SaplingError('Error loading production config', error);
 			}
 		}
 
 		/* Set immutable production vars */
-		this.config.strict = true;
-		this.config.showError = false;
+		config.strict = true;
+		config.showError = false;
 	}
 
+	return config;
+}
+
+
+/**
+ * Load the configuration data. Should exist in a file
+ * called "config.json" and must be valid JSON.
+ *
+ * @param {function} next Chain callback
+ */
+export default async function loadConfig(next) {
+	/* Digest config */
+	this.config = digest.call(this);
 	console.log('CONFIG', this.config);
 
 	/* Set the app name */
