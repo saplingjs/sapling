@@ -85,7 +85,6 @@
     "lib",
     "public",
     "static",
-    "test",
     "views",
     "app.js",
     "index.js",
