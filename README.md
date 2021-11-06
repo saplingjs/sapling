@@ -20,12 +20,15 @@ For the full documentation, go to [saplingjs.com/docs](https://saplingjs.com/doc
 
 ## Ecosystem
 
-Project                                                                                 | Description
-----------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------
-[@sapling/cli](https://github.com/saplingjs/cli)                                        | Command Line Interface for creating and managing Sapling projects.
-[@sapling/vue-components](https://github.com/saplingjs/vue-components)                  | Assortment of optional unopinionated semi-automatic frontend Vue components for common UI tasks.
-[@sapling/db-driver-mongodb](https://github.com/saplingjs/db-driver-mongodb)            | Support for MongoDB databases.
-[@sapling/render-driver-nunjucks](https://github.com/saplingjs/render-driver-nunjucks)  | Support for Nunjucks templating engine.
+Project                                                                                     | Description
+--------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------
+[@sapling/cli](https://github.com/saplingjs/cli)                                            | Command Line Interface for creating and managing Sapling projects.
+[@sapling/gui](https://github.com/saplingjs/gui)                                            | UI for editing and managing a Sapling project.
+[@sapling/vue-components](https://github.com/saplingjs/vue-components)                      | Assortment of optional unopinionated semi-automatic frontend Vue components for common UI tasks.
+[@sapling/db-driver-mongodb](https://github.com/saplingjs/db-driver-mongodb)                | Support for MongoDB databases.
+[@sapling/render-driver-handlebars](https://github.com/saplingjs/render-driver-handlebars)  | Support for the Handlebars templating engine.
+[@sapling/render-driver-nunjucks](https://github.com/saplingjs/render-driver-nunjucks)      | Support for the Nunjucks templating engine.
+[@sapling/render-driver-pug](https://github.com/saplingjs/render-driver-pug)                | Support for the Pug templating engine.
 
 ## Questions & Issues
 
