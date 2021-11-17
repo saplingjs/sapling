@@ -32,7 +32,7 @@
     "body-parser": "1.19.0",
     "chalk": "^4.1.0",
     "compression": "^1.7.4",
-    "cookie-parser": "1.4.5",
+    "cookie-parser": "1.4.6",
     "cron": "^1.7.1",
     "csurf": "^1.11.0",
     "express-fileupload": "^1.2.1",
