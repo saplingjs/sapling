@@ -47,7 +47,7 @@
     "path-match": "^1.2.4",
     "regexparam": "^2.0.0",
     "sirv": "^1.0.11",
-    "underscore": "1.13.1",
+    "underscore": "1.13.2",
     "unused-filename": "^4.0.0",
     "yargs": "^17.0.1"
   },
