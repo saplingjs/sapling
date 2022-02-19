@@ -92,7 +92,7 @@ class App {
 					for (const route in this.controller) {
 						if (Object.prototype.hasOwnProperty.call(this.controller, route)) {
 							const { default: initRoute } = await import('./core/initRoute.js');
-							await initRoute.call(this, callback);
+							await initRoute.call(this, route, this.controller[route]);
 						}
 					}
 				}
