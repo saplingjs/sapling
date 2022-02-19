@@ -1,6 +1,6 @@
 {
   "name": "@sapling/sapling",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "license": "MPL-2.0",
   "description": "Node.js framework for faster-than-light web development.",
   "type": "module",
@@ -29,10 +29,10 @@
     "@tinyhttp/app": "^2.0.11",
     "@tinyhttp/url": "^2.0.3",
     "async": "^3.2.0",
-    "body-parser": "1.19.0",
-    "chalk": "^4.1.0",
+    "body-parser": "1.19.2",
+    "chalk": "^5.0.0",
     "compression": "^1.7.4",
-    "cookie-parser": "1.4.5",
+    "cookie-parser": "1.4.6",
     "cron": "^1.7.1",
     "csurf": "^1.11.0",
     "express-fileupload": "^1.2.1",
@@ -43,12 +43,12 @@
     "isobject": "^4.0.0",
     "moment": "2.29.1",
     "morgan": "^1.9.1",
-    "nodemailer": "6.7.0",
+    "nodemailer": "6.7.2",
     "path-match": "^1.2.4",
     "regexparam": "^2.0.0",
-    "sirv": "^1.0.11",
-    "underscore": "1.13.1",
-    "unused-filename": "^3.0.0",
+    "sirv": "^2.0.0",
+    "underscore": "1.13.2",
+    "unused-filename": "^4.0.0",
     "yargs": "^17.0.1"
   },
   "devDependencies": {
@@ -57,14 +57,14 @@
     "@sapling/sapling": "file:.",
     "ava": "^3.15.0",
     "c8": "^7.8.0",
-    "eslint": "^7.22.0",
+    "eslint": "^8.1.0",
     "husky": "4.3.8",
     "lint-staged": ">=10",
     "maildev": "^1.1.0",
     "mime-types": "^2.1.29",
     "supertest": "^6.1.3",
     "webpack": "^5.28.0",
-    "xo": "^0.45.0"
+    "xo": "^0.46.0"
   },
   "resolutions": {
     "maildev/socket.io": "^2.4.0"
@@ -78,6 +78,20 @@
     "test:report": "npx c8 --reporter=lcov npm test",
     "test:send": "npx codecov"
   },
+  "files": [
+    "core",
+    "drivers",
+    "hooks",
+    "lib",
+    "public",
+    "static",
+    "views",
+    "app.js",
+    "index.js",
+    "config.json",
+    "hooks.json",
+    "permissions.json"
+  ],
   "xo": {
     "ignores": [
       "drivers/db/Interface.js",

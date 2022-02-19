@@ -20,8 +20,8 @@ export default class Memory extends Interface {
 	/**
 	 * The object that contains everything
 	 */
-	memory = {}
-	uniques = {}
+	memory = {};
+	uniques = {};
 
 
 	/**
