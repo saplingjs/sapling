@@ -12,12 +12,11 @@ import Storage from '../lib/Storage.js';
 
 
 /**
- * Load the model structures and initialise
- * the storage instance for this app.
+ * Digest model files and apply some formatting
  *
- * @param {function} next Chain callback
+ * @returns {object} Schema
  */
-export default async function loadModel(next) {
+export function digest() {
 	const modelPath = path.join(this.dir, this.config.modelsDir);
 	const schema = {};
 	let files = {};
@@ -69,8 +68,19 @@ export default async function loadModel(next) {
 		}
 	}
 
+	return schema;
+}
+
+
+/**
+ * Load the model structures and initialise
+ * the storage instance for this app.
+ *
+ * @param {function} next Chain callback
+ */
+export default async function loadModel(next) {
 	/* Create a storage instance based on the models */
-	this.storage = new Storage(this, schema);
+	this.storage = new Storage(this, digest.call(this));
 
 	if (next) {
 		next();

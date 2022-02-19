@@ -12,50 +12,48 @@ import SaplingError from '../lib/SaplingError.js';
 
 
 /**
- * Load the permissions file, and implement the middleware
- * to validate the permission before continuing to the
- * route handler.
+ * Digest and validate permission files and apply some formatting
  *
- * @param {function} next Chain callback
+ * @returns {object} Permissions
  */
-export default async function loadPermissions(next) {
+export function digest() {
 	/* Load the permissions file */
 	const permissionsPath = path.join(this.dir, this.config.permissions);
-	this.permissions = {};
-	let perms = {};
+	const formattedPerms = {};
+	let loadedPerms = {};
 
 	try {
-		perms = JSON.parse(fs.readFileSync(permissionsPath));
+		loadedPerms = JSON.parse(fs.readFileSync(permissionsPath));
 	} catch {
 		console.warn(`Permissions at path: ${permissionsPath} not found.`);
 	}
 
 	/* Loop over the urls in permissions */
-	for (const url of Object.keys(perms)) {
+	for (const url of Object.keys(loadedPerms)) {
 		/* Format expected: "GET /url/here" */
 		const { method, route } = this.parseMethodRouteKey(url);
 
 		/* The minimum role level required for this method+route combination */
-		let perm = perms[url];
+		let perm = loadedPerms[url];
 
-		if (typeof perms[url] === 'string') {
+		if (typeof loadedPerms[url] === 'string') {
 			/* If it's a string, convert it to object */
-			perm = { role: [perms[url]], redirect: false };
-		} else if (Array.isArray(perms[url])) {
+			perm = { role: [loadedPerms[url]], redirect: false };
+		} else if (Array.isArray(loadedPerms[url])) {
 			/* If it's an array, convert it to object */
-			perm = { role: perms[url], redirect: false };
-		} else if (typeof perms[url] === 'object' && perms[url] !== null) {
+			perm = { role: loadedPerms[url], redirect: false };
+		} else if (typeof loadedPerms[url] === 'object' && loadedPerms[url] !== null) {
 			/* If it's an object, ensure it's proper */
-			if (!('role' in perms[url])) {
+			if (!('role' in loadedPerms[url])) {
 				throw new SaplingError(`Permission setting for ${url} is missing a role`);
 			}
 
-			if (!(typeof perms[url].role === 'string' || Array.isArray(perms[url].role))) {
+			if (!(typeof loadedPerms[url].role === 'string' || Array.isArray(loadedPerms[url].role))) {
 				throw new SaplingError(`Permission setting for ${url} is malformed`);
 			}
 
-			if (typeof perms[url].role === 'string') {
-				perm = { role: [perms[url].role], redirect: perms[url].redirect };
+			if (typeof loadedPerms[url].role === 'string') {
+				perm = { role: [loadedPerms[url].role], redirect: loadedPerms[url].redirect };
 			}
 		} else {
 			/* If it's something else, we don't want it */
@@ -63,14 +61,35 @@ export default async function loadPermissions(next) {
 		}
 
 		/* Save to object */
-		this.permissions[`${method} ${route}`] = perm;
+		formattedPerms[`${method} ${route}`] = perm;
+	}
+
+	return formattedPerms;
+}
+
+
+/**
+ * Load the permissions file, and implement the middleware
+ * to validate the permission before continuing to the
+ * route handler.
+ *
+ * @param {function} next Chain callback
+ */
+export default async function loadPermissions(next) {
+	/* Digest permissions */
+	this.permissions = digest.call(this);
+
+	/* Loop over the urls in permissions */
+	for (const url of Object.keys(this.permissions)) {
+		/* Format expected: "GET /url/here" */
+		const { method, route } = this.parseMethodRouteKey(url);
 
 		/* Create middleware for each particular method+route combination */
 		this.server[method](route, (request, response, next) => {
-			console.log('PERMISSION', method, route, perm);
+			console.log('PERMISSION', method, route, this.permissions[url]);
 
 			/* Save for later */
-			request.permission = perm;
+			request.permission = this.permissions[url];
 
 			/* If the current route is not allowed for the current user, display an error */
 			if (this.user.isUserAllowed(request.permission.role, request.session.user) === false) {

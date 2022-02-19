@@ -11,16 +11,12 @@ import Templating from '../lib/Templating.js';
 
 
 /**
- * Load the controller JSON file into routes.
+ * Digest controller.json and/or views directory for the controller
  *
- * @param {function} next Chain callback
+ * @returns {object} Controller
  */
-export default async function loadController(next) {
-	/* Load templating engine */
-	this.templating = new Templating(this);
-	await this.templating.importDriver();
-
-	this.controller = {};
+export function digest() {
+	let controller = {};
 
 	/* Generate a controller from the available views */
 	if ((this.config.autoRouting === 'on' || this.config.autoRouting === true) && this.config.viewsDir !== null) {
@@ -59,7 +55,7 @@ export default async function loadController(next) {
 				}
 
 				/* Create an automatic GET route for a given view */
-				this.controller[route] = view.replace(/^\/+/g, '');
+				controller[route] = view.replace(/^\/+/g, '');
 			}
 		}
 	}
@@ -82,15 +78,31 @@ export default async function loadController(next) {
 
 			/* Merge routes if autorouting, replace routes if not */
 			if (this.config.autoRouting === 'on' || this.config.autoRouting === true) {
-				Object.assign(this.controller, routes);
+				Object.assign(controller, routes);
 			} else {
-				this.controller = routes;
+				controller = routes;
 			}
 		} catch (error) {
 			console.error(`Controller at path: \`${controllerPath}\` could not be loaded.`, error);
 		}
 	}
 
+	return controller;
+}
+
+
+/**
+ * Load the controller JSON file into routes.
+ *
+ * @param {function} next Chain callback
+ */
+export default async function loadController(next) {
+	/* Load templating engine */
+	this.templating = new Templating(this);
+	await this.templating.importDriver();
+
+	/* Digest controller */
+	this.controller = digest.call(this, this.config);
 	console.log('CONTROLLER', this.controller);
 
 	if (next) {
