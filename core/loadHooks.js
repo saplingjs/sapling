@@ -45,7 +45,8 @@ export async function digest() {
 		/* Set exported functions as object values */
 		for (const hook of Object.keys(hooks)) {
 			const { method, route } = this.parseMethodRouteKey(hook);
-			formattedHooks[`${method} ${route}`] = (await import(path.join(this.dir, this.config.hooksDir, hooks[hook]))).default;
+			const { default: hookMethod } = await import(path.join(this.dir, this.config.hooksDir, hooks[hook]));
+			formattedHooks[`${method} ${route}`] = hookMethod;
 		}
 	}
 
