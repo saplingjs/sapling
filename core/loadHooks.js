@@ -12,15 +12,15 @@ import SaplingError from '../lib/SaplingError.js';
 
 
 /**
- * Load the hooks JSON file, and listen to non-data API hooks.
+ * Digest hooks files
  *
- * @param {function} next Chain callback
+ * @returns {object} Hooks
  */
-export default async function loadHooks(next) {
+export async function digest() {
 	/* Location of the hooks file */
 	const hooksPath = path.join(this.dir, this.config.hooks);
 
-	this.hooks = {};
+	const formattedHooks = {};
 
 	/* Load the hooks file */
 	if (fs.existsSync(hooksPath)) {
@@ -45,20 +45,36 @@ export default async function loadHooks(next) {
 		/* Set exported functions as object values */
 		for (const hook of Object.keys(hooks)) {
 			const { method, route } = this.parseMethodRouteKey(hook);
+			formattedHooks[`${method} ${route}`] = (await import(path.join(this.dir, this.config.hooksDir, hooks[hook]))).default;
+		}
+	}
 
-			this.hooks[`${method} ${route}`] = (await import(path.join(this.dir, this.config.hooksDir, hooks[hook]))).default;
+	return formattedHooks;
+}
 
-			/* Initialise hook if it doesn't exist in the controller */
-			if (!(route in this.controller) && !route.startsWith('/data') && !route.startsWith('data')) {
-				/* Listen on */
-				this.server[method](route, async (request, response) =>
-					/* Run a hook, if it exists */
-					await this.runHook(method, route, request, response, null, () => new Response(this, request, response, null)),
-				);
 
-				/* Save the route for later */
-				this.routeStack[method].push(route);
-			}
+/**
+ * Load the hooks JSON file, and listen to non-data API hooks.
+ *
+ * @param {function} next Chain callback
+ */
+export default async function loadHooks(next) {
+	/* Digest hooks */
+	this.hooks = await digest.call(this);
+
+	for (const hook of Object.keys(this.hooks)) {
+		const { method, route } = this.parseMethodRouteKey(hook);
+
+		/* Initialise hook if it doesn't exist in the controller */
+		if (!(route in this.controller) && !route.startsWith('/data') && !route.startsWith('data')) {
+			/* Listen on */
+			this.server[method](route, async (request, response) =>
+				/* Run a hook, if it exists */
+				await this.runHook(method, route, request, response, null, () => new Response(this, request, response, null)),
+			);
+
+			/* Save the route for later */
+			this.routeStack[method].push(route);
 		}
 	}
 
