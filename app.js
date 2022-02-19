@@ -43,51 +43,63 @@ class App {
 
 		/* Load everything */
 		async.series([
-			async callback => await (await import('./core/loadConfig.js')).default.call(this, callback),
+			async callback => {
+				const { default: loadConfig } = await import('./core/loadConfig.js');
+				await loadConfig.call(this, callback);
+			},
 			async callback => {
 				if (options.loadServer !== false) {
-					await (await import('./core/loadServer.js')).default.call(this, options, callback);
+					const { default: loadServer } = await import('./core/loadServer.js');
+					await loadServer.call(this, options, callback);
 				}
 			},
 			async callback => {
 				if (options.loadModel !== false) {
-					await (await import('./core/loadModel.js')).default.call(this, callback);
+					const { default: loadModel } = await import('./core/loadModel.js');
+					await loadModel.call(this, callback);
 				}
 			},
 			async callback => {
 				if (options.loadPermissions !== false) {
-					await (await import('./core/loadPermissions.js')).default.call(this, callback);
+					const { default: loadPermissions } = await import('./core/loadPermissions.js');
+					await loadPermissions.call(this, callback);
 				}
 			},
 			async callback => {
 				if (options.loadController !== false) {
-					await (await import('./core/loadController.js')).default.call(this, callback);
+					const { default: loadController } = await import('./core/loadController.js');
+					await loadController.call(this, callback);
 				}
 			},
 			async callback => {
 				if (options.loadHooks !== false) {
-					await (await import('./core/loadHooks.js')).default.call(this, callback);
+					const { default: loadHooks } = await import('./core/loadHooks.js');
+					await loadHooks.call(this, callback);
 				}
 			},
 			async callback => {
 				if (options.loadViews !== false) {
-					await (await import('./core/loadCustomTags.js')).default.call(this, callback);
+					const { default: loadCustomTags } = await import('./core/loadCustomTags.js');
+					await loadCustomTags.call(this, callback);
 				}
 			},
 			async callback => {
-				await (await import('./core/loadModules.js')).default.call(this, callback);
+				const { default: loadModules } = await import('./core/loadModules.js');
+				await loadModules.call(this, callback);
 			},
 			async callback => {
 				if (options.loadViews !== false) {
 					for (const route in this.controller) {
 						if (Object.prototype.hasOwnProperty.call(this.controller, route)) {
-							await (await import('./core/initRoute.js')).default.call(this, route, this.controller[route]);
+							const { default: initRoute } = await import('./core/initRoute.js');
+							await initRoute.call(this, callback);
 						}
 					}
 				}
 
 				if (options.loadREST !== false) {
-					await (await import('./core/loadRest.js')).default.call(this, callback);
+					const { default: loadRest } = await import('./core/loadRest.js');
+					await loadRest.call(this, callback);
 				}
 			},
 			callback => {
