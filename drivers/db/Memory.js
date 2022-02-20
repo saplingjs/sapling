@@ -140,18 +140,21 @@ export default class Memory extends Interface {
 	 */
 	async remove(collection, conditions) {
 		const records = this.memory[collection] || [];
+		let count = 0;
 
 		if (Object.keys(conditions).length > 0) {
 			for (const [index, record] of records.entries()) {
 				if (this.isMatch(record, conditions) && this.memory[collection]) {
 					this.memory[collection].splice(index, 1);
+					count++;
 				}
 			}
 		} else {
+			count = collection in this.memory ? this.memory[collection].length : 0;
 			this.memory[collection] = [];
 		}
 
-		return [{ success: true }];
+		return { data: true, count };
 	}
 
 

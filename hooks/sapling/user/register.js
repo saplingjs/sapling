@@ -77,7 +77,7 @@ export default async function register(app, request, response) {
 	delete request.body.password_confirm;
 
 	/* Save to the database */
-	const userData = await app.storage.post({
+	const { data: userData } = await app.storage.post({
 		url: '/data/users',
 		session: request.session,
 		permission: request.permission,

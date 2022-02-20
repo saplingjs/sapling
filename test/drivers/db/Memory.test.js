@@ -286,5 +286,5 @@ test.serial('deletes all records', async t => {
 test.serial('deletes nothing in a non-existent collection', async t => {
 	const result = await t.context.memory.remove('fourth', {});
 
-	t.true(result[0].success);
+	t.true(result.data);
 });

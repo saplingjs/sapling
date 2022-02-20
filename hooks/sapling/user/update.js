@@ -97,7 +97,7 @@ export default async function update(app, request, response) {
 	}
 
 	/* Send to the database */
-	const userData = await app.storage.post({
+	const { data: userData } = await app.storage.post({
 		url: `/data/users/_id/${user._id}`,
 		body: request.body,
 		session: request.session,

@@ -33,7 +33,7 @@ export default async function loadCustomTags(next) {
 
 			/* Not allowed so give an empty array */
 			if (!allowed) {
-				return [];
+				return this.storage.formatResponse([]);
 			}
 
 			/* Request the data */
