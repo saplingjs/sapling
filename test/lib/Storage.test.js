@@ -183,11 +183,12 @@ test.serial('gets multiple records', async t => {
 		session: { role: 'member' }
 	});
 
-	t.is(response.length, 2);
-	t.is(response[0].title, 'Hello');
-	t.true('_id' in response[0]);
-	t.is(response[1].title, 'Hi');
-	t.true('_id' in response[1]);
+	t.is(response.count, 2);
+	t.is(response.data.length, 2);
+	t.is(response.data[0].title, 'Hello');
+	t.true('_id' in response.data[0]);
+	t.is(response.data[1].title, 'Hi');
+	t.true('_id' in response.data[1]);
 });
 
 test.serial('gets a single record', async t => {
@@ -203,9 +204,10 @@ test.serial('gets a single record', async t => {
 		session: { user: { role: 'member' } }
 	});
 
-	t.is(response.length, 1);
-	t.is(response[0].title, 'Hi');
-	t.true('_id' in response[0]);
+	t.is(response.count, 1);
+	t.is(response.data.length, 1);
+	t.is(response.data[0].title, 'Hi');
+	t.true('_id' in response.data[0]);
 });
 
 
@@ -222,11 +224,12 @@ test.serial('posts a record', async t => {
 		}
 	});
 
-	t.is(response.length, 1);
-	t.is(response[0].title, 'Hello');
-	t.is(response[0].body, 'This is a post');
-	t.true('_id' in response[0]);
-	t.true('_created' in response[0]);
+	t.is(response.count, 1);
+	t.is(response.data.length, 1);
+	t.is(response.data[0].title, 'Hello');
+	t.is(response.data[0].body, 'This is a post');
+	t.true('_id' in response.data[0]);
+	t.true('_created' in response.data[0]);
 });
 
 test.serial('attaches creator details', async t => {
@@ -249,11 +252,12 @@ test.serial('attaches creator details', async t => {
 		}
 	});
 
-	t.is(response.length, 1);
-	t.is(response[0].title, 'Howdy');
-	t.is(response[0]._creator, '123');
-	t.is(response[0]._creatorEmail, 'foo@example.com');
-	t.true('_id' in response[0]);
+	t.is(response.count, 1);
+	t.is(response.data.length, 1);
+	t.is(response.data[0].title, 'Howdy');
+	t.is(response.data[0]._creator, '123');
+	t.is(response.data[0]._creatorEmail, 'foo@example.com');
+	t.true('_id' in response.data[0]);
 });
 
 test.serial('modifies a record', async t => {
@@ -270,9 +274,10 @@ test.serial('modifies a record', async t => {
 		}
 	});
 
-	t.is(response.length, 1);
-	t.is(response[0].title, 'Howdy');
-	t.true('_id' in response[0]);
+	t.is(response.count, 1);
+	t.is(response.data.length, 1);
+	t.is(response.data[0].title, 'Howdy');
+	t.true('_id' in response.data[0]);
 });
 
 test.serial('attaches updator details', async t => {
@@ -310,13 +315,14 @@ test.serial('attaches updator details', async t => {
 		}
 	});
 
-	t.is(response.length, 1);
-	t.is(response[0].title, 'Hello');
-	t.is(response[0]._creator, '123');
-	t.is(response[0]._creatorEmail, 'foo@example.com');
-	t.is(response[0]._lastUpdator, '345');
-	t.is(response[0]._lastUpdatorEmail, 'bar@example.com');
-	t.true('_id' in response[0]);
+	t.is(response.count, 1);
+	t.is(response.data.length, 1);
+	t.is(response.data[0].title, 'Hello');
+	t.is(response.data[0]._creator, '123');
+	t.is(response.data[0]._creatorEmail, 'foo@example.com');
+	t.is(response.data[0]._lastUpdator, '345');
+	t.is(response.data[0]._lastUpdatorEmail, 'bar@example.com');
+	t.true('_id' in response.data[0]);
 });
 
 test.serial('formats specific fields correctly', async t => {
@@ -332,11 +338,12 @@ test.serial('formats specific fields correctly', async t => {
 		}
 	});
 
-	t.is(response.length, 1);
-	t.is(response[0].posted, 823910400000);
-	t.is(typeof response[0].posted, 'number');
-	t.is(response[0].published, true);
-	t.is(typeof response[0].published, 'boolean');
+	t.is(response.count, 1);
+	t.is(response.data.length, 1);
+	t.is(response.data[0].posted, 823910400000);
+	t.is(typeof response.data[0].posted, 'number');
+	t.is(response.data[0].published, true);
+	t.is(typeof response.data[0].published, 'boolean');
 });
 
 test.serial('handles request with files if file uploads are configured', async t => {
@@ -432,5 +439,5 @@ test.serial('deletes a record', async t => {
 		url: '/data/posts/title/Hi'
 	});
 
-	t.deepEqual(response, [ { success: true } ]);
+	t.true(response.success);
 });

@@ -50,7 +50,8 @@ test('get tag fetches data', async t => {
 
 	t.context.app.templating.renderer.registerTags = async (tags) => {
 		const response = await tags.get.call(t.context.app, '/data/posts');
-		t.is(response.length, 2);
+		t.is(response.count, 2);
+		t.is(response.data.length, 2);
 	};
 
 	await loadCustomTags.call(t.context.app);
@@ -67,7 +68,8 @@ test('get tag fetches data with given role', async t => {
 
 	t.context.app.templating.renderer.registerTags = async (tags) => {
 		const response = await tags.get.call(t.context.app, '/data/posts', 'admin');
-		t.is(response.length, 2);
+		t.is(response.count, 2);
+		t.is(response.data.length, 2);
 	};
 
 	await loadCustomTags.call(t.context.app);
@@ -92,7 +94,8 @@ test('get tag fetches data with session role', async t => {
 
 	t.context.app.templating.renderer.registerTags = async (tags) => {
 		const response = await tags.get.call(t.context.app, '/data/posts');
-		t.is(response.length, 2);
+		t.is(response.count, 2);
+		t.is(response.data.length, 2);
 	};
 
 	await loadCustomTags.call(t.context.app);
@@ -109,7 +112,8 @@ test('get tag returns empty data with insufficient given role', async t => {
 
 	t.context.app.templating.renderer.registerTags = async (tags) => {
 		const response = await tags.get.call(t.context.app, '/data/posts', 'member');
-		t.is(response.length, 0);
+		t.is(response.count, 0);
+		t.is(response.data.length, 0);
 	};
 
 	await loadCustomTags.call(t.context.app);
@@ -134,7 +138,8 @@ test('get tag returns empty data with insufficient session role', async t => {
 
 	t.context.app.templating.renderer.registerTags = async (tags) => {
 		const response = await tags.get.call(t.context.app, '/data/posts');
-		t.is(response.length, 0);
+		t.is(response.count, 0);
+		t.is(response.data.length, 0);
 	};
 
 	await loadCustomTags.call(t.context.app);

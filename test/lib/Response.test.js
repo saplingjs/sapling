@@ -81,38 +81,34 @@ test('returns the proper HTML string for a number value', t => {
 /* getRecordsFound */
 
 test('returns appropriate label for 1 record found', t => {
-	t.is((new Response(t.context.app, t.context.request)).getRecordsFound([{foo:'bar'}]), '1 record found');
+	t.is((new Response(t.context.app, t.context.request)).getRecordsFound({data:[{foo:'bar'}],count:1}), '1 record found');
 });
 
 test('returns appropriate label for multiple records found', t => {
-	t.is((new Response(t.context.app, t.context.request)).getRecordsFound([{foo:'bar'},{foo:'bar'}]), '2 records found');
+	t.is((new Response(t.context.app, t.context.request)).getRecordsFound({data:[{foo:'bar'},{foo:'bar'}],count:2}), '2 records found');
 });
 
 test('returns appropriate label for no records found', t => {
-	t.is((new Response(t.context.app, t.context.request)).getRecordsFound([]), '0 records found');
+	t.is((new Response(t.context.app, t.context.request)).getRecordsFound({data:[],count:0}), '0 records found');
 });
 
 test('returns appropriate label for 1 record affected', t => {
 	t.context.request.method = 'POST';
-	t.is((new Response(t.context.app, t.context.request)).getRecordsFound([{foo:'bar'}]), '1 record affected');
+	t.is((new Response(t.context.app, t.context.request)).getRecordsFound({data:[{foo:'bar'}],count:1}), '1 record affected');
 });
 
 test('returns appropriate label for multiple records affected', t => {
 	t.context.request.method = 'POST';
-	t.is((new Response(t.context.app, t.context.request)).getRecordsFound([{foo:'bar'},{foo:'bar'}]), '2 records affected');
+	t.is((new Response(t.context.app, t.context.request)).getRecordsFound({data:[{foo:'bar'},{foo:'bar'}],count:2}), '2 records affected');
 });
 
 test('returns appropriate label for no records affected', t => {
 	t.context.request.method = 'POST';
-	t.is((new Response(t.context.app, t.context.request)).getRecordsFound([]), '0 records affected');
+	t.is((new Response(t.context.app, t.context.request)).getRecordsFound({data:[],count:0}), '0 records affected');
 });
 
 test('returns appropriate label for a single record', t => {
 	t.is((new Response(t.context.app, t.context.request)).getRecordsFound({foo:'bar'}), '1 record found');
-});
-
-test('returns empty string for bad data', t => {
-	t.is((new Response(t.context.app, t.context.request)).getRecordsFound('bar'), '');
 });
 
 

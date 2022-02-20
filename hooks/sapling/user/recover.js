@@ -80,7 +80,7 @@ export default async function recover(app, request, response) {
 	});
 
 	/* If there is no such user */
-	if (user.length === 0) {
+	if (!user) {
 		return new Response(app, request, response, new SaplingError({
 			status: '401',
 			code: '4004',
@@ -98,7 +98,7 @@ export default async function recover(app, request, response) {
 	delete request.body.new_password;
 
 	/* Update the new password and clear the key */
-	const userData = await app.storage.post({
+	const { data: userData } = await app.storage.post({
 		url: `/data/users/_id/${user._id}`,
 		body: { password: hash[1], _salt: hash[0], _authkey: '' },
 		session: app.adminSession,
