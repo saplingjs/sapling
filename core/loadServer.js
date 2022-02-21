@@ -16,6 +16,7 @@ import csrf from 'csurf';
 import SaplingError from '../lib/SaplingError.js';
 import Response from '../lib/Response.js';
 import Cluster from '../lib/Cluster.js';
+import Utils from '../lib/Utils.js';
 
 
 /**
@@ -73,9 +74,7 @@ export default function loadServer({ reload, listen }, next) {
 	/* Handle the directory for our static resources */
 	if ('publicDir' in this.config) {
 		/* If it's a string, coerce into an array */
-		if (Array.isArray(this.config.publicDir) === false) {
-			this.config.publicDir = [this.config.publicDir];
-		}
+		this.config.publicDir = new Utils().coerceArray(this.config.publicDir);
 
 		/* Loop through it */
 		for (const publicDir of this.config.publicDir) {

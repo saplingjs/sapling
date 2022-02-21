@@ -174,12 +174,7 @@ export default class Memory extends Interface {
 				continue;
 			}
 
-			let condition = conditions[field];
-
-			/* Coerce into an array */
-			if (Array.isArray(condition) === false) {
-				condition = [condition];
-			}
+			const condition = new Utils().coerceArray(conditions[field]);
 
 			match = condition.some(value => {
 				/* If it's an ID, do an exact match always */
