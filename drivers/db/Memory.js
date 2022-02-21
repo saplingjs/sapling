@@ -189,7 +189,7 @@ export default class Memory extends Interface {
 
 				/* If we have wildcards, build a regex */
 				if (String(value).includes('*')) {
-					return String(record[field]).match(new RegExp(`^${value.split('*').join('(.*)')}$`, 'gmi')) !== null;
+					return new Utils().matchWildcard(record[field], value);
 				}
 
 				/* Otherwise do a direct match */
