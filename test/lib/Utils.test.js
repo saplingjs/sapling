@@ -84,6 +84,31 @@ test('converts values to true boolean', t => {
 	t.falsy(t.context.utils.trueBoolean(null));
 });
 
+test('matches string against wildcard pattern', t => {
+	t.true(t.context.utils.matchWildcard('string', 'str*'));
+	t.true(t.context.utils.matchWildcard('string', '*ing'));
+	t.true(t.context.utils.matchWildcard('string', '*tr*'));
+
+	t.false(t.context.utils.matchWildcard('value', 'str*'));
+	t.false(t.context.utils.matchWildcard('value', '*ing'));
+	t.false(t.context.utils.matchWildcard('value', '*tr*'));
+
+	t.true(t.context.utils.matchWildcard(5000, '5*'));
+	t.false(t.context.utils.matchWildcard(6000, '5*'));
+
+	/* Even when the pattern has some other regex-y characters */
+	t.true(t.context.utils.matchWildcard('et tu, brute?', 'et tu, *?'));
+	t.true(t.context.utils.matchWildcard('file.jpg', 'file.*'));
+	t.false(t.context.utils.matchWildcard('files', 'file.*'));
+});
+
+test('coerces any value into an array', t => {
+	t.deepEqual(t.context.utils.coerceArray('string'), ['string']);
+	t.deepEqual(t.context.utils.coerceArray(1), [1]);
+	t.deepEqual(t.context.utils.coerceArray(false), [false]);
+	t.deepEqual(t.context.utils.coerceArray([1, 2, 3]), [1, 2, 3]);
+});
+
 
 test.after.always(t => {
 	fs.chmodSync(path.join(__dirname, '../_data/inaccessible'), 0o755);

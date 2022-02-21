@@ -430,6 +430,34 @@ test('invalidates invalid file against file type', t => {
 	t.is(t.context.validator.errors.length, 6);
 });
 
+test('validates valid file against file type with wildcards', t => {
+	t.context.validator.validateFileType({ mimetype: 'image/jpeg' }, 'attachment', { filetype: 'image/*' });
+	t.is(t.context.validator.errors.length, 0);
+
+	t.context.validator.validateFileType({ mimetype: 'video/ogg' }, 'attachment', { filetype: '*/ogg' });
+	t.is(t.context.validator.errors.length, 0);
+
+	t.context.validator.validateFileType({ extension: 'jpg' }, 'attachment', { filetype: '*p*' });
+	t.is(t.context.validator.errors.length, 0);
+
+	t.context.validator.validateFileType({ group: 'image' }, 'attachment', { filetype: '*age' });
+	t.is(t.context.validator.errors.length, 0);
+});
+
+test('invalidates invalid file against file type with wildcards', t => {
+	t.context.validator.validateFileType({ mimetype: 'video/ogg' }, 'attachment', { filetype: 'image/*' });
+	t.is(t.context.validator.errors.length, 1);
+
+	t.context.validator.validateFileType({ mimetype: 'image/jpeg' }, 'attachment', { filetype: '*/ogg' });
+	t.is(t.context.validator.errors.length, 2);
+
+	t.context.validator.validateFileType({ extension: 'gif' }, 'attachment', { filetype: '*p*' });
+	t.is(t.context.validator.errors.length, 3);
+
+	t.context.validator.validateFileType({ group: 'video' }, 'attachment', { filetype: '*age' });
+	t.is(t.context.validator.errors.length, 4);
+});
+
 
 /* validateFileMinwidth */
 
