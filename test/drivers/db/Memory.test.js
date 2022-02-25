@@ -193,6 +193,35 @@ test.serial('reads nothing in a non-existent collection', async t => {
 	t.is(results.length, 0);
 });
 
+test.serial('limits records according to limit option', async t => {
+	const results = await t.context.memory.read('fifth', {}, { limit: 2 });
+
+	t.true(Array.isArray(results));
+	t.is(results.length, 2);
+});
+
+test.serial('skips records according to skip option', async t => {
+	const results = await t.context.memory.read('fifth', {}, { limit: 2, skip: 2 });
+
+	t.true(Array.isArray(results));
+	t.is(results.length, 2);
+	t.is(results[0].name, 'North Yorkshire');
+});
+
+test.serial('sorts records ascending according to sort option', async t => {
+	const results = await t.context.memory.read('fifth', {}, { sort: [ [ 'name', 1 ] ] });
+
+	t.true(Array.isArray(results));
+	t.is(results[0].name, 'Hamptons');
+});
+
+test.serial('sorts records descending according to sort option', async t => {
+	const results = await t.context.memory.read('fifth', {}, { sort: [ [ 'name', -1 ] ] });
+
+	t.true(Array.isArray(results));
+	t.is(results[0].name, 'North Yorkshire');
+});
+
 test.serial('modifies one record by ID', async t => {
 	const results = await t.context.memory.modify('first', { _id: t.context.memory.memory.first[0]._id }, { new: 'hello' });
 

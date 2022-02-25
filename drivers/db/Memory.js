@@ -59,14 +59,46 @@ export default class Memory extends Interface {
 	 *
 	 * @param {string} collection Name of the target collection
 	 * @param {object} conditions The search query
+	 * @param {object} options Options for the operation
 	 */
-	async read(collection, conditions) {
+	async read(collection, conditions, options) {
 		/* Fetch the collection, or provide an empty array if none exists */
 		let records = new Utils().deepClone(this.memory[collection] || []);
 
 		/* If there are any conditions */
 		if (Object.keys(conditions).length > 0) {
 			records = records.filter(record => this.isMatch(record, conditions));
+		}
+
+		/* Limit and skip, if defined */
+		if (options && 'limit' in options) {
+			const skip = options.skip || 0;
+			records = records.slice(skip, options.limit + skip);
+		}
+
+		/* Sort, if defined */
+		if (options && 'sort' in options) {
+			records = records.sort((a, b) => {
+				let i = 0;
+				let result = 0;
+
+				/* Go through all sorted properties */
+				while (result === 0 && i < options.sort.length) {
+					const property = options.sort[i][0];
+
+					/* If property isn't available in record, forget about it */
+					if (!(property in a) || !(property in b)) {
+						continue;
+					}
+
+					/* Sort by property, in the direction requested */
+					result = (a[property] < b[property]) ? -1 : ((a[property] > b[property]) ? 1 : 0);
+					result *= options.sort[i][1];
+					i++;
+				}
+
+				return result;
+			});
 		}
 
 		return records;
