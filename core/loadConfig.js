@@ -63,6 +63,18 @@ export function digest() {
 		upload: {
 			type: 'local',
 			destination: 'public/uploads',
+			thumbnails: [
+				{
+					name: 'web',
+					width: 1280,
+				},
+				{
+					name: 'thumb',
+					width: 128,
+					height: 128,
+					fit: 'cover',
+				},
+			],
 		},
 		port: argv.port || this.opts.port || 3000,
 		url: '',
