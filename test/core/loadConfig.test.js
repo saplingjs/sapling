@@ -16,16 +16,16 @@ test.beforeEach(async t => {
 });
 
 
-test.serial('loads the config', t => {
-	loadConfig.call(t.context.app);
+test.serial('loads the config', async t => {
+	await loadConfig.call(t.context.app);
 
 	t.is(t.context.app.config.name, 'untitled');
 });
 
-test.serial('uses default config when no config file is supplied', t => {
+test.serial('uses default config when no config file is supplied', async t => {
 	t.context.app.configFile = 'test/_data/config/nonexistent.json';
 
-	loadConfig.call(t.context.app, () => {
+	await loadConfig.call(t.context.app, () => {
 		t.is(t.context.app.config.name, 'untitled');
 	});
 });
@@ -46,7 +46,7 @@ test.serial('loads proper environment config when available', async t => {
 	process.env.NODE_ENV = 'production';
 	console.log = () => true;
 
-	loadConfig.call(t.context.app, () => {
+	await loadConfig.call(t.context.app, () => {
 		t.is(t.context.app.config.secret, 'default');
 	});
 });
@@ -57,7 +57,7 @@ test.serial('loads proper environment config with specified name when available'
 	process.env.NODE_ENV = 'production';
 	console.log = () => true;
 
-	loadConfig.call(t.context.app, () => {
+	await loadConfig.call(t.context.app, () => {
 		t.is(t.context.app.config.secret, 'custom');
 	});
 });
@@ -77,108 +77,108 @@ test.serial('throws error when specified environment config file is mangled', as
 });
 
 
-test.serial('strict off by default', t => {
-	loadConfig.call(t.context.app, () => {
+test.serial('strict off by default', async t => {
+	await loadConfig.call(t.context.app, () => {
 		t.falsy(t.context.app.config.strict);
 	});
 });
 
-test.serial('strict on when set to true', t => {
+test.serial('strict on when set to true', async t => {
 	t.context.app.configFile = 'test/_data/config/strict.json';
 
-	loadConfig.call(t.context.app, () => {
+	await loadConfig.call(t.context.app, () => {
 		t.truthy(t.context.app.config.strict);
 	});
 });
 
-test.serial('strict on when production set to true', t => {
+test.serial('strict on when production set to true', async t => {
 	t.context.app.configFile = 'test/_data/config/production.json';
 
-	loadConfig.call(t.context.app, () => {
+	await loadConfig.call(t.context.app, () => {
 		t.truthy(t.context.app.config.strict);
 	});
 });
 
 
-test.serial('production off by default', t => {
-	loadConfig.call(t.context.app, () => {
+test.serial('production off by default', async t => {
+	await loadConfig.call(t.context.app, () => {
 		t.falsy(t.context.app.config.production);
 	});
 });
 
-test.serial('production on when set to true', t => {
+test.serial('production on when set to true', async t => {
 	t.context.app.configFile = 'test/_data/config/production.json';
 
-	loadConfig.call(t.context.app, () => {
+	await loadConfig.call(t.context.app, () => {
 		t.truthy(t.context.app.config.production);
 	});
 });
 
 
-test.serial('showError on by default', t => {
-	loadConfig.call(t.context.app, () => {
+test.serial('showError on by default', async t => {
+	await loadConfig.call(t.context.app, () => {
 		t.truthy(t.context.app.config.showError);
 	});
 });
 
-test.serial('showError off when production set to true', t => {
+test.serial('showError off when production set to true', async t => {
 	t.context.app.configFile = 'test/_data/config/production.json';
 
-	loadConfig.call(t.context.app, () => {
+	await loadConfig.call(t.context.app, () => {
 		t.falsy(t.context.app.config.showError);
 	});
 });
 
 
-test.serial('cors on by default', t => {
-	loadConfig.call(t.context.app, () => {
+test.serial('cors on by default', async t => {
+	await loadConfig.call(t.context.app, () => {
 		t.truthy(t.context.app.config.cors);
 	});
 });
 
-test.serial('cors off when set to false', t => {
+test.serial('cors off when set to false', async t => {
 	t.context.app.configFile = 'test/_data/config/cors.json';
 
-	loadConfig.call(t.context.app, () => {
+	await loadConfig.call(t.context.app, () => {
 		t.falsy(t.context.app.config.cors);
 	});
 });
 
-test.serial('cors off when production set to true', t => {
+test.serial('cors off when production set to true', async t => {
 	t.context.app.configFile = 'test/_data/config/production.json';
 
-	loadConfig.call(t.context.app, () => {
+	await loadConfig.call(t.context.app, () => {
 		t.falsy(t.context.app.config.cors);
 	});
 });
 
-test.serial('cors on when set to true even if production set to true', t => {
+test.serial('cors on when set to true even if production set to true', async t => {
 	t.context.app.configFile = 'test/_data/config/corsProduction.json';
 
-	loadConfig.call(t.context.app, () => {
+	await loadConfig.call(t.context.app, () => {
 		t.truthy(t.context.app.config.cors);
 	});
 });
 
 
-test.serial('compression off by default', t => {
-	loadConfig.call(t.context.app, () => {
+test.serial('compression off by default', async t => {
+	await loadConfig.call(t.context.app, () => {
 		t.falsy(t.context.app.config.compression);
 	});
 });
 
-test.serial('compression on when set to true', t => {
+test.serial('compression on when set to true', async t => {
 	t.context.app.configFile = 'test/_data/config/compression.json';
 
-	loadConfig.call(t.context.app, () => {
+	await loadConfig.call(t.context.app, () => {
 		t.truthy(t.context.app.config.compression);
 	});
 });
 
-test.serial('compression on when production set to true', t => {
+test.serial('compression on when production set to true', async t => {
 	t.context.app.configFile = 'test/_data/config/production.json';
 
-	loadConfig.call(t.context.app, () => {
+	await loadConfig.call(t.context.app, () => {
 		t.truthy(t.context.app.config.compression);
 	});
 });

@@ -3,7 +3,7 @@
  */
 
 /* Dependencies */
-import fs from 'node:fs';
+import fs from 'node:fs/promises';
 import path from 'node:path';
 
 import { console } from '../lib/Cluster.js';
@@ -23,14 +23,14 @@ export async function digest() {
 	const formattedHooks = {};
 
 	/* Load the hooks file */
-	if (fs.existsSync(hooksPath)) {
+	if (await this.utils.exists(hooksPath)) {
 		/* If we have a hooks file, let's load it */
 		let file = null;
 		let hooks = {};
 
 		/* Read the hooks file, or throw an error if it can't be done */
 		try {
-			file = fs.readFileSync(hooksPath);
+			file = await fs.readFile(hooksPath);
 		} catch {
 			throw new SaplingError(`Hooks at ${hooksPath} could not be read.`);
 		}

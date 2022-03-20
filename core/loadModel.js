@@ -3,7 +3,7 @@
  */
 
 /* Dependencies */
-import fs from 'node:fs';
+import fs from 'node:fs/promises';
 import path from 'node:path';
 
 import { console } from '../lib/Cluster.js';
@@ -16,14 +16,14 @@ import Storage from '../lib/Storage.js';
  *
  * @returns {object} Schema
  */
-export function digest() {
+export async function digest() {
 	const modelPath = path.join(this.dir, this.config.modelsDir);
 	const schema = {};
 	let files = {};
 
 	/* Load all models in the model directory */
-	if (fs.existsSync(modelPath)) {
-		files = fs.readdirSync(modelPath);
+	if (await this.utils.exists(modelPath)) {
+		files = await fs.readdir(modelPath);
 	} else {
 		console.warn(`Models directory \`${modelPath}\` does not exist`);
 	}
@@ -38,7 +38,7 @@ export function digest() {
 			continue;
 		}
 
-		const model = fs.readFileSync(path.join(modelPath, file));
+		const model = await fs.readFile(path.join(modelPath, file));
 
 		/* Read the model JSON into the schema */
 		try {
@@ -80,7 +80,7 @@ export function digest() {
  */
 export default async function loadModel(next) {
 	/* Create a storage instance based on the models */
-	this.storage = new Storage(this, digest.call(this));
+	this.storage = new Storage(this, await digest.call(this));
 
 	if (next) {
 		next();

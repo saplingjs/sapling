@@ -11,7 +11,7 @@
 
 /* Require native clustering bits */
 import cluster from 'node:cluster';
-import fs from 'node:fs';
+import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
@@ -19,6 +19,8 @@ import chalk from 'chalk';
 import yargs from 'yargs';
 /* eslint-disable-next-line node/file-extension-in-import */
 import { hideBin } from 'yargs/helpers';
+
+import Utils from './lib/Utils.js';
 
 import App from './app.js';
 
@@ -30,12 +32,12 @@ const argv = yargs(hideBin(process.argv)).argv;
 const configPath = path.join(process.cwd(), 'config.json');
 let sessionAvailable = false;
 
-if (fs.existsSync(configPath)) {
-	/* If we have a config file, let's load it */
-	const file = fs.readFileSync(configPath);
-
+/* If we have a config file, let's load it */
+if (await new Utils().exists(configPath)) {
 	/* Parse config, or throw an error if it's malformed */
 	try {
+		const file = await fs.readFile(configPath);
+
 		const c = JSON.parse(file.toString());
 		if ('session' in c && 'driver' in c.session) {
 			sessionAvailable = true;

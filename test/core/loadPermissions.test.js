@@ -35,10 +35,10 @@ test.beforeEach(async t => {
 });
 
 
-test('loads permissions by string', t => {
+test.serial('loads permissions by string', async t => {
 	t.context.app.config.permissions = 'string.json';
 
-	loadPermissions.call(t.context.app);
+	await loadPermissions.call(t.context.app);
 
 	t.deepEqual(t.context.app.permissions, {
 		'get /my-account': {
@@ -50,10 +50,10 @@ test('loads permissions by string', t => {
 	});
 });
 
-test('loads permissions by array', t => {
+test.serial('loads permissions by array', async t => {
 	t.context.app.config.permissions = 'array.json';
 
-	loadPermissions.call(t.context.app);
+	await loadPermissions.call(t.context.app);
 
 	t.deepEqual(t.context.app.permissions, {
 		'get /my-account': {
@@ -66,10 +66,10 @@ test('loads permissions by array', t => {
 	});
 });
 
-test('loads permissions by object', t => {
+test.serial('loads permissions by object', async t => {
 	t.context.app.config.permissions = 'object.json';
 
-	loadPermissions.call(t.context.app);
+	await loadPermissions.call(t.context.app);
 
 	t.deepEqual(t.context.app.permissions, {
 		'get /my-account': {
@@ -88,7 +88,7 @@ test('loads permissions by object', t => {
 	});
 });
 
-test('creates middleware', t => {
+test.serial('creates middleware', async t => {
 	t.plan(7);
 
 	t.context.app.config.permissions = 'methods.json';
@@ -137,11 +137,11 @@ test('creates middleware', t => {
 		}
 	};
 
-	loadPermissions.call(t.context.app);
+	await loadPermissions.call(t.context.app);
 });
 
 
-test('warns with non-existent permissions file', async t => {
+test.serial('warns with non-existent permissions file', async t => {
 	t.plan(1);
 
 	t.context.app.config.permissions = 'nonexistent.json';
@@ -157,7 +157,7 @@ test('warns with non-existent permissions file', async t => {
 	await loadPermissions.call(t.context.app);
 });
 
-test('throws an error loading permissions with an undefined method', async t => {
+test.serial('throws an error loading permissions with an undefined method', async t => {
 	t.context.app.config.permissions = 'undefinedMethod.json';
 
 	await t.throwsAsync(async () => {
@@ -168,7 +168,7 @@ test('throws an error loading permissions with an undefined method', async t => 
 	})
 });
 
-test('throws an error loading permissions with an invalid definition', async t => {
+test.serial('throws an error loading permissions with an invalid definition', async t => {
 	t.context.app.config.permissions = 'invalid.json';
 
 	await t.throwsAsync(async () => {
@@ -179,7 +179,7 @@ test('throws an error loading permissions with an invalid definition', async t =
 	})
 });
 
-test('throws an error loading permissions with an invalid object role definition', async t => {
+test.serial('throws an error loading permissions with an invalid object role definition', async t => {
 	t.context.app.config.permissions = 'invalidObject.json';
 
 	await t.throwsAsync(async () => {
@@ -190,7 +190,7 @@ test('throws an error loading permissions with an invalid object role definition
 	})
 });
 
-test('throws an error loading permissions with an missing object role definition', async t => {
+test.serial('throws an error loading permissions with an missing object role definition', async t => {
 	t.context.app.config.permissions = 'incompleteObject.json';
 
 	await t.throwsAsync(async () => {

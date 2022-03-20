@@ -3,7 +3,7 @@
  */
 
 /* Dependencies */
-import fs from 'node:fs';
+import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
 import yargs from 'yargs';
@@ -20,7 +20,7 @@ import SaplingError from '../lib/SaplingError.js';
  *
  * @returns {object} Config
  */
-export function digest() {
+export async function digest() {
 	let config = {};
 
 	const argv = yargs(hideBin(process.argv)).argv;
@@ -74,9 +74,9 @@ export function digest() {
 	const configPath = path.join(this.dir, this.configFile || 'config.json');
 
 	/* Load the configuration */
-	if (fs.existsSync(configPath)) {
+	if (await this.utils.exists(configPath)) {
 		/* If we have a config file, let's load it */
-		const file = fs.readFileSync(configPath);
+		const file = await fs.readFile(configPath);
 
 		/* Parse and merge the config, or throw an error if it's malformed */
 		try {
@@ -110,9 +110,9 @@ export function digest() {
 		/* Check if there's a separate production config */
 		const prodConfigPath = path.join(this.dir, (this.configFile && this.configFile.replace('.json', `.${process.env.NODE_ENV}.json`)) || `config.${process.env.NODE_ENV}.json`);
 
-		if (fs.existsSync(prodConfigPath)) {
+		if (await this.utils.exists(prodConfigPath)) {
 			/* If we have a config file, let's load it */
-			const file = fs.readFileSync(prodConfigPath);
+			const file = await fs.readFile(prodConfigPath);
 
 			config = {};
 			Object.assign(config, defaultConfig);
@@ -143,7 +143,7 @@ export function digest() {
  */
 export default async function loadConfig(next) {
 	/* Digest config */
-	this.config = digest.call(this);
+	this.config = await digest.call(this);
 	console.log('CONFIG', this.config);
 
 	/* Set the app name */

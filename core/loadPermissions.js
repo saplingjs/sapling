@@ -3,7 +3,7 @@
  */
 
 /* Dependencies */
-import fs from 'node:fs';
+import fs from 'node:fs/promises';
 import path from 'node:path';
 
 import { console } from '../lib/Cluster.js';
@@ -16,14 +16,14 @@ import SaplingError from '../lib/SaplingError.js';
  *
  * @returns {object} Permissions
  */
-export function digest() {
+export async function digest() {
 	/* Load the permissions file */
 	const permissionsPath = path.join(this.dir, this.config.permissions);
 	const formattedPerms = {};
 	let loadedPerms = {};
 
 	try {
-		loadedPerms = JSON.parse(fs.readFileSync(permissionsPath));
+		loadedPerms = JSON.parse(await fs.readFile(permissionsPath));
 	} catch {
 		console.warn(`Permissions at path: ${permissionsPath} not found.`);
 	}
@@ -77,7 +77,7 @@ export function digest() {
  */
 export default async function loadPermissions(next) {
 	/* Digest permissions */
-	this.permissions = digest.call(this);
+	this.permissions = await digest.call(this);
 
 	/* Loop over the urls in permissions */
 	for (const url of Object.keys(this.permissions)) {
