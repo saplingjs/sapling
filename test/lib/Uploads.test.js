@@ -3,6 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import _ from 'underscore';
 import { fileURLToPath } from 'url';
+import imageSize from 'image-size';
 
 import Response from '../../lib/Response.js';
 import SaplingError from '../../lib/SaplingError.js';
@@ -59,6 +60,46 @@ test('uploads an image', async t => {
 	t.is(upload.image.mimetype, 'image/png');
 	t.is(upload.image.width, 180);
 	t.is(upload.image.height, 180);
+});
+
+test('processes thumbnails', async t => {
+	t.context.app.uploads = new Uploads(t.context.app);
+	const request = _.extend({
+		files: {
+			image: getFileObject('photo.jpg')
+		}
+	}, t.context.request);
+
+	const upload = await t.context.app.uploads.handleUpload(request, t.context.response, {
+		image: {
+			thumbnails: [
+				{
+					name: 'web',
+					width: 500,
+				},
+				{
+					name: 'thumb',
+					width: 128,
+					height: 128,
+					fit: 'cover',
+				},
+			]
+		}
+	});
+
+	const thumbWebPath = path.join(__dirname, 'uploads/thumbs/web/photo.jpg');
+	const thumbWebDims = await imageSize(thumbWebPath);
+
+	t.true(fs.existsSync(thumbWebPath));
+	t.is(thumbWebDims.width, 500);
+	t.is(thumbWebDims.height, 375);
+
+	const thumbThumbPath = path.join(__dirname, 'uploads/thumbs/thumb/photo.jpg');
+	const thumbThumbDims = await imageSize(thumbThumbPath);
+
+	t.true(fs.existsSync(thumbThumbPath));
+	t.is(thumbThumbDims.width, 128);
+	t.is(thumbThumbDims.height, 128);
 });
 
 test('uploads a video', async t => {
