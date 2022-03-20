@@ -6,7 +6,7 @@
  */
 
 /* Dependencies */
-import fs from 'node:fs/promises';
+import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import _ from 'underscore';
 import SaplingError from '../../lib/SaplingError.js';

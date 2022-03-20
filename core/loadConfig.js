@@ -3,7 +3,7 @@
  */
 
 /* Dependencies */
-import fs from 'node:fs/promises';
+import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import yargs from 'yargs';
