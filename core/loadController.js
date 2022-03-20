@@ -3,7 +3,7 @@
  */
 
 /* Dependencies */
-import fs from 'node:fs';
+import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
 import { console } from '../lib/Cluster.js';
@@ -15,47 +15,51 @@ import Templating from '../lib/Templating.js';
  *
  * @returns {object} Controller
  */
-export function digest() {
+export async function digest() {
 	let controller = {};
 
 	/* Generate a controller from the available views */
 	if ((this.config.autoRouting === 'on' || this.config.autoRouting === true) && this.config.viewsDir !== null) {
 		const viewsPath = path.join(this.dir, this.config.viewsDir);
 
-		if (fs.existsSync(viewsPath) && fs.lstatSync(viewsPath).isDirectory()) {
-			/* Load all views in the views directory */
-			const views = this.utils.getFiles(viewsPath);
+		if (await this.utils.exists(viewsPath)) {
+			const viewsLstat = await fs.lstat(viewsPath);
 
-			/* Go through each view */
-			for (const view_ of views) {
-				const segments = path.relative(this.dir, view_).split('/');
+			if (viewsLstat.isDirectory()) {
+				/* Load all views in the views directory */
+				const views = await this.utils.getFiles(viewsPath);
 
-				/* Filter out the views where any segment begins with _ */
-				const protectedSegments = segments.filter(item => {
-					const re = /^_/;
-					return re.test(item);
-				});
+				/* Go through each view */
+				for (const view_ of views) {
+					const segments = path.relative(this.dir, view_).split('/');
 
-				if (protectedSegments.length > 0) {
-					continue;
+					/* Filter out the views where any segment begins with _ */
+					const protectedSegments = segments.filter(item => {
+						const re = /^_/;
+						return re.test(item);
+					});
+
+					if (protectedSegments.length > 0) {
+						continue;
+					}
+
+					/* Filter out any files that do not use the correct file extension */
+					if (this.config.extension !== null && view_.split('.').slice(-1)[0] !== this.config.extension) {
+						continue;
+					}
+
+					/* Filter out filesystem bits */
+					const view = view_.replace(path.resolve(this.dir, this.config.viewsDir), '').replace(`.${this.config.extension}`, '');
+					let route = view.replace('/index', '');
+
+					/* Make sure root index is a slash and not an empty key */
+					if (route === '') {
+						route = '/';
+					}
+
+					/* Create an automatic GET route for a given view */
+					controller[route] = view.replace(/^\/+/g, '');
 				}
-
-				/* Filter out any files that do not use the correct file extension */
-				if (this.config.extension !== null && view_.split('.').slice(-1)[0] !== this.config.extension) {
-					continue;
-				}
-
-				/* Filter out filesystem bits */
-				const view = view_.replace(path.resolve(this.dir, this.config.viewsDir), '').replace(`.${this.config.extension}`, '');
-				let route = view.replace('/index', '');
-
-				/* Make sure root index is a slash and not an empty key */
-				if (route === '') {
-					route = '/';
-				}
-
-				/* Create an automatic GET route for a given view */
-				controller[route] = view.replace(/^\/+/g, '');
 			}
 		}
 	}
@@ -64,26 +68,30 @@ export function digest() {
 	const controllerPath = path.join(this.dir, this.config.routes || '');
 
 	/* Load the controller file */
-	if (fs.existsSync(controllerPath) && fs.lstatSync(controllerPath).isFile()) {
-		/* Parse and merge the controller, or throw an error if it's malformed */
-		try {
-			/* Load the controller file */
-			const file = fs.readFileSync(controllerPath);
-			const routes = JSON.parse(file.toString());
+	if (await this.utils.exists(controllerPath)) {
+		const controllerLstat = await fs.lstat(controllerPath);
 
-			/* Remove file extension */
-			for (const route of Object.keys(routes)) {
-				routes[route] = routes[route].split('.').slice(0, -1).join('.');
-			}
+		if (controllerLstat.isFile()) {
+			/* Parse and merge the controller, or throw an error if it's malformed */
+			try {
+				/* Load the controller file */
+				const file = await fs.readFile(controllerPath);
+				const routes = JSON.parse(file.toString());
 
-			/* Merge routes if autorouting, replace routes if not */
-			if (this.config.autoRouting === 'on' || this.config.autoRouting === true) {
-				Object.assign(controller, routes);
-			} else {
-				controller = routes;
+				/* Remove file extension */
+				for (const route of Object.keys(routes)) {
+					routes[route] = routes[route].split('.').slice(0, -1).join('.');
+				}
+
+				/* Merge routes if autorouting, replace routes if not */
+				if (this.config.autoRouting === 'on' || this.config.autoRouting === true) {
+					Object.assign(controller, routes);
+				} else {
+					controller = routes;
+				}
+			} catch (error) {
+				console.error(`Controller at path: \`${controllerPath}\` could not be loaded.`, error);
 			}
-		} catch (error) {
-			console.error(`Controller at path: \`${controllerPath}\` could not be loaded.`, error);
 		}
 	}
 
@@ -102,7 +110,7 @@ export default async function loadController(next) {
 	await this.templating.importDriver();
 
 	/* Digest controller */
-	this.controller = digest.call(this, this.config);
+	this.controller = await digest.call(this, this.config);
 	console.log('CONTROLLER', this.controller);
 
 	if (next) {

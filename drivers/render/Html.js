@@ -6,7 +6,7 @@
  */
 
 /* Dependencies */
-import fs from 'node:fs';
+import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import _ from 'underscore';
 import SaplingError from '../../lib/SaplingError.js';
@@ -37,7 +37,7 @@ export default class HTML extends Interface {
 		/* Read the template file */
 		let html = '';
 		try {
-			html = fs.readFileSync(path.resolve(this.viewsPath, template), 'utf8');
+			html = await fs.readFile(path.resolve(this.viewsPath, template), 'utf8');
 		} catch (error) {
 			return new SaplingError(error);
 		}

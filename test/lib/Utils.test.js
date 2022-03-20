@@ -29,8 +29,8 @@ test('generates a random string', t => {
 	t.not(random, random2);
 });
 
-test('gets all files in an existing directory', t => {
-	const files = t.context.utils.getFiles(path.join(__dirname, '../_data/accessible'));
+test('gets all files in an existing directory', async t => {
+	const files = await t.context.utils.getFiles(path.join(__dirname, '../_data/accessible'));
 
 	t.true(Array.isArray(files));
 	t.is(files.length, 2);
@@ -38,15 +38,15 @@ test('gets all files in an existing directory', t => {
 	t.true(files[1].endsWith('file.txt'));
 });
 
-test('throws an error when getting files in a directory with no permissions', t => {
-	t.throws(() => {
-		t.context.utils.getFiles(path.join(__dirname, '../_data/inaccessible'));
+test('throws an error when getting files in a directory with no permissions', async t => {
+	await t.throwsAsync(async () => {
+		await t.context.utils.getFiles(path.join(__dirname, '../_data/inaccessible'));
 	}, {instanceOf: SaplingError});
 });
 
-test('throws an error when getting files in non-existent directory', t => {
-	t.throws(() => {
-		t.context.utils.getFiles(path.join(__dirname, '../_data/nonexistent'));
+test('throws an error when getting files in non-existent directory', async t => {
+	await t.throwsAsync(async () => {
+		await t.context.utils.getFiles(path.join(__dirname, '../_data/nonexistent'));
 	}, {instanceOf: SaplingError});
 });
 
