@@ -105,7 +105,7 @@ test.serial('loads server with csrf to respond with an error with no token', asy
 	t.is(response.body.errors[0].title, 'Invalid CSRF token');
 });
 
-test.serial.cb('loads server with csrf to respond with an error with invalid token', t => {
+test.serial('loads server with csrf to respond with an error with invalid token', async t => {
 	t.context.app.config.csrf = true;
 
 	t.notThrows(() => {
@@ -118,23 +118,25 @@ test.serial.cb('loads server with csrf to respond with an error with invalid tok
 
 	t.context.app.live = t.context.app.server.listen();
 
-	request(t.context.app.live)
-		.get('/token')
-		.expect(200, (error, response) => {
-			request(t.context.app.live)
-				.post('/data/posts')
-				.set('Cookie', cookies(response))
-				.send('_csrf=' + encodeURIComponent('invalid'))
-				.expect(500, (error, response) => {
-					t.is(response.status, 500);
-					t.is(response.body.errors.length, 1);
-					t.is(response.body.errors[0].title, 'Invalid CSRF token');
-					t.end();
-				});
-		});
+	return new Promise((resolve) => {
+		request(t.context.app.live)
+			.get('/token')
+			.expect(200, (error, response) => {
+				request(t.context.app.live)
+					.post('/data/posts')
+					.set('Cookie', cookies(response))
+					.send('_csrf=' + encodeURIComponent('invalid'))
+					.expect(500, (error, response) => {
+						t.is(response.status, 500);
+						t.is(response.body.errors.length, 1);
+						t.is(response.body.errors[0].title, 'Invalid CSRF token');
+						resolve();
+					});
+			});
+	});
 });
 
-test.serial.cb('loads server with csrf to respond normally with valid token', t => {
+test.serial('loads server with csrf to respond normally with valid token', async t => {
 	t.context.app.config.csrf = true;
 
 	t.notThrows(() => {
@@ -151,18 +153,20 @@ test.serial.cb('loads server with csrf to respond normally with valid token', t 
 
 	t.context.app.live = t.context.app.server.listen();
 
-	request(t.context.app.live)
-		.get('/token')
-		.expect(200, (error, response) => {
-			request(t.context.app.live)
-				.post('/data/posts')
-				.set('Cookie', cookies(response))
-				.send('_csrf=' + encodeURIComponent(response.body.token))
-				.expect(200, (error, response) => {
-					t.is(response.status, 200);
-					t.end();
-				});
-		});
+	return new Promise((resolve) => {
+		request(t.context.app.live)
+			.get('/token')
+			.expect(200, (error, response) => {
+				request(t.context.app.live)
+					.post('/data/posts')
+					.set('Cookie', cookies(response))
+					.send('_csrf=' + encodeURIComponent(response.body.token))
+					.expect(200, (error, response) => {
+						t.is(response.status, 200);
+						resolve();
+					});
+			});
+	});
 });
 
 test.serial('loads server with a string-based publicDir', async t => {
@@ -193,7 +197,7 @@ test.serial('loads server with an array-based publicDir', async t => {
 	t.true(staticResponse.headers['content-type'].includes('text/html'));
 });
 
-test.serial.cb('loads server with compression', t => {
+test.serial('loads server with compression', async t => {
 	t.plan(2);
 
 	t.context.app.config.compression = true;
@@ -207,16 +211,18 @@ test.serial.cb('loads server with compression', t => {
 		response.end('<strong>Hello</strong>');
 	});
 
-	request(t.context.app.server.listen())
-		.get('/app')
-		.set('Accept-Encoding', 'gzip')
-		.expect('Content-Encoding', 'gzip', (error, response) => {
-			if (error) {
-				t.fail(error);
-			} else {
-				t.pass();
-			}
-			
-			t.end();
-		});
+	return new Promise((resolve) => {
+		request(t.context.app.server.listen())
+			.get('/app')
+			.set('Accept-Encoding', 'gzip')
+			.expect('Content-Encoding', 'gzip', (error, response) => {
+				if (error) {
+					t.fail(error);
+				} else {
+					t.pass();
+				}
+				
+				resolve();
+			});
+	});
 });

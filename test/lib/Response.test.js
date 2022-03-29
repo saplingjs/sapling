@@ -114,224 +114,248 @@ test('returns appropriate label for a single record', t => {
 
 /* viewResponse */
 
-test.cb('responds with a view when pre-rendered HTML is passed', t => {
+test('responds with a view when pre-rendered HTML is passed', async t => {
 	noAjax(t);
 
-	const response = t.context.response();
+	return new Promise((resolve) => {
+		const response = t.context.response();
 
-	response.status = statusCode => {
-		t.is(statusCode, 200);
-		return response;
-	};
-	response.send = data => {
-		t.is(typeof data, 'string');
-		t.is(data, '<h1>Hello</h1>');
-		t.end();
-		return response;
-	};
+		response.status = statusCode => {
+			t.is(statusCode, 200);
+			return response;
+		};
+		response.send = data => {
+			t.is(typeof data, 'string');
+			t.is(data, '<h1>Hello</h1>');
+			resolve();
+			return response;
+		};
 
-	new Response(t.context.app, t.context.request, response, null, '<h1>Hello</h1>');
+		new Response(t.context.app, t.context.request, response, null, '<h1>Hello</h1>');
+	});
 });
 
-test.cb('responds with data JSON when a string of data is passed', t => {
-	const response = t.context.response();
+test('responds with data JSON when a string of data is passed', async t => {
+	return new Promise((resolve) => {
+		const response = t.context.response();
 
-	response.status = statusCode => {
-		t.is(statusCode, 200);
-		return response;
-	};
-	response.json = data => {
-		t.deepEqual(data, [{foo:"bar"}]);
-		t.end();
-		return response;
-	};
+		response.status = statusCode => {
+			t.is(statusCode, 200);
+			return response;
+		};
+		response.json = data => {
+			t.deepEqual(data, [{foo:"bar"}]);
+			resolve();
+			return response;
+		};
 
-	new Response(t.context.app, t.context.request, response, null, '[{"foo":"bar"}]');
+		new Response(t.context.app, t.context.request, response, null, '[{"foo":"bar"}]');
+	});
 });
 
-test.cb('responds with a data view when a string of data is passed', t => {
+test('responds with a data view when a string of data is passed', async t => {
 	noAjax(t);
 
-	const response = t.context.response();
+	return new Promise((resolve) => {
+		const response = t.context.response();
 
-	response.status = statusCode => {
-		t.is(statusCode, 200);
-		return response;
-	};
-	response.send = data => {
-		t.is(typeof data, 'string');
-		t.true(data.includes('Response to'));
-		t.end();
-		return response;
-	};
+		response.status = statusCode => {
+			t.is(statusCode, 200);
+			return response;
+		};
+		response.send = data => {
+			t.is(typeof data, 'string');
+			t.true(data.includes('Response to'));
+			resolve();
+			return response;
+		};
 
-	new Response(t.context.app, t.context.request, response, null, '[{"foo":"bar"}]');
+		new Response(t.context.app, t.context.request, response, null, '[{"foo":"bar"}]');
+	});
 });
 
 
 /* genericResponse */
 
-test.cb('responds with a generic success status when no content is passed', t => {
-	const response = t.context.response();
+test('responds with a generic success status when no content is passed', async t => {
+	return new Promise((resolve) => {
+		const response = t.context.response();
 
-	response.status = statusCode => {
-		t.is(statusCode, 200);
-		return response;
-	};
-	response.send = data => {
-		t.true(data.success);
-		t.end();
-		return response;
-	};
+		response.status = statusCode => {
+			t.is(statusCode, 200);
+			return response;
+		};
+		response.send = data => {
+			t.true(data.success);
+			resolve();
+			return response;
+		};
 
-	new Response(t.context.app, t.context.request, response, null);
+		new Response(t.context.app, t.context.request, response, null);
+	});
 });
 
 
 /* dataResponse */
 
-test.cb('redirects when redirect query string is passed', t => {
+test('redirects when redirect query string is passed', async t => {
 	t.context.request.query.redirect = '/my-account';
 
-	const response = t.context.response();
+	return new Promise((resolve) => {
+		const response = t.context.response();
 
-	response.redirect = destination => {
-		t.is(destination, '/my-account');
-		t.end();
-		return response;
-	};
+		response.redirect = destination => {
+			t.is(destination, '/my-account');
+			resolve();
+			return response;
+		};
 
-	new Response(t.context.app, t.context.request, response, null, []);
+		new Response(t.context.app, t.context.request, response, null, []);
+	});
 });
 
-test.cb('responds with data JSON when data is passed', t => {
-	const response = t.context.response();
+test('responds with data JSON when data is passed', async t => {
+	return new Promise((resolve) => {
+		const response = t.context.response();
 
-	response.status = statusCode => {
-		t.is(statusCode, 200);
-		return response;
-	};
-	response.json = data => {
-		t.deepEqual(data, [{foo:'bar'}]);
-		t.end();
-		return response;
-	};
+		response.status = statusCode => {
+			t.is(statusCode, 200);
+			return response;
+		};
+		response.json = data => {
+			t.deepEqual(data, [{foo:'bar'}]);
+			resolve();
+			return response;
+		};
 
-	new Response(t.context.app, t.context.request, response, null, [{foo:'bar'}]);
+		new Response(t.context.app, t.context.request, response, null, [{foo:'bar'}]);
+	});
 });
 
-test.cb('responds with a data view when data is passed', t => {
+test('responds with a data view when data is passed', async t => {
 	noAjax(t);
 
-	const response = t.context.response();
+	return new Promise((resolve) => {
+		const response = t.context.response();
 
-	response.status = statusCode => {
-		t.is(statusCode, 200);
-		return response;
-	};
-	response.send = data => {
-		t.is(typeof data, 'string');
-		t.true(data.includes('Response to'));
-		t.end();
-		return response;
-	};
+		response.status = statusCode => {
+			t.is(statusCode, 200);
+			return response;
+		};
+		response.send = data => {
+			t.is(typeof data, 'string');
+			t.true(data.includes('Response to'));
+			resolve();
+			return response;
+		};
 
-	new Response(t.context.app, t.context.request, response, null, [{foo:'bar'}]);
+		new Response(t.context.app, t.context.request, response, null, [{foo:'bar'}]);
+	});
 });
 
 
 /* errorResponse */
 
-test.cb('responds with an error JSON when an error is passed', t => {
-	const response = t.context.response();
+test('responds with an error JSON when an error is passed', async t => {
+	return new Promise((resolve) => {
+		const response = t.context.response();
 
-	response.status = statusCode => {
-		t.is(statusCode, 500);
-		return response;
-	};
-	response.json = data => {
-		t.is(data.errors.length, 1);
-		t.end();
-		return response;
-	};
+		response.status = statusCode => {
+			t.is(statusCode, 500);
+			return response;
+		};
+		response.json = data => {
+			t.is(data.errors.length, 1);
+			resolve();
+			return response;
+		};
 
-	new Response(t.context.app, t.context.request, response, new SaplingError('error'));
+		new Response(t.context.app, t.context.request, response, new SaplingError('error'));
+	});
 });
 
-test.cb('responds with an error view when an error is passed', t => {
+test('responds with an error view when an error is passed', async t => {
 	noAjax(t);
 	t.context.app.config.showError = true;
 
-	const response = t.context.response();
+	return new Promise((resolve) => {
+		const response = t.context.response();
 
-	response.status = statusCode => {
-		t.is(statusCode, 500);
-		return response;
-	};
-	response.send = data => {
-		t.is(typeof data, 'string');
-		t.true(data.includes('SaplingError'));
-		t.end();
-		return response;
-	};
-	
-	new Response(t.context.app, t.context.request, response, new SaplingError('error'));
+		response.status = statusCode => {
+			t.is(statusCode, 500);
+			return response;
+		};
+		response.send = data => {
+			t.is(typeof data, 'string');
+			t.true(data.includes('SaplingError'));
+			resolve();
+			return response;
+		};
+		
+		new Response(t.context.app, t.context.request, response, new SaplingError('error'));
+	});
 });
 
-test.cb('responds with a plain error view when an error is passed', t => {
+test('responds with a plain error view when an error is passed', async t => {
 	noAjax(t);
 	t.context.app.config.showError = false;
 
-	const response = t.context.response();
+	return new Promise((resolve) => {
+		const response = t.context.response();
 
-	response.status = statusCode => {
-		t.is(statusCode, 500);
-		return response;
-	};
-	response.send = data => {
-		t.is(typeof data, 'string');
-		t.true(data.includes('A critical error has occurred with this website.  Please try again later.'));
-		t.end();
-		return response;
-	};
-	
-	new Response(t.context.app, t.context.request, response, new SaplingError('error'));
+		response.status = statusCode => {
+			t.is(statusCode, 500);
+			return response;
+		};
+		response.send = data => {
+			t.is(typeof data, 'string');
+			t.true(data.includes('A critical error has occurred with this website.  Please try again later.'));
+			resolve();
+			return response;
+		};
+		
+		new Response(t.context.app, t.context.request, response, new SaplingError('error'));
+	});
 });
 
 
 /* notFoundResponse */
 
-test.cb('responds with a 404 status when an empty content is passed', t => {
-	const response = t.context.response();
+test('responds with a 404 status when an empty content is passed', async t => {
+	return new Promise((resolve) => {
+		const response = t.context.response();
 
-	response.status = statusCode => {
-		t.is(statusCode, 404);
-		return response;
-	};
-	response.send = data => {
-		t.falsy(data);
-		t.end();
-		return response;
-	};
-	
-	new Response(t.context.app, t.context.request, response, null, false);
+		response.status = statusCode => {
+			t.is(statusCode, 404);
+			return response;
+		};
+		response.send = data => {
+			t.falsy(data);
+			resolve();
+			return response;
+		};
+		
+		new Response(t.context.app, t.context.request, response, null, false);
+	});
 });
 
-test.cb('responds with a 404 error view when an empty content is passed', t => {
+test('responds with a 404 error view when an empty content is passed', async t => {
 	noAjax(t);
 
-	const response = t.context.response();
+	return new Promise((resolve) => {
+		const response = t.context.response();
 
-	response.status = statusCode => {
-		t.is(statusCode, 500);
-		return response;
-	};
-	response.send = data => {
-		t.is(typeof data, 'string');
-		t.true(data.includes('This page either does not exist, or you do not have permission to see it.'));
-		t.end();
-		return response;
-	};
-	
-	new Response(t.context.app, t.context.request, response, null, false);
+		response.status = statusCode => {
+			t.is(statusCode, 500);
+			return response;
+		};
+		response.send = data => {
+			t.is(typeof data, 'string');
+			t.true(data.includes('This page either does not exist, or you do not have permission to see it.'));
+			resolve();
+			return response;
+		};
+		
+		new Response(t.context.app, t.context.request, response, null, false);
+	});
 });

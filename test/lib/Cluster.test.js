@@ -1,6 +1,7 @@
 import test from 'ava';
 
 import cluster from 'cluster';
+import { default as strip } from 'strip-ansi';
 
 import Cluster from '../../lib/Cluster.js';
 
@@ -13,7 +14,7 @@ test.beforeEach(t => {
 test('prints console log', t => {
 	console.log = (...args) => {
 		const msg = Array.from(args).join(' ');
-		t.is(msg, `${Cluster.workerID()} log item`);
+		t.is(strip(msg), strip(`${Cluster.workerID()} log item`));
 	};
 
 	Cluster.console.log('log item');
@@ -22,7 +23,7 @@ test('prints console log', t => {
 test('prints console warning', t => {
 	console.warn = (...args) => {
 		const msg = Array.from(args).join(' ');
-		t.is(msg, `${Cluster.workerID()} warning item`);
+		t.is(strip(msg), strip(`${Cluster.workerID()} warning item`));
 	};
 
 	Cluster.console.warn('warning item');
@@ -31,7 +32,7 @@ test('prints console warning', t => {
 test('prints console error', t => {
 	console.error = (...args) => {
 		const msg = Array.from(args).join(' ');
-		t.is(msg, `${Cluster.workerID()} error item`);
+		t.is(strip(msg), strip(`${Cluster.workerID()} error item`));
 	};
 
 	Cluster.console.error('error item');
@@ -39,22 +40,22 @@ test('prints console error', t => {
 
 test('prints access log', t => {
 	const date = new Date().toISOString();
-	t.is(Cluster.logger({
+	t.is(strip(Cluster.logger({
 		date: () => date,
 		method: () => 'GET',
 		url: () => '/',
 		status: () => 304,
 		'response-time': () => 5.767
-	}, {}, {}), `${Cluster.workerID()} [${date}] GET / 304 5.767 ms`);
+	}, {}, {})), strip(`${Cluster.workerID()} [${date}] GET / 304 5.767 ms`));
 });
 
 test('prints correct worker ID', t => {
-	t.is(Cluster.workerID(), `[W${cluster.worker ? cluster.worker.id : 0}/${process.pid}]`);
+	t.is(strip(Cluster.workerID()), strip(`[W${cluster.worker ? cluster.worker.id : 0}/${process.pid}]`));
 });
 
 test('prints wakeup message', t => {
 	console.log = msg => {
-		t.is(msg, `Worker ${cluster.worker ? cluster.worker.id : 0} (${process.pid}) now listening on port 4000`);
+		t.is(strip(msg), strip(`Worker ${cluster.worker ? cluster.worker.id : 0} (${process.pid}) now listening on port 4000`));
 	};
 
 	Cluster.listening(4000);
@@ -63,7 +64,7 @@ test('prints wakeup message', t => {
 test.serial('prints group header', t => {
 	console.log = (...args) => {
 		const msg = Array.from(args).join(' ');
-		t.is(msg, `${Cluster.workerID()} Group`);
+		t.is(strip(msg), strip(`${Cluster.workerID()} Group`));
 	};
 
 	Cluster.console.group('Group');
@@ -72,7 +73,7 @@ test.serial('prints group header', t => {
 test.serial('prints indented log item in group', t => {
 	console.log = (...args) => {
 		const msg = Array.from(args).join(' ');
-		t.is(msg, `${Cluster.workerID()}     Grouped item`);
+		t.is(strip(msg), strip(`${Cluster.workerID()}     Grouped item`));
 	};
 
 	Cluster.console.log('Grouped item');
@@ -81,7 +82,7 @@ test.serial('prints indented log item in group', t => {
 test.serial('prints non-indented group item after group', t => {
 	console.log = (...args) => {
 		const msg = Array.from(args).join(' ');
-		t.is(msg, `${Cluster.workerID()} Ungrouped item`);
+		t.is(strip(msg), strip(`${Cluster.workerID()} Ungrouped item`));
 	};
 
 	Cluster.console.groupEnd();

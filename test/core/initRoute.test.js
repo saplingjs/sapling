@@ -44,30 +44,34 @@ test('listens on post', t => {
 	t.true(t.context.app.routeStack.post.includes('/app'));
 });
 
-test.cb('runs handler with existent view', t => {
+test('runs handler with existent view', async t => {
 	t.plan(2);
 
-	t.context.app.server.get = async (route, handler) => {
-		const response = await handler(t.context.request, t.context.response);
+	return new Promise((resolve) => {
+		t.context.app.server.get = async (route, handler) => {
+			const response = await handler(t.context.request, t.context.response);
 
-		t.true(response instanceof Response);
-		t.not(response.content, '');
-		t.end();
-	};
+			t.true(response instanceof Response);
+			t.not(response.content, '');
+			resolve();
+		};
 
-	initRoute.call(t.context.app, '/app', 'index');
+		initRoute.call(t.context.app, '/app', 'index');
+	});
 });
 
-test.cb('returns error with non-existent view', t => {
+test('returns error with non-existent view', async t => {
 	t.plan(2);
 
-	t.context.app.server.get = async (route, handler) => {
-		const response = await handler(t.context.request, t.context.response);
+	return new Promise((resolve) => {
+		t.context.app.server.get = async (route, handler) => {
+			const response = await handler(t.context.request, t.context.response);
 
-		t.true(response instanceof Response);
-		t.true(response.error instanceof SaplingError);
-		t.end();
-	};
+			t.true(response instanceof Response);
+			t.true(response.error instanceof SaplingError);
+			resolve();
+		};
 
-	initRoute.call(t.context.app, '/app', 'nonexistent');
+		initRoute.call(t.context.app, '/app', 'nonexistent');
+	});
 });
