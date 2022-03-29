@@ -1,4 +1,4 @@
-name: "CodeQL"
+name: "Code quality"
 
 on:
   push:
@@ -10,7 +10,7 @@ on:
 
 jobs:
   analyze:
-    name: Analyse
+    name: Run analysis
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -30,6 +30,7 @@ jobs:
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v1
       with:
+        config-file: ./.github/codeql/codeql-config.yml
         languages: ${{ matrix.language }}
 
     - name: Perform CodeQL analysis
