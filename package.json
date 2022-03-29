@@ -135,6 +135,7 @@
     }
   },
   "ava": {
+    "workerThreads": false,
     "files": [
       "test/**/*",
       "!test/_utils",
