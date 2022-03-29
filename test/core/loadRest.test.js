@@ -39,51 +39,57 @@ test.beforeEach(async t => {
 });
 
 
-test.serial.cb('loads get endpoints', t => {
+test.serial('loads get endpoints', async t => {
 	t.plan(2);
 
-	t.notThrows(() => {
-		loadRest.call(t.context.app);
-	});
-
-	request(t.context.app.live)
-		.get('/data/posts')
-		.expect(200, (error, response) => {
-			t.is(response.status, 200);
-			t.end();
+	return new Promise((resolve) => {
+		t.notThrows(() => {
+			loadRest.call(t.context.app);
 		});
+
+		request(t.context.app.live)
+			.get('/data/posts')
+			.expect(200, (error, response) => {
+				t.is(response.status, 200);
+				resolve();
+			});
+	});
 });
 
-test.serial.cb('loads post endpoints', t => {
+test.serial('loads post endpoints', async t => {
 	t.plan(2);
 
-	t.notThrows(() => {
-		loadRest.call(t.context.app);
-	});
-
-	request(t.context.app.live)
-		.post('/data/posts')
-		.send('title=Hello')
-		.set('Accept', 'application/json')
-		.expect(200, (error, response) => {
-			t.is(response.status, 200);
-			t.end();
+	return new Promise((resolve) => {
+		t.notThrows(() => {
+			loadRest.call(t.context.app);
 		});
+
+		request(t.context.app.live)
+			.post('/data/posts')
+			.send('title=Hello')
+			.set('Accept', 'application/json')
+			.expect(200, (error, response) => {
+				t.is(response.status, 200);
+				resolve();
+			});
+	});
 });
 
-test.serial.cb('loads delete endpoints', t => {
+test.serial('loads delete endpoints', async t => {
 	t.plan(2);
 
-	t.notThrows(() => {
-		loadRest.call(t.context.app);
-	});
-
-	request(t.context.app.live)
-		.delete('/data/posts')
-		.end((error, response) => {
-			t.is(response.status, 200);
-			t.end();
+	return new Promise((resolve) => {
+		t.notThrows(() => {
+			loadRest.call(t.context.app);
 		});
+
+		request(t.context.app.live)
+			.delete('/data/posts')
+			.end((error, response) => {
+				t.is(response.status, 200);
+				resolve();
+			});
+	});
 });
 
 test.serial('calls callback when specified', async t => {

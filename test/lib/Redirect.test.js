@@ -38,88 +38,98 @@ test('does not redirect when no query string is passed', t => {
 	t.false(result);
 });
 
-test.cb('redirects when redirect query string is passed', t => {
+test('redirects when redirect query string is passed', async t => {
 	t.plan(2);
 
 	t.context.request.query.redirect = '/post';
 
-	const response = t.context.response();
+	return new Promise((resolve) => {
+		const response = t.context.response();
 
-	response.redirect = destination => {
-		t.is(destination, '/post');
-		t.end();
-		return response;
-	};
+		response.redirect = destination => {
+			t.is(destination, '/post');
+			resolve();
+			return response;
+		};
 
-	const result = (new Redirect(t.context.app, t.context.request, response)).do();
-	t.true(result);
+		const result = (new Redirect(t.context.app, t.context.request, response)).do();
+		t.true(result);
+	});
 });
 
-test.cb('redirects when goto query string is passed', t => {
+test('redirects when goto query string is passed', async t => {
 	t.plan(2);
 
 	t.context.request.query.goto = '/post';
 
-	const response = t.context.response();
+	return new Promise((resolve) => {
+		const response = t.context.response();
 
-	response.redirect = destination => {
-		t.is(destination, '/post');
-		t.end();
-		return response;
-	};
+		response.redirect = destination => {
+			t.is(destination, '/post');
+			resolve();
+			return response;
+		};
 
-	const result = (new Redirect(t.context.app, t.context.request, response)).do();
-	t.true(result);
+		const result = (new Redirect(t.context.app, t.context.request, response)).do();
+		t.true(result);
+	});
 });
 
-test.cb('prefers redirect over goto', t => {
+test('prefers redirect over goto', async t => {
 	t.plan(2);
 
 	t.context.request.query.redirect = '/post';
 	t.context.request.query.goto = '/update';
 
-	const response = t.context.response();
+	return new Promise((resolve) => {
+		const response = t.context.response();
 
-	response.redirect = destination => {
-		t.is(destination, '/post');
-		t.end();
-		return response;
-	};
+		response.redirect = destination => {
+			t.is(destination, '/post');
+			resolve();
+			return response;
+		};
 
-	const result = (new Redirect(t.context.app, t.context.request, response)).do();
-	t.true(result);
+		const result = (new Redirect(t.context.app, t.context.request, response)).do();
+		t.true(result);
+	});
 });
 
-test.cb('applies data to params', t => {
+test('applies data to params', async t => {
 	t.plan(2);
 
 	t.context.request.query.redirect = '/post/:_id';
 
-	const response = t.context.response();
+	return new Promise((resolve) => {
+		const response = t.context.response();
 
-	response.redirect = destination => {
-		t.is(destination, '/post/15');
-		t.end();
-		return response;
-	};
+		response.redirect = destination => {
+			t.is(destination, '/post/15');
+			resolve();
+			return response;
+		};
 
-	const result = (new Redirect(t.context.app, t.context.request, response, { _id: 15, title: 'Hello' })).do();
-	t.true(result);
+		const result = (new Redirect(t.context.app, t.context.request, response, { _id: 15, title: 'Hello' })).do();
+		t.true(result);
+	});
 });
 
-test.cb('applies an array of data to params', t => {
+test('applies an array of data to params', async t => {
 	t.plan(2);
 
 	t.context.request.query.redirect = '/post/:_id';
 
-	const response = t.context.response();
+	return new Promise((resolve) => {
+		const response = t.context.response();
 
-	response.redirect = destination => {
-		t.is(destination, '/post/15');
-		t.end();
-		return response;
-	};
+		response.redirect = destination => {
+			t.is(destination, '/post/15');
+			resolve();
+			return response;
+		};
 
-	const result = (new Redirect(t.context.app, t.context.request, response, [ { _id: 15, title: 'Hello' }, { _id: 20, title: 'Hi' } ])).do();
-	t.true(result);
+		const result = (new Redirect(t.context.app, t.context.request, response, [ { _id: 15, title: 'Hello' }, { _id: 20, title: 'Hi' } ])).do();
+		t.true(result);
+	});
 });

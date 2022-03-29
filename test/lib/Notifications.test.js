@@ -42,21 +42,23 @@ test.beforeEach(async t => {
 });
 
 
-test.cb('sends a notification', t => {
+test('sends a notification', async t => {
 	process.env.NODE_ENV = 'production';
 	t.timeout(1000);
 	t.plan(3);
 
 	setup(t, '0.0.0.0', 1025);
 
-	t.context.maildev.on('new', email => {
-		t.is(email.to[0].address, 'john@example.com');
-		t.is(email.subject, 'Forgotten Password');
-		t.end();
-	});
+	return new Promise((resolve) => {
+		t.context.maildev.on('new', email => {
+			t.is(email.to[0].address, 'john@example.com');
+			t.is(email.subject, 'Forgotten Password');
+			resolve();
+		});
 
-	t.notThrowsAsync(async () => {
-		await t.context.notifications.sendNotification('lostpass', t.context.templateData, 'john@example.com');
+		t.notThrowsAsync(async () => {
+			await t.context.notifications.sendNotification('lostpass', t.context.templateData, 'john@example.com');
+		});
 	});
 });
 

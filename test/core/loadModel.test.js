@@ -118,12 +118,16 @@ test('warns about a non-existant model path', async t => {
 	});
 });
 
-test.cb('executes callback', t => {
+test('executes callback', async t => {
+	t.plan(1);
+
 	t.context.app.config.modelsDir = 'test/_data/models/string';
 
-	loadModel.call(t.context.app, () => {
-		t.pass();
-		t.end();
+	return new Promise((resolve) => {
+		loadModel.call(t.context.app, () => {
+			t.pass();
+			resolve();
+		});
 	});
 });
 

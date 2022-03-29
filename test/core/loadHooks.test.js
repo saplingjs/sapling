@@ -112,10 +112,14 @@ test('throws error with mangled hooks file', async t => {
 	});
 });
 
-test.cb('executes callback', t => {
-	loadHooks.call(t.context.app, () => {
-		t.pass();
-		t.end();
+test('executes callback', async t => {
+	t.plan(1);
+
+	return new Promise((resolve) => {
+		loadHooks.call(t.context.app, () => {
+			t.pass();
+			resolve();
+		});
 	});
 });
 

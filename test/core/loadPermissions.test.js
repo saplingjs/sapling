@@ -201,10 +201,14 @@ test.serial('throws an error loading permissions with an missing object role def
 	})
 });
 
-test.cb('executes callback', t => {
-	loadPermissions.call(t.context.app, () => {
-		t.pass();
-		t.end();
+test('executes callback', async t => {
+	t.plan(1);
+
+	return new Promise((resolve) => {
+		loadPermissions.call(t.context.app, () => {
+			t.pass();
+			resolve();
+		});
 	});
 });
 
