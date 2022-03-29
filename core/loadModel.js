@@ -9,6 +9,7 @@ import path from 'node:path';
 import { console } from '../lib/Cluster.js';
 import SaplingError from '../lib/SaplingError.js';
 import Storage from '../lib/Storage.js';
+import Utils from '../lib/Utils.js';
 
 
 /**
@@ -17,12 +18,14 @@ import Storage from '../lib/Storage.js';
  * @returns {object} Schema
  */
 export async function digest() {
+	const utils = new Utils();
+
 	const modelPath = path.join(this.dir, this.config.modelsDir);
 	const schema = {};
 	let files = {};
 
 	/* Load all models in the model directory */
-	if (await this.utils.exists(modelPath)) {
+	if (await utils.exists(modelPath)) {
 		files = await fs.readdir(modelPath);
 	} else {
 		console.warn(`Models directory \`${modelPath}\` does not exist`);
