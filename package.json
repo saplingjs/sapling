@@ -61,7 +61,7 @@
     "eslint": "^8.1.0",
     "husky": "4.3.8",
     "lint-staged": ">=10",
-    "maildev": "github:maildev/maildev#v2.0.2",
+    "maildev": "^2.0.2",
     "mime-types": "^2.1.29",
     "strip-ansi": "^7.0.1",
     "supertest": "^6.1.3",
