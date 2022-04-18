@@ -41,7 +41,7 @@
     "front-matter": "^4.0.2",
     "image-size": "^1.0.0",
     "isobject": "^4.0.0",
-    "moment": "2.29.2",
+    "moment": "2.29.3",
     "morgan": "^1.9.1",
     "nodemailer": "6.7.3",
     "path-match": "^1.2.4",
