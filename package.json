@@ -48,7 +48,7 @@
     "regexparam": "^2.0.0",
     "sharp": "^0.30.3",
     "sirv": "^2.0.0",
-    "underscore": "1.13.2",
+    "underscore": "1.13.3",
     "unused-filename": "^4.0.0",
     "yargs": "^17.0.1"
   },
