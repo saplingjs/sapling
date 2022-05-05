@@ -33,7 +33,7 @@
     "chalk": "^5.0.0",
     "compression": "^1.7.4",
     "cookie-parser": "1.4.6",
-    "cron": "^1.7.1",
+    "cron": "^2.0.0",
     "csurf": "^1.11.0",
     "express-fileupload": "^1.2.1",
     "express-session": "1.17.2",
