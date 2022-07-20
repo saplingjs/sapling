@@ -13,6 +13,7 @@ import _ from 'underscore';
 
 import { console } from '../lib/Cluster.js';
 import SaplingError from '../lib/SaplingError.js';
+import Utils from '../lib/Utils.js';
 
 
 /**
@@ -24,6 +25,7 @@ export async function digest() {
 	let config = {};
 
 	const argv = yargs(hideBin(process.argv)).argv;
+	const utils = new Utils();
 
 	/* Default configuration values */
 	const defaultConfig = {
@@ -36,7 +38,7 @@ export async function digest() {
 		hooks: 'hooks.json',
 		permissions: 'permissions.json',
 		extension: 'html',
-		secret: this.utils.randString(),
+		secret: utils.randString(),
 		showError: true,
 		strict: false,
 		limit: 100,
@@ -54,7 +56,7 @@ export async function digest() {
 		mail: {
 			host: process.env.MAIL_HOST || '',
 			port: process.env.MAIL_PORT || 465,
-			secure: this.utils.trueBoolean(process.env.MAIL_TLS) || true,
+			secure: utils.trueBoolean(process.env.MAIL_TLS) || true,
 			auth: {
 				user: process.env.MAIL_USER,
 				pass: process.env.MAIL_PASS,
@@ -86,7 +88,7 @@ export async function digest() {
 	const configPath = path.join(this.dir, this.configFile || 'config.json');
 
 	/* Load the configuration */
-	if (await this.utils.exists(configPath)) {
+	if (await utils.exists(configPath)) {
 		/* If we have a config file, let's load it */
 		const file = await fs.readFile(configPath);
 
@@ -122,7 +124,7 @@ export async function digest() {
 		/* Check if there's a separate production config */
 		const prodConfigPath = path.join(this.dir, (this.configFile && this.configFile.replace('.json', `.${process.env.NODE_ENV}.json`)) || `config.${process.env.NODE_ENV}.json`);
 
-		if (await this.utils.exists(prodConfigPath)) {
+		if (await utils.exists(prodConfigPath)) {
 			/* If we have a config file, let's load it */
 			const file = await fs.readFile(prodConfigPath);
 

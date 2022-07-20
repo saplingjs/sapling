@@ -8,6 +8,7 @@ import path from 'node:path';
 
 import { console } from '../lib/Cluster.js';
 import Templating from '../lib/Templating.js';
+import Utils from '../lib/Utils.js';
 
 
 /**
@@ -18,16 +19,18 @@ import Templating from '../lib/Templating.js';
 export async function digest() {
 	let controller = {};
 
+	const utils = new Utils();
+
 	/* Generate a controller from the available views */
 	if ((this.config.autoRouting === 'on' || this.config.autoRouting === true) && this.config.viewsDir !== null) {
 		const viewsPath = path.join(this.dir, this.config.viewsDir);
 
-		if (await this.utils.exists(viewsPath)) {
+		if (await utils.exists(viewsPath)) {
 			const viewsLstat = await fs.lstat(viewsPath);
 
 			if (viewsLstat.isDirectory()) {
 				/* Load all views in the views directory */
-				const views = await this.utils.getFiles(viewsPath);
+				const views = await utils.getFiles(viewsPath);
 
 				/* Go through each view */
 				for (const view_ of views) {
@@ -68,7 +71,7 @@ export async function digest() {
 	const controllerPath = path.join(this.dir, this.config.routes || '');
 
 	/* Load the controller file */
-	if (await this.utils.exists(controllerPath)) {
+	if (await utils.exists(controllerPath)) {
 		const controllerLstat = await fs.lstat(controllerPath);
 
 		if (controllerLstat.isFile()) {

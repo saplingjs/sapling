@@ -9,6 +9,7 @@ import path from 'node:path';
 import { console } from '../lib/Cluster.js';
 import Response from '../lib/Response.js';
 import SaplingError from '../lib/SaplingError.js';
+import Utils from '../lib/Utils.js';
 
 
 /**
@@ -17,13 +18,15 @@ import SaplingError from '../lib/SaplingError.js';
  * @returns {object} Hooks
  */
 export async function digest() {
+	const utils = new Utils();
+
 	/* Location of the hooks file */
 	const hooksPath = path.join(this.dir, this.config.hooks);
 
 	const formattedHooks = {};
 
 	/* Load the hooks file */
-	if (await this.utils.exists(hooksPath)) {
+	if (await utils.exists(hooksPath)) {
 		/* If we have a hooks file, let's load it */
 		let file = null;
 		let hooks = {};
