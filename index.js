@@ -17,7 +17,8 @@ import path from 'node:path';
 import process from 'node:process';
 import chalk from 'chalk';
 import yargs from 'yargs';
-import { hideBin } from 'yargs/helpers.mjs';
+/* eslint-disable-next-line n/file-extension-in-import */
+import { hideBin } from 'yargs/helpers';
 
 import Utils from './lib/Utils.js';
 
