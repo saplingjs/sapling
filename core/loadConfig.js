@@ -7,8 +7,7 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import yargs from 'yargs';
-/* eslint-disable-next-line node/file-extension-in-import */
-import { hideBin } from 'yargs/helpers';
+import { hideBin } from 'yargs/helpers.mjs';
 import _ from 'underscore';
 
 import { console } from '../lib/Cluster.js';
