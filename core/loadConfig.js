@@ -7,7 +7,7 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import yargs from 'yargs';
-/* eslint-disable-next-line node/file-extension-in-import */
+/* eslint-disable-next-line n/file-extension-in-import */
 import { hideBin } from 'yargs/helpers';
 import _ from 'underscore';
 
