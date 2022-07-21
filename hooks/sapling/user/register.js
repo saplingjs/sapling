@@ -11,7 +11,7 @@ import { console } from '@sapling/sapling/lib/Cluster.js';
 import Hash from '@sapling/sapling/lib/Hash.js';
 import Redirect from '@sapling/sapling/lib/Redirect.js';
 import Response from '@sapling/sapling/lib/Response.js';
-import SaplingError from '@sapling/sapling/lib/SaplingError.js';
+import ValidationError from '../../../lib/ValidationError.js';
 
 
 /* Hook /api/user/register */
@@ -63,7 +63,7 @@ export default async function register(app, request, response) {
 	/* Show the above errors, if any */
 	const combinedErrors = [...errors, ...validation];
 	if (combinedErrors.length > 0) {
-		return new Response(app, request, response, new SaplingError(combinedErrors));
+		return new Response(app, request, response, new ValidationError(combinedErrors));
 	}
 
 	/* Hash the password, and add it to the request */
