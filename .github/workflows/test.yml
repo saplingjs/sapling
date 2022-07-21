@@ -7,6 +7,25 @@ on:
     branches: [ master ]
 
 jobs:
+  test-node-18:
+    name: Node.js v18
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run test
+        run: npm run test:report
+
+      - name: Report coverage
+        run: npm run test:send
+
   test-node-16:
     name: Node.js v16
     runs-on: ubuntu-latest
@@ -21,10 +40,7 @@ jobs:
         run: npm ci
 
       - name: Run test
-        run: npm run test:report
-
-      - name: Report coverage
-        run: npm run test:send
+        run: npm run test
 
   test-node-14:
     name: Node.js v14
