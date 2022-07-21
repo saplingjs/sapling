@@ -9,6 +9,7 @@ import path from 'node:path';
 import { console } from '../lib/Cluster.js';
 import Response from '../lib/Response.js';
 import SaplingError from '../lib/SaplingError.js';
+import UnauthorizedError from '../lib/UnauthorizedError.js';
 
 
 /**
@@ -96,7 +97,7 @@ export default async function loadPermissions(next) {
 				if (request.permission.redirect) {
 					response.redirect(request.permission.redirect);
 				} else {
-					return new Response(this, request, response, new SaplingError('You do not have permission to complete this action.'));
+					return new Response(this, request, response, new UnauthorizedError());
 				}
 			} else {
 				next();

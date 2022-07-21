@@ -9,14 +9,14 @@ import Hash from '@sapling/sapling/lib/Hash.js';
 
 import Redirect from '@sapling/sapling/lib/Redirect.js';
 import Response from '@sapling/sapling/lib/Response.js';
-import SaplingError from '@sapling/sapling/lib/SaplingError.js';
+import ValidationError from '@sapling/sapling/lib/ValidationError.js';
 
 
 /* Hook /api/user/recover */
 export default async function recover(app, request, response) {
 	/* If the new password has not been provided, throw error */
 	if (!request.body.new_password) {
-		return new Response(app, request, response, new SaplingError({
+		return new Response(app, request, response, new ValidationError({
 			status: '422',
 			code: '1001',
 			title: 'Invalid Input',
@@ -36,12 +36,12 @@ export default async function recover(app, request, response) {
 	}, response);
 
 	if (validation.length > 0) {
-		return new Response(app, request, response, new SaplingError(validation));
+		return new Response(app, request, response, new ValidationError(validation));
 	}
 
 	/* If the auth key has not been provided, throw error */
 	if (!request.body.auth) {
-		return new Response(app, request, response, new SaplingError({
+		return new Response(app, request, response, new ValidationError({
 			status: '422',
 			code: '1001',
 			title: 'Invalid Input',
@@ -61,7 +61,7 @@ export default async function recover(app, request, response) {
 
 	/* If the key has expired, show error */
 	if (Number.isNaN(diff) || diff <= 0) {
-		return new Response(app, request, response, new SaplingError({
+		return new Response(app, request, response, new ValidationError({
 			status: '401',
 			code: '4003',
 			title: 'Authkey Expired',
@@ -81,7 +81,7 @@ export default async function recover(app, request, response) {
 
 	/* If there is no such user */
 	if (!user) {
-		return new Response(app, request, response, new SaplingError({
+		return new Response(app, request, response, new ValidationError({
 			status: '401',
 			code: '4004',
 			title: 'Authkey Invalid',

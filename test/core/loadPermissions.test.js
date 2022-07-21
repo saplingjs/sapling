@@ -7,6 +7,7 @@ import Request from '../../lib/Request.js';
 import Response from '../../lib/Response.js';
 import SaplingError from '../../lib/SaplingError.js';
 import Storage from '../../lib/Storage.js';
+import UnauthorizedError from '../../lib/UnauthorizedError.js';
 import User from '../../lib/User.js';
 import parseMethodRouteKey from '../../core/parseMethodRouteKey.js';
 
@@ -101,7 +102,7 @@ test.serial('creates middleware', async t => {
 			const response = handler.call(t.context.app, t.context.request, t.context.response, () => true);
 
 			t.true(response instanceof Response);
-			t.is(response.error.message, 'You do not have permission to complete this action.');
+			t.true(response.error instanceof UnauthorizedError);
 		},
 
 		/* Creates post middleware that allows it continue when authorised */

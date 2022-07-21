@@ -10,14 +10,14 @@ import Hash from '@sapling/sapling/lib/Hash.js';
 
 import Redirect from '@sapling/sapling/lib/Redirect.js';
 import Response from '@sapling/sapling/lib/Response.js';
-import SaplingError from '@sapling/sapling/lib/SaplingError.js';
+import ValidationError from '@sapling/sapling/lib/ValidationError.js';
 
 
 /* Hook /api/user/update */
 export default async function update(app, request, response) {
 	/* If the user isn't logged in */
 	if (!request.session || !request.session.user) {
-		return new Response(app, request, response, new SaplingError({
+		return new Response(app, request, response, new ValidationError({
 			status: '401',
 			code: '4002',
 			title: 'Unauthorized',
@@ -31,7 +31,7 @@ export default async function update(app, request, response) {
 
 	/* If password isn't provided */
 	if (!request.body.password) {
-		return new Response(app, request, response, new SaplingError({
+		return new Response(app, request, response, new ValidationError({
 			status: '422',
 			code: '1001',
 			title: 'Invalid Input',
@@ -52,7 +52,7 @@ export default async function update(app, request, response) {
 		}, response);
 
 		if (validation.length > 0) {
-			return new Response(app, request, response, new SaplingError(validation));
+			return new Response(app, request, response, new ValidationError(validation));
 		}
 	}
 
@@ -84,7 +84,7 @@ export default async function update(app, request, response) {
 		delete request.body.new_password;
 	} else {
 		/* Throw error if password didn't match */
-		return new Response(app, request, response, new SaplingError({
+		return new Response(app, request, response, new ValidationError({
 			status: '422',
 			code: '1009',
 			title: 'Incorrect Password',

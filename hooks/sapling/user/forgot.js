@@ -11,6 +11,7 @@ import Redirect from '@sapling/sapling/lib/Redirect.js';
 import Response from '@sapling/sapling/lib/Response.js';
 import SaplingError from '@sapling/sapling/lib/SaplingError.js';
 import Validation from '@sapling/sapling/lib/Validation.js';
+import ValidationError from '@sapling/sapling/lib/ValidationError.js';
 
 
 /* Hook /api/user/forgot */
@@ -18,7 +19,7 @@ export default async function forgot(app, request, response) {
 	/* Check email for format */
 	const errors = new Validation().validate(request.body.email, 'email', { email: true, required: true });
 	if (errors.length > 0) {
-		return new Response(app, request, response, new SaplingError(errors));
+		return new Response(app, request, response, new ValidationError(errors));
 	}
 
 	/* Get authkey and identifiable from database */
