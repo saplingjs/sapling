@@ -142,6 +142,11 @@ export async function digest() {
 		/* Set immutable production vars */
 		config.strict = true;
 		config.showError = false;
+
+		/* Set verbose to false unless otherwise set */
+		if (!('verbose' in config)) {
+			config.verbose = false;
+		}
 	}
 
 	return config;
