@@ -10,6 +10,7 @@ import yargs from 'yargs';
 /* eslint-disable-next-line n/file-extension-in-import */
 import { hideBin } from 'yargs/helpers';
 import _ from 'underscore';
+import chalk from 'chalk';
 
 import { console } from '../lib/Cluster.js';
 import SaplingError from '../lib/SaplingError.js';
@@ -157,6 +158,8 @@ export default async function loadConfig(next) {
 	/* Digest config */
 	this.config = await digest.call(this);
 	console.log('CONFIG', this.config);
+	console.logAlways(this.config.production ? chalk.green('Production mode is ON') : chalk.yellow('Production mode is OFF'));
+	console.logAlways(this.config.strict ? chalk.green('Strict mode is ON') : chalk.yellow('Strict mode is OFF'));
 
 	/* Set the app name */
 	this.name = this.config.name;
