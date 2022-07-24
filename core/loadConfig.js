@@ -10,6 +10,7 @@ import yargs from 'yargs';
 /* eslint-disable-next-line n/file-extension-in-import */
 import { hideBin } from 'yargs/helpers';
 import _ from 'underscore';
+import chalk from 'chalk';
 
 import { console } from '../lib/Cluster.js';
 import SaplingError from '../lib/SaplingError.js';
@@ -141,6 +142,11 @@ export async function digest() {
 		/* Set immutable production vars */
 		config.strict = true;
 		config.showError = false;
+
+		/* Set verbose to false unless otherwise set */
+		if (!('verbose' in config)) {
+			config.verbose = false;
+		}
 	}
 
 	return config;
@@ -156,7 +162,14 @@ export async function digest() {
 export default async function loadConfig(next) {
 	/* Digest config */
 	this.config = await digest.call(this);
+
+	/* Set logging verbosity */
+	process.env.VERBOSE_LOGGING = ('verbose' in this.config) ? this.config.verbose : true;
+
+	/* Log config */
 	console.log('CONFIG', this.config);
+	console.logAlways(this.config.production ? chalk.green('Production mode is ON') : chalk.yellow('Production mode is OFF'));
+	console.logAlways(this.config.strict ? chalk.green('Strict mode is ON') : chalk.yellow('Strict mode is OFF'));
 
 	/* Set the app name */
 	this.name = this.config.name;
