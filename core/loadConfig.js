@@ -157,6 +157,11 @@ export async function digest() {
 export default async function loadConfig(next) {
 	/* Digest config */
 	this.config = await digest.call(this);
+
+	/* Set logging verbosity */
+	process.env.VERBOSE_LOGGING = ('verbose' in this.config) ? this.config.verbose : true;
+
+	/* Log config */
 	console.log('CONFIG', this.config);
 	console.logAlways(this.config.production ? chalk.green('Production mode is ON') : chalk.yellow('Production mode is OFF'));
 	console.logAlways(this.config.strict ? chalk.green('Strict mode is ON') : chalk.yellow('Strict mode is OFF'));
