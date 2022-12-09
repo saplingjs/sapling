@@ -46,7 +46,7 @@
     "nodemailer": "6.8.0",
     "path-match": "^1.2.4",
     "regexparam": "^2.0.0",
-    "sharp": "^0.30.3",
+    "sharp": "^0.31.2",
     "sirv": "^2.0.0",
     "underscore": "1.13.6",
     "unused-filename": "^4.0.0",
