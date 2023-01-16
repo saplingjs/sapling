@@ -1,7 +1,7 @@
 <p align="center"><a href="https://saplingjs.com" target="_blank" rel="noopener noreferrer"><img width="200" src="https://saplingjs.com/images/logo.svg" alt="Sapling logo"></a></p>
 
 <p align="center">
-  <a href="https://github.com/saplingjs/sapling/actions"><img src="https://img.shields.io/github/workflow/status/saplingjs/sapling/CI" alt="GitHub Workflow Status"></a>
+  <a href="https://github.com/saplingjs/sapling/actions"><img src="https://img.shields.io/github/actions/workflow/status/saplingjs/sapling/test.yml?branch=master" alt="GitHub Workflow Status"></a>
   <a href="https://app.codecov.io/gh/saplingjs/sapling"><img src="https://img.shields.io/codecov/c/gh/saplingjs/sapling?token=HAB7MZEQUC" alt="Codecov"></a>
   <a href="https://www.npmjs.com/package/@sapling/sapling"><img src="https://img.shields.io/npm/v/@sapling/sapling.svg?sanitize=true" alt="Version"></a>
   <a href="https://github.com/saplingjs/sapling/blob/master/LICENSE"><img src="https://img.shields.io/npm/l/@sapling/sapling.svg?sanitize=true" alt="License"></a>
