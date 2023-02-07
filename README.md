@@ -15,7 +15,7 @@ For the full documentation, go to [saplingjs.com/docs](https://saplingjs.com/doc
 
 ## Quick installation
 
-1. Make sure you have Node.js 12 or later.
+1. Make sure you have Node.js 14 or later.
 2. Run `npm i -g @sapling/cli && sapling create`
 
 ## Ecosystem
