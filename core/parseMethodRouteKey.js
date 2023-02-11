@@ -23,22 +23,25 @@ export default function parseMethodRouteKey(key) {
 
 	/* Behave differently based on the number of segments */
 	switch (parts.length) {
-		case 1:
+		case 1: {
 			/* Default to get */
 			object.method = 'get';
 			/* Assume the only part is the URL */
 			object.route = parts[0];
 			break;
+		}
 
-		case 2:
+		case 2: {
 			/* First part is the method: get, post, delete */
 			object.method = parts[0].toLowerCase();
 			/* Second part is the URL */
 			object.route = parts[1];
 			break;
+		}
 
-		default:
+		default: {
 			throw new SaplingError(`Problem parsing '${key}': too many segments`);
+		}
 	}
 
 	/* Remove any trailing slashes */
